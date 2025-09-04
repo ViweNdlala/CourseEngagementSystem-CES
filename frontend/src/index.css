@@ -1,0 +1,20 @@
+/* Styles to apply on whole of application*/
+
+/* GLOBAL STYLES */
+/* Zero out the margin and padding to all elements */
+* {
+  padding: 0;
+  margin: 0;
+}
+
+body{
+  margin: 0;
+  padding: 0;
+  font-family: "Open Sans", sans-serif;
+}
+
+
+
+
+
+

@@ -1,0 +1,77 @@
+/* CSS Styles for Login page */
+
+.login-page{
+    height: 100vh;
+    background-color: #295574;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.login-header{
+    color: white;
+    padding: 20px;
+}
+
+.login-header h1 .head-text{
+    color: white;
+    text-decoration: none;
+}
+
+.login-form-container{
+    background-color: white;
+    margin: 0 15%;
+    height: 80%;
+    width: 70%;
+}
+
+.login-welcome{
+    text-align:center;
+}
+
+.login-welcome h1{
+    padding-top: 10px;
+    color: #295574;
+}
+
+.login-welcome h2{
+    color: #d8a910;
+    margin-bottom: 20px;
+}
+
+.form-inputs{
+    /* border: 1px solid green; */
+    margin: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+.label-form{
+    /* border: 1px solid red; */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.login-input{
+    padding: 5px 10px;
+    border: 1px solid grey;
+    width: 50%;
+}
+
+.login-button{
+    /* border: 1px solid red; */
+    background-color: #295574;
+    color: white;
+    width: 50%;
+    padding: 10px 20px;
+    border-radius: 5px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 0;
+}

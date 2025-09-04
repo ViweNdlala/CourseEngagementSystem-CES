@@ -1,0 +1,22 @@
+.header{
+    background-color: #295574;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.logo{
+    background-color: red;
+}
+
+.course-name{
+    background-color: yellow;
+}
+
+.user-img{
+    background-color: green;
+}
+
+.notification-bell{
+    background-color: aqua;
+}
