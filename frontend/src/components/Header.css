@@ -1,4 +1,4 @@
-.header{
+/* .header{
     background-color: #295574;
     display: flex;
     flex-direction: row;
@@ -19,4 +19,33 @@
 
 .notification-bell{
     background-color: aqua;
+} */
+ .header {
+  height: 100px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 10px;
+  padding: 0 5px;
+  border: 1px solid black;
+  font-size: x-large;
+  background-color: #295574;
+  color: white;
+
 }
+
+.logo {
+  padding: 0 20px;
+  text-decoration: none;
+  color: white
+}
+
+.course {
+  place-self: center;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+

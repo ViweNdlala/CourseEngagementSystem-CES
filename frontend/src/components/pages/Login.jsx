@@ -1,14 +1,21 @@
 // Class to allow user login
 
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {useState, useEffect} from 'react';
 import axios from 'axios';
 import '../styles/Login.css';
+import "../Layout.css";
+
 
 
 // Login function: welcome page with login
 function Login(){
     const [users, setUsers] = useState([]);
+    const navigate = useNavigate();
+    const handleLogin = (e) => {
+        e.preventDefault();
+        navigate("/home");
+  };
 
     // Fetch user accounts from the backend
     useEffect( () =>{
@@ -39,7 +46,7 @@ function Login(){
                         <label className="password-label">Password</label>
                         <input className="login-input"></input>
                     </div>
-                    <button className="login-button">Login</button>
+                    <button className="login-button" onClick={handleLogin}>Login</button>
                 </div>
             </div>
             
