@@ -21,7 +21,7 @@ function Home() {
       <Header />
       <h1>Home</h1>
       <div className="course-blob">
-        <Link to="coursehome">CSC3003S</Link>
+        <Link to="/coursehome">CSC3003S</Link>
       </div>
     </div>
   );

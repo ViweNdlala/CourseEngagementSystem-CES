@@ -14,7 +14,7 @@ function Login(){
     const navigate = useNavigate();
     const handleLogin = (e) => {
         e.preventDefault();
-        navigate("/home");
+        navigate("home");
   };
 
     // Fetch user accounts from the backend
