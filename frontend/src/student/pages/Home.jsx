@@ -2,23 +2,21 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import "../styles/Home.css"; // adjust path if needed
-import "../../Header.css"
+import "../../components/Header.css"; // adjust path if needed Final\CourseEngagementSystem-CES\frontend\src\student\pages\Home.jsx
 
 function Header(){
   return(
     <header className="header">
       <Link className="logo">Mavix</Link>
-    </header>
 
     <div></div>
     <div className="header-right">
       <i className="bx bxs-user"></i>
       <i className="bx bxs-bell"></i>
     </div>
+    </header>
   )
 }
-
-export Header;
 
 export default function Home() {
   const [courses, setCourses] = useState([]);
@@ -36,10 +34,11 @@ export default function Home() {
   };
 
   return (
-    <div className="home-container">
+    <>
       <Header />
-      <main className="courses-wrap">
-        <h2 className="section-title">My Courses</h2>
+      <div className="home-container">
+        <main className="courses-wrap">
+          <h2 className="section-title">My Courses</h2>
 
         <div className="courses-grid">
           {courses.length > 0 ? (
@@ -62,5 +61,6 @@ export default function Home() {
         </div>
       </main>
     </div>
+    </>
   );
 }
