@@ -10,9 +10,11 @@ function Login(){
 
     // Variables
     const [users, setUsers] = useState([]);
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
+
 
     // Fetch user accounts from the backend
     useEffect( () =>{
@@ -21,6 +23,7 @@ function Login(){
             .then((res)=> setUsers(res.data))
             .catch((err) => alert(err));
     }, []);
+
 
     // Function to hadle the user login
     function handleLogin() {
@@ -33,19 +36,21 @@ function Login(){
         if(foundUser){
             // Direct user to home depending on role
             if(foundUser.role == "lecturer"){
-                alert("Lecturer Courses home page");
-                navigate("../lecturer/pages/Home");
+                navigate("/lecturer/home");
+                setEmail("");
+                setPassword("");
             }else{
                 setEmail("");
                 setPassword("");
-                navigate("../student/pages/Home");
+                navigate("/student/home");
             }
         }else{
-            alert("Invalid email or password");
+            alert("Invalid email or passoword!");
             setEmail("");
             setPassword("");
         }
     }
+
 
     return(
         <div className="login-page">
@@ -66,7 +71,7 @@ function Login(){
                             className="login-input" 
                             type="email"
                             value={email}
-                            placeholder="namesurname01@gmail.com"
+                            placeholder="Enter email"
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
@@ -76,11 +81,15 @@ function Login(){
                             className="login-input" 
                             type="password"
                             value={password}
-                            placeholder="password123"
+                            placeholder="Enter password"
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
+
+                    
+
                     <button className="login-button" onClick={handleLogin}>Login</button>
+
                 </div>
             </div>
         </div>
