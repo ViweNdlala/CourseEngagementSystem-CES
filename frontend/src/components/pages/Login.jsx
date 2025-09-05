@@ -9,7 +9,6 @@ import '../styles/Login.css';
 // Login function: welcome page with login
 function Login(){
     const [users, setUsers] = useState([]);
-
     // Fetch user accounts from the backend
     useEffect( () =>{
         axios
@@ -17,6 +16,7 @@ function Login(){
             .then((res)=> setUsers(res.data))
             .catch((err) => alert(err));
     }, []);
+
 
     return(
         <div className="login-page">
@@ -39,7 +39,11 @@ function Login(){
                         <label className="password-label">Password</label>
                         <input className="login-input"></input>
                     </div>
-                    <button className="login-button">Login</button>
+                    
+                    <Link to="/Home">
+                        <button className="login-button">Login</button>
+                    </Link>
+                    
                 </div>
             </div>
             
