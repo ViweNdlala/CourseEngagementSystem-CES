@@ -10,9 +10,11 @@ function Login(){
 
     // Variables
     const [users, setUsers] = useState([]);
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
+
 
     // Fetch user accounts from the backend
     useEffect( () =>{
@@ -21,6 +23,7 @@ function Login(){
             .then((res)=> setUsers(res.data))
             .catch((err) => alert(err));
     }, []);
+
 
     // Function to hadle the user login
     function handleLogin() {
@@ -33,17 +36,21 @@ function Login(){
         if(foundUser){
             // Direct user to home depending on role
             if(foundUser.role == "lecturer"){
-                navigate("../lecturer/pages/Home");
+                navigate("/lecturer/home");
+                setEmail("");
+                setPassword("");
             }else{
                 setEmail("");
                 setPassword("");
-                navigate("../student/pages/Home");
+                navigate("/student/home");
             }
         }else{
+            alert("Invalid email or passoword!");
             setEmail("");
             setPassword("");
         }
     }
+
 
     return(
         <div className="login-page">
@@ -78,7 +85,11 @@ function Login(){
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
+
+                    
+
                     <button className="login-button" onClick={handleLogin}>Login</button>
+
                 </div>
             </div>
         </div>
