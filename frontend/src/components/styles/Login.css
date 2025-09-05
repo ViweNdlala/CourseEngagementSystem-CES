@@ -5,73 +5,88 @@
     background-color: #295574;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 
 .login-header{
     color: white;
     padding: 20px;
+    outline: none;
 }
 
 .login-header h1 .head-text{
     color: white;
     text-decoration: none;
+    outline: none;
 }
 
-.login-form-container{
+.login-form-container {
     background-color: white;
-    margin: 0 15%;
-    height: 80%;
-    width: 70%;
-}
-
-.login-welcome{
-    text-align:center;
-}
-
-.login-welcome h1{
-    padding-top: 10px;
-    color: #295574;
-}
-
-.login-welcome h2{
-    color: #d8a910;
-    margin-bottom: 20px;
-}
-
-.form-inputs{
-    /* border: 1px solid green; */
-    margin: 0 20px;
+    width: 55%;
+    max-width: 400px;
+    padding: 40px 30px;
+    border-radius: 10px;
+    margin: 2rem auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    justify-content: center;
     align-items: center;
 }
 
-.label-form{
-    /* border: 1px solid red; */
+.login-welcome {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.login-welcome h1 {
+    color: #295574;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-welcome h2 {
+    color: #c58a09;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.form-inputs {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 1rem;
     width: 100%;
 }
 
-.login-input{
-    padding: 5px 10px;
-    border: 1px solid grey;
-    width: 50%;
+.label-form {
+    display: flex;
+    flex-direction: column;
 }
 
-.login-button{
-    /* border: 1px solid red; */
+.label-form label {
+    margin-bottom: 0.3rem;
+    color: #333;
+}
+
+.label-form .login-input {
+    padding: 0.7rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.label-form .login-input:focus{
+    border: 1px solid #295574;
+    outline: none;
+}
+
+.login-button {
     background-color: #295574;
     color: white;
-    width: 50%;
-    padding: 10px 20px;
-    border-radius: 5px;
-    outline: none;
+    font-weight: 600;
+    padding: 12px 0;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
-    margin-left: 0;
 }
+

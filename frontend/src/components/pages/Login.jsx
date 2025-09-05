@@ -1,6 +1,6 @@
 // Class to allow user login
 
-import {Link, useNavigate, BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {useState, useEffect} from 'react';
 import axios from 'axios';
 import '../styles/Login.css';
@@ -36,11 +36,14 @@ function Login(){
                 alert("Lecturer Courses home page");
                 navigate("../lecturer/pages/Home");
             }else{
-                alert("this user is a student");
+                setEmail("");
+                setPassword("");
                 navigate("../student/pages/Home");
             }
         }else{
             alert("Invalid email or password");
+            setEmail("");
+            setPassword("");
         }
     }
 
@@ -53,7 +56,7 @@ function Login(){
             <div className="login-form-container">
                 <div className="login-welcome">
                     <h1>Welcome to Mavix</h1>
-                    <h2>Make Learning More Engaging</h2>
+                    <h2>Where Every Lesson Comes Alive</h2>
                 </div>
 
                 <div className="form-inputs">
@@ -63,6 +66,7 @@ function Login(){
                             className="login-input" 
                             type="email"
                             value={email}
+                            placeholder="namesurname01@gmail.com"
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
@@ -72,26 +76,13 @@ function Login(){
                             className="login-input" 
                             type="password"
                             value={password}
+                            placeholder="password123"
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
                     <button className="login-button" onClick={handleLogin}>Login</button>
                 </div>
             </div>
-
-            {/* test connection with backend */}
-            {/* <div>
-                <h1>Test connection with backend</h1>
-                {users.map((user) =>(
-                    <div className='user'>
-                        <h2>ID: {user.id}</h2>
-                        <h2>Name: {user.name}</h2>
-                        <h2>Email: {user.email}</h2>
-                        <h2>Passoword: {user.password}</h2>
-                        <h2>Role: {user.role}</h2>
-                    </div>
-                ))}
-            </div> */}
         </div>
     );
 }
