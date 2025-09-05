@@ -10,7 +10,7 @@ class UserView(APIView):
     serializer_class = UserSerializer
     def get(self, request):
         user = [
-                {"name":user.name, "email": user.email, 
+                { "id":user.id, "name":user.name, "email": user.email, 
                  "password": user.password, "role": user.role}
 
                 for user in User.objects.all()

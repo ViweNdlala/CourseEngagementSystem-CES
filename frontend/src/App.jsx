@@ -4,17 +4,15 @@ import Home from './components/student/pages/Home';
 import Course from "./components/student/pages/Course";
 import './App.css';
 
+import LecturerHome from './lecturer/pages/Home';
+import StudentHome from './student/pages/Home';
+
 function App() {
   return(
     <Router>
-      {/* Navigation */}
-      
-
       {/* Routes */}
       <Routes>
         <Route path="/" element={<Login />}/>
-        <Route path="/Home" element={<Home />} />
-        <Route path="/course/:id" element={<Course />} />
       </Routes>
     </Router>
   );
