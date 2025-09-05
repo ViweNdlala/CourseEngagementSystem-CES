@@ -10,6 +10,7 @@ function Login(){
 
     // Variables
     const [users, setUsers] = useState([]);
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
@@ -21,6 +22,7 @@ function Login(){
             .then((res)=> setUsers(res.data))
             .catch((err) => alert(err));
     }, []);
+
 
     // Function to hadle the user login
     function handleLogin() {
@@ -44,6 +46,7 @@ function Login(){
             setPassword("");
         }
     }
+
 
     return(
         <div className="login-page">
@@ -78,7 +81,10 @@ function Login(){
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
+ 
+                    
                     <button className="login-button" onClick={handleLogin}>Login</button>
+
                 </div>
             </div>
         </div>
