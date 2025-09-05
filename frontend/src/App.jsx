@@ -7,20 +7,17 @@ import Home from './components/pages/Home';
 import Coursehome from './components/pages/CourseHome';
 import './App.css';
 
+import LecturerHome from './lecturer/pages/Home';
+import StudentHome from './student/pages/Home';
+
 function App() {
   return(
     <Router>
-      {/* Navigation */}
-      
-
       {/* Routes */}
       <Routes>
         <Route path="/" element={<Login />}/>
-        <Route path="home" element={<Home />}/>
-        <Route element={<Layout />}>
-          <Route path="coursehome" element={<Coursehome />}/>
-          {/* other pages will follow */}
-        </Route>
+        <Route path="/lecturer/pages/Home" element={<LecturerHome />} />
+        <Route path="/student/pages/Home" element={<StudentHome />} />
       </Routes>
     </Router>
   );
