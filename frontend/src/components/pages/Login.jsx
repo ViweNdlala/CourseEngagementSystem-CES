@@ -15,6 +15,7 @@ function Login(){
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
+
     // Fetch user accounts from the backend
     useEffect( () =>{
         axios
@@ -36,11 +37,11 @@ function Login(){
             // Direct user to home depending on role
             if(foundUser.role == "lecturer"){
                 alert("Lecturer Courses home page");
-                navigate("../lecturer/pages/Home");
+                navigate("/lecturer/home");
             }else{
                 setEmail("");
                 setPassword("");
-                navigate("../student/pages/Home");
+                navigate("/student/home");
             }
         }else{
             alert("Invalid email or password");
@@ -83,8 +84,9 @@ function Login(){
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
- 
+
                     
+
                     <button className="login-button" onClick={handleLogin}>Login</button>
 
                 </div>
