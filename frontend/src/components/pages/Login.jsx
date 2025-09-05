@@ -10,13 +10,11 @@ function Login(){
 
     // Variables
     const [users, setUsers] = useState([]);
-<<<<<<< HEAD
-=======
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
->>>>>>> eff1c13fb86b7b617102c3bcc3001038f266a752
     // Fetch user accounts from the backend
     useEffect( () =>{
         axios
@@ -25,8 +23,7 @@ function Login(){
             .catch((err) => alert(err));
     }, []);
 
-<<<<<<< HEAD
-=======
+
     // Function to hadle the user login
     function handleLogin() {
 
@@ -51,7 +48,7 @@ function Login(){
             setPassword("");
         }
     }
->>>>>>> eff1c13fb86b7b617102c3bcc3001038f266a752
+
 
     return(
         <div className="login-page">
@@ -86,15 +83,10 @@ function Login(){
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
-<<<<<<< HEAD
+ 
                     
-                    <Link to="/Home">
-                        <button className="login-button">Login</button>
-                    </Link>
-                    
-=======
                     <button className="login-button" onClick={handleLogin}>Login</button>
->>>>>>> eff1c13fb86b7b617102c3bcc3001038f266a752
+
                 </div>
             </div>
         </div>
