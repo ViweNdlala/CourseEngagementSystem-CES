@@ -33,7 +33,6 @@ function Login(){
         if(foundUser){
             // Direct user to home depending on role
             if(foundUser.role == "lecturer"){
-                alert("Lecturer Courses home page");
                 navigate("../lecturer/pages/Home");
             }else{
                 setEmail("");
@@ -41,7 +40,6 @@ function Login(){
                 navigate("../student/pages/Home");
             }
         }else{
-            alert("Invalid email or password");
             setEmail("");
             setPassword("");
         }
@@ -66,7 +64,7 @@ function Login(){
                             className="login-input" 
                             type="email"
                             value={email}
-                            placeholder="namesurname01@gmail.com"
+                            placeholder="Enter email"
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
@@ -76,7 +74,7 @@ function Login(){
                             className="login-input" 
                             type="password"
                             value={password}
-                            placeholder="password123"
+                            placeholder="Enter password"
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
