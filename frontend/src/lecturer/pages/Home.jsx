@@ -22,6 +22,9 @@ function LecCourses() {
     <div>
       <Header />
       <h1>This page is the lecturer Home page</h1>
+      <div className="course-blob">
+        <Link to="/lecturer/pages/coursehome">CSC3003S</Link>
+      </div>
     </div>
   );
 }

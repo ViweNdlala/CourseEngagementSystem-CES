@@ -22,6 +22,9 @@ function StuCourses() {
     <>
       <Header />
       <h1>This page is the Student Home page</h1>
+      <div className="course-blob">
+        <Link to="/student/pages/coursehome">CSC3003S</Link>
+      </div>
       
     </>
   );
