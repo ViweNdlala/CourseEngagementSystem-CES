@@ -2,7 +2,7 @@
 
 function StuCourses(){
     return(
-        <h1>This page is the lecutuer Home page</h1>
+        <h1>This page is the Student Home page</h1>
     );
 }
 
