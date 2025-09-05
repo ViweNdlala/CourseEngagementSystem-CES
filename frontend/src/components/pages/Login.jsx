@@ -36,14 +36,16 @@ function Login(){
         if(foundUser){
             // Direct user to home depending on role
             if(foundUser.role == "lecturer"){
-                alert("Lecturer Courses home page");
                 navigate("/lecturer/home");
+                setEmail("");
+                setPassword("");
             }else{
                 setEmail("");
                 setPassword("");
                 navigate("/student/home");
             }
         }else{
+            alert("Invalid email or passoword!");
             setEmail("");
             setPassword("");
         }
