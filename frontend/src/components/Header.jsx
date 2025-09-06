@@ -1,11 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useUser } from "../contexts/UserContext";
 import "./Header.css";
 
 function Header() {
+  const { getRoleBasedRoute, user } = useUser();
+
   return (
     <header className="header">
-      <Link className="logo" to="/coursehome">
+      <Link className="logo" to={getRoleBasedRoute("home")}>
         Mavix
       </Link>
 
