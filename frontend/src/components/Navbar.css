@@ -1,0 +1,22 @@
+.navbar {
+  padding: 1rem;
+  background-color: #295574;
+  
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  font-size: large;
+}
+
+.nav-list a {
+  text-decoration: none;
+  color: white;
+}
+.nav-list a:hover {
+  text-decoration: underline;
+}
