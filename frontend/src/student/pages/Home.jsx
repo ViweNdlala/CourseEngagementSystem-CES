@@ -1,3 +1,4 @@
+
 import '../styles/Home.css';
 import { useEffect, useState } from "react";
 import { useNavigate , Link } from "react-router-dom";
@@ -82,13 +83,16 @@ function StudentHome() {
   if (!student) return <p>No student logged in</p>;
 
   return (
+
    <>
       <Header />
       <div className="courses-container">
+    
         <main className="courses-wrap">
           <h2 className="section-title">My Courses</h2>
 
           <div className="courses-grid">
+
             {enrolledCourses.length > 0 ? (
               enrolledCourses.map((c) => (
                 <div
@@ -99,11 +103,14 @@ function StudentHome() {
                   <div className="course-info">
                     <h3>{c.title}</h3>
                     <p>{c.description}</p>
+
                   </div>
                 </div>
               ))
             ) : (
+
               <p>You are not enrolled in any courses.</p>
+
             )}
           </div>
         </main>

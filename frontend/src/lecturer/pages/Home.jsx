@@ -1,3 +1,4 @@
+
 // src/pages/LecturerHome.jsx
 import '../styles/Home.css';
 import { useEffect, useState } from "react";
@@ -6,6 +7,7 @@ import { useUser } from "../../contexts/UserContext";
 
 import "../../components/Header.css"; // adjust path if needed Final\CourseEngagementSystem-CES\frontend\src\student\pages\Home.jsx
 import axios from "axios";
+
 
 
 
@@ -78,29 +80,33 @@ function LecturerHome() {
       <div className="home-container">
         <main className="courses-wrap">
           <h2 className="section-title">My Courses</h2>
-
           <div className="courses-grid">
             {courses.length > 0 ? (
               courses.map((c) => (
                 <div
                   key={c.id}
                   className="course-card"
+
                   onClick={() => navigate(`/lecturer/courses/${c.id}`)}
                 >
                   <div className="course-info">
                     <h3>{c.title}</h3>
                     <p>{c.description}</p>
+
                   </div>
                 </div>
               ))
             ) : (
-              <p>You are not teaching any courses.</p>
+
+              <p>You are not teaching any courses.</p>          
             )}
           </div>
         </main>
       </div>
     </>
+
      
+
   );
 }
 

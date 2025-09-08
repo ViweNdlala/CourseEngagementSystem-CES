@@ -53,51 +53,55 @@ function Login(){
             setEmail("");
             setPassword("");
         }
+
     }
+  }
 
+  return (
+    <div className="login-page">
+      <div className="login-header">
+        <h1>
+          <Link className="head-text" to="/">
+            Mavix
+          </Link>
+        </h1>
+      </div>
 
-    return(
-        <div className="login-page">
-            <div className="login-header">
-                <h1><Link className="head-text"to="/">Mavix</Link></h1>
-            </div>
-
-            <div className="login-form-container">
-                <div className="login-welcome">
-                    <h1>Welcome to Mavix</h1>
-                    <h2>Where Every Lesson Comes Alive</h2>
-                </div>
-
-                <div className="form-inputs">
-                    <div className="label-form">
-                        <label className="email-label">Email</label>
-                        <input 
-                            className="login-input" 
-                            type="email"
-                            value={email}
-                            placeholder="Enter email"
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
-                    <div className="label-form">
-                        <label className="password-label">Password</label>
-                        <input 
-                            className="login-input" 
-                            type="password"
-                            value={password}
-                            placeholder="Enter password"
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
-
-                    
-
-                    <button className="login-button" onClick={handleLogin}>Login</button>
-
-                </div>
-            </div>
+      <div className="login-form-container">
+        <div className="login-welcome">
+          <h1>Welcome to Mavix</h1>
+          <h2>Where Every Lesson Comes Alive</h2>
         </div>
-    );
+
+        <div className="form-inputs">
+          <div className="label-form">
+            <label className="email-label">Email</label>
+            <input
+              className="login-input"
+              type="email"
+              value={email}
+              placeholder="Enter email"
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="label-form">
+            <label className="password-label">Password</label>
+            <input
+              className="login-input"
+              type="password"
+              value={password}
+              placeholder="Enter password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button className="login-button" onClick={handleLogin}>
+            Login
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default Login;

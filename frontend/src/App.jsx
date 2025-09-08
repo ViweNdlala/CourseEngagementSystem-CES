@@ -1,3 +1,4 @@
+
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Login from './components/pages/Login';
 import { useState } from "react";
@@ -45,8 +46,10 @@ function App() {
             <Route path="/student/attendance" element={<StudentAttendance />} />
             <Route path="/student/quizzes" element={<StudentQuizzes />} />
             <Route path="/student/polls" element={<StudentPolls />} />
-            <Route path="/student/points" element={<StudentPoints />} />
+            <Route path="/student/points" element={<StudentPoints />} /
             <Route path="/student/preparation" element={<StudentPreparation />} />
+
+
             {/* Lecturer routes */}
             <Route
               path="/lecturer/coursehome"
@@ -63,9 +66,7 @@ function App() {
             <Route path="/lecturer/quizzes" element={<LecturerQuizzes />} />
             <Route path="/lecturer/polls" element={<LecturerPolls />} />
             <Route path="/lecturer/points" element={<LecturerPoints />} />
-
           </Route>
-
         </Routes>
       </Router>
     </UserProvider>
