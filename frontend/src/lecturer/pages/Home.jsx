@@ -1,48 +1,112 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// src/pages/LecturerHome.jsx
+import '../styles/Home.css';
+import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useUser } from "../../contexts/UserContext";
+
+import "../../components/Header.css"; // adjust path if needed Final\CourseEngagementSystem-CES\frontend\src\student\pages\Home.jsx
 import axios from "axios";
-import "../styles/Home.css"; // adjust path if needed
 
-export default function Home() {
-  const [courses, setCourses] = useState([]);
-  const navigate = useNavigate(); // hook to navigate programmatically
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:8000/courses/")
-      .then((res) => setCourses(res.data.courses))
-      .catch((err) => console.error(err));
-  }, []);
 
-  const goToCourse = (id) => {
-    navigate(`/course/${id}`); // navigate to the course page
+function Header() {
+  const { getRoleBasedRoute, user, logout } = useUser();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
   };
 
   return (
-    <div className="home-container">
-      <main className="courses-wrap">
-        <h2 className="section-title">lecturer My Courses</h2>
-
-        <div className="courses-grid">
-          {courses.length > 0 ? (
-            courses.map((c) => (
-              <div
-                key={c.id}
-                className="course-card"
-                onClick={() => goToCourse(c.id)} // navigate on click
-              >
-                <div className="course-info">
-                  <h3>{c.name}</h3>
-                  <p>{c.description}</p>
-                  <p><strong>Location:</strong> {c.location}</p>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No courses found.</p>
-          )}
+    <header className="header">
+      <div className="header-left">
+        <div className="user-menu">
+          <button className="user-icon-btn">
+            <i className="bx bxs-user"></i>
+          </button>
+          <span>Hi, {user?.name}</span>
+          <div className="user-dropdown">
+            <button className="logout-btn" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+
+      <Link className="logo" to={getRoleBasedRoute("home")}>
+        Welcome to Mavix
+      </Link>
+
+      <div className="header-right">
+        <i className="bx bxs-bell"></i>
+      </div>
+    </header>
+  )
+
+}
+
+function LecturerHome() {
+  const [courses, setCourses] = useState([]);
+  const [lecturer, setLecturer] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (loggedInUser && loggedInUser.role === "lecturer") {
+      setLecturer(loggedInUser);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (lecturer) {
+      axios
+        .get("http://localhost:8000/courses/")
+        .then((res) => {
+          const myCourses = res.data.filter((c) => c.lecturer === lecturer.id);
+          setCourses(myCourses);
+        })
+        .catch((err) => console.log(err));
+    }
+  }, [lecturer]);
+
+  if (!lecturer) return <p>No lecturer logged in</p>;
+
+  return (
+    <>
+      <Header />
+      <div className="home-container">
+        <main className="courses-wrap">
+          <h2 className="section-title">My Courses</h2>
+
+          <div className="courses-grid">
+            {courses.length > 0 ? (
+              courses.map((c) => (
+                <div
+                  key={c.id}
+                  className="course-card"
+                  onClick={() => navigate(`/lecturer/courses/${c.id}`)}
+                >
+                  <div className="course-info">
+                    <h3>{c.title}</h3>
+                    <p>{c.description}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>You are not teaching any courses.</p>
+            )}
+          </div>
+        </main>
+      </div>
+    </>
+     
   );
 }
+
+export default LecturerHome;
+
+
+
+
+

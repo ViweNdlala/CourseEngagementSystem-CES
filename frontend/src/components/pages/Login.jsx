@@ -4,6 +4,7 @@ import {Link, useNavigate} from 'react-router-dom';
 import {useState, useEffect} from 'react';
 import axios from 'axios';
 import '../styles/Login.css';
+import { useUser } from '../../contexts/UserContext';
 
 // Login function: welcome page with login
 function Login(){
@@ -14,6 +15,7 @@ function Login(){
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
+    const {login} = useUser();
 
 
     // Fetch user accounts from the backend
@@ -34,6 +36,8 @@ function Login(){
         });
 
         if(foundUser){
+            login(foundUser);
+            localStorage.setItem("loggedInUser", JSON.stringify(foundUser));
             // Direct user to home depending on role
             if(foundUser.role == "lecturer"){
                 navigate("/lecturer/home");
