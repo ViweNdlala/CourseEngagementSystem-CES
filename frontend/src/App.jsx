@@ -46,7 +46,7 @@ function App() {
             <Route path="/student/attendance" element={<StudentAttendance />} />
             <Route path="/student/quizzes" element={<StudentQuizzes />} />
             <Route path="/student/polls" element={<StudentPolls />} />
-            <Route path="/student/points" element={<StudentPoints />} /
+            <Route path="/student/points" element={<StudentPoints />} />
             <Route path="/student/preparation" element={<StudentPreparation />} />
 
 
