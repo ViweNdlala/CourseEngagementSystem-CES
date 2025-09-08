@@ -1,10 +1,48 @@
+/* Modern Layout Styles */
+.app-shell {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .app-body {
   display: flex;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 150px);
+  gap: 2rem;
+  padding: 1rem;
+  background: transparent;
 }
 
 .main-content {
   flex: 1;
-  padding: 20px;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 
+    0 10px 30px rgba(41, 85, 116, 0.1),
+    0 4px 8px rgba(41, 85, 116, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.main-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #295574, #3a6b8a, #4b7fa0);
+  border-radius: 20px 20px 0 0;
+}
+
+.main-content:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 15px 40px rgba(41, 85, 116, 0.15),
+    0 8px 16px rgba(41, 85, 116, 0.08);
 }

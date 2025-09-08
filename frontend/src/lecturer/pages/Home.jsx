@@ -16,25 +16,25 @@ function Header() {
 
   return (
     <header className="header">
-      <Link className="logo" to={getRoleBasedRoute("home")}>
-        Mavix
-      </Link>
-
-      <div></div>
-      <div className="header-right">
+      <div className="header-left">
         <div className="user-menu">
           <button className="user-icon-btn">
             <i className="bx bxs-user"></i>
           </button>
+          <span>Hi, {user?.name}</span>
           <div className="user-dropdown">
-            <div className="user-info">
-              <span className="user-name">Hello {user?.name}</span>
-            </div>
             <button className="logout-btn" onClick={handleLogout}>
               Logout
             </button>
           </div>
         </div>
+      </div>
+
+      <Link className="logo" to={getRoleBasedRoute("home")}>
+        Welcome to Mavix
+      </Link>
+
+      <div className="header-right">
         <i className="bx bxs-bell"></i>
       </div>
     </header>

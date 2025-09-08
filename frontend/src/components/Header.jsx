@@ -24,11 +24,8 @@ function Header() {
         <div className="user-menu">
           <button className="user-icon-btn">
             <i className="bx bxs-user"></i>
-          </button>
+          </button>Hi, {user?.name}
           <div className="user-dropdown">
-            <div className="user-info">
-              <span className="user-name">Hello {user?.name}</span>
-            </div>
             <button className="logout-btn" onClick={handleLogout}>
               Logout
             </button>
