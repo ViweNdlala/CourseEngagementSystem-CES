@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 # from django.conf.urls import url
 from accounts.views import UserView
-from courses.views import CourseView , CourseDetailView
+from courses.views import CourseView , EnrollmentView ,CourseDetailView
+
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', UserView.as_view(), name = "user"),
-    path('courses/', CourseView.as_view(), name="courses"),
+    path('courses/', CourseView.as_view(), name='courses'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
+    path('enrollments/', EnrollmentView.as_view(), name='enroll-student'), 
 ]
