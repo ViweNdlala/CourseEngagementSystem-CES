@@ -1,53 +1,59 @@
 // Class to allow user login
 
-import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { useUser } from "../../contexts/UserContext";
-import "../styles/Login.css";
+import {Link, useNavigate} from 'react-router-dom';
+import {useState, useEffect} from 'react';
+import axios from 'axios';
+import '../styles/Login.css';
+import { useUser } from '../../contexts/UserContext';
 
 // Login function: welcome page with login
-function Login() {
-  // Variables
-  const [users, setUsers] = useState([]);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate();
-  const { login } = useUser();
+function Login(){
 
-  // Fetch user accounts from the backend
-  useEffect(() => {
-    axios
-      .get("http://localhost:8000")
-      .then((res) => setUsers(res.data))
-      .catch((err) => alert(err));
-  }, []);
+    // Variables
+    const [users, setUsers] = useState([]);
 
-  // Function to hadle the user login
-  function handleLogin() {
-    // Look for user with entered email and password
-    const foundUser = users.find((user) => {
-      return user.email === email && user.password === password;
-    });
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const navigate = useNavigate();
+    const {login} = useUser();
 
-    if (foundUser) {
-      // Store user in context
-      login(foundUser);
 
-      // Direct user to home depending on role
-      if (foundUser.role == "lecturer") {
-        navigate("/lecturer/home");
-        setEmail("");
-        setPassword("");
-      } else {
-        setEmail("");
-        setPassword("");
-        navigate("/student/home");
-      }
-    } else {
-      alert("Invalid email or passoword!");
-      setEmail("");
-      setPassword("");
+    // Fetch user accounts from the backend
+    useEffect( () =>{
+        axios
+            .get("http://localhost:8000")
+            .then((res)=> setUsers(res.data))
+            .catch((err) => alert(err));
+    }, []);
+
+
+    // Function to hadle the user login
+    function handleLogin() {
+
+        // Look for user with entered email and password
+        const foundUser = users.find((user) => {
+            return user.email === email && user.password === password;
+        });
+
+        if(foundUser){
+            login(foundUser);
+            localStorage.setItem("loggedInUser", JSON.stringify(foundUser));
+            // Direct user to home depending on role
+            if(foundUser.role == "lecturer"){
+                navigate("/lecturer/home");
+                setEmail("");
+                setPassword("");
+            }else{
+                setEmail("");
+                setPassword("");
+                navigate("/student/home");
+            }
+        }else{
+            alert("Invalid email or passoword!");
+            setEmail("");
+            setPassword("");
+        }
+
     }
   }
 

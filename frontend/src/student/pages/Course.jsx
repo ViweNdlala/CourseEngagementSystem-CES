@@ -1,25 +1,38 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+// src/pages/student/StudentCourseHome.jsx
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-export default function Course() {
-  const { id } = useParams(); // get course id from URL
+function StudentCourseHome() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+    useEffect(() => {
     axios
       .get(`http://localhost:8000/courses/${id}/`)
       .then((res) => setCourse(res.data))
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error("Failed getting course:", err);
+        setCourse(null);
+      })
+      .finally(() => setLoading(false));
   }, [id]);
 
-  if (!course) return <p>Loading course...</p>;
+  if (loading) return <p>Loading course...</p>;
+  if (!course) return <p>Course not found.</p>;
 
   return (
     <div>
-      <h1>{course.name}</h1>
+      <h1>{course.title}</h1>
       <p>{course.description}</p>
-      <p><strong>Location:</strong> {course.location}</p>
+
+      {/* Later: show assignments, resources, etc. */}
+      <button onClick={() => navigate(-1)}>← Back</button>
     </div>
   );
 }
+
+export default StudentCourseHome;
+

@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+
+import '../styles/Home.css';
+import { useEffect, useState } from "react";
+import { useNavigate , Link } from "react-router-dom";
+
 import { useUser } from "../../contexts/UserContext";
-import "../styles/Home.css"; // adjust path if needed
+
 import "../../components/Header.css"; // adjust path if needed Final\CourseEngagementSystem-CES\frontend\src\student\pages\Home.jsx
+import axios from "axios";
+
 
 function Header() {
   const { getRoleBasedRoute, user, logout } = useUser();
@@ -39,49 +43,74 @@ function Header() {
       </div>
     </header>
   );
-}
+} 
 
-export default function Home() {
-  const [courses, setCourses] = useState([]);
-  const navigate = useNavigate(); // hook to navigate programmatically
+function StudentHome() {
+  const [student, setStudent] = useState(null);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [allCourses, setAllCourses] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (loggedInUser && loggedInUser.role === "student") {
+      setStudent(loggedInUser);
+    }
+
     axios
       .get("http://localhost:8000/courses/")
-      .then((res) => setCourses(res.data.courses))
-      .catch((err) => console.error(err));
+      .then((res) => setAllCourses(res.data))
+      .catch((err) => console.log(err));
   }, []);
 
-  const goToCourse = (id) => {
-    navigate(`/course/${id}`); // navigate to the course page
-  };
+  useEffect(() => {
+    if (student) {
+      axios
+        .get("http://localhost:8000/enrollments/")
+        .then((res) => {
+          const myEnrollmentIds = res.data
+            .filter((e) => e.student === student.id)
+            .map((e) => e.course);
+          const myCourses = allCourses.filter((c) =>
+            myEnrollmentIds.includes(c.id)
+          );
+          setEnrolledCourses(myCourses);
+        })
+        .catch((err) => console.log(err));
+    }
+  }, [student, allCourses]);
+
+  if (!student) return <p>No student logged in</p>;
 
   return (
-    <>
+
+   <>
       <Header />
-      <div className="home-container">
+      <div className="courses-container">
+    
         <main className="courses-wrap">
           <h2 className="section-title">My Courses</h2>
 
           <div className="courses-grid">
-            {courses.length > 0 ? (
-              courses.map((c) => (
+
+            {enrolledCourses.length > 0 ? (
+              enrolledCourses.map((c) => (
                 <div
                   key={c.id}
                   className="course-card"
-                  onClick={() => goToCourse(c.id)} // navigate on click
+                  onClick={() => navigate(`/student/courses/${c.id}`)}
                 >
                   <div className="course-info">
-                    <h3>{c.name}</h3>
+                    <h3>{c.title}</h3>
                     <p>{c.description}</p>
-                    <p>
-                      <strong>Location:</strong> {c.location}
-                    </p>
+
                   </div>
                 </div>
               ))
             ) : (
-              <p>No courses found.</p>
+
+              <p>You are not enrolled in any courses.</p>
+
             )}
           </div>
         </main>
@@ -89,3 +118,9 @@ export default function Home() {
     </>
   );
 }
+
+export default StudentHome;
+
+
+
+

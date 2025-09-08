@@ -1,51 +1,84 @@
-/* Reset */
-* { box-sizing: border-box; }
-body { margin: 0; font-family: Arial, Helvetica, sans-serif; }
+/* Home.css */
 
-/* Container */
-.courses-container {
+/* Main container for the page */
+.home-container {
+  padding: 2rem;
+  background-color: #f5f7fa;
   min-height: 100vh;
-  background: #fff;
+  display: flex;
+  justify-content: center; /* center the main content horizontally */
 }
 
-/* Wrapper */
+/* Wrapper around courses section */
 .courses-wrap {
-  width: min(1200px, 92vw);
-  margin: 36px auto;
+  width: 100%;
+  max-width: 1200px; /* keeps grid from being too wide */
+  margin: 0 auto;     /* centers the wrapper */
+  padding: 0 1rem;    /* optional side padding */
 }
 
 /* Section title */
 .section-title {
+  margin-top: 2rem;
   text-align: center;
-  color: #295574;
-  font-size: 1.8rem;
-  margin-bottom: 24px;
+  color: #295474; /* blue title */
+  font-size: 2rem;
+  margin-bottom: 2rem;
   font-weight: bold;
 }
 
-/* Grid layout */
+/* Courses grid - 3 per row */
 .courses-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(3, 1fr); /* exactly 3 columns */
+  gap: 1.5rem;
 }
 
-/* Course card */
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .courses-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 per row on medium screens */
+  }
+}
+
+@media (max-width: 600px) {
+  .courses-grid {
+    grid-template-columns: 1fr; /* 1 per row on small screens */
+  }
+}
+
+/* Individual course card */
 .course-card {
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 16px;
-  background: #f9f9f9;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+  width: 100%;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  height: 250px; /* adjust this value to increase/decrease card height */
 }
 
+.course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+/* Course info inside card */
 .course-info h3 {
-  margin: 0 0 8px;
-  color: #295574;
-  font-size: 1.2rem;
+  color: #295474; /* blue title */
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .course-info p {
-  margin: 4px 0;
-  color: #333;
-  font-size: 0.95rem;
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.4;
+  flex-grow: 1; /* makes descriptions stretch to fill card height */
 }
+
+
+
