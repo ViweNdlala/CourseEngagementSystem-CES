@@ -87,7 +87,7 @@ function LecturerHome() {
                   key={c.id}
                   className="course-card"
 
-                  onClick={() => navigate(`/lecturer/courses/${c.id}`)}
+                  onClick={() => navigate(`/lecturer/courses/${c.id}/coursehome`)}
                 >
                   <div className="course-info">
                     <h3>{c.title}</h3>

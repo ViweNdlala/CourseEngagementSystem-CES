@@ -1,10 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { useCourse } from "../../contexts/CourseContext";
+import axios from "axios";
 
 export default function Preparation() {
-  return (
-    <>
-      <h1>Student Preparation</h1>
-      <p>This is the student preparation page where students can access course materials and prepare for upcoming sessions.</p>
-    </>
-  );
+  const { id } = useParams();
+  const { currentCourse, selectCourse } = useCourse();
+  const [course, setCourse] = useState(currentCourse);
+  const [loading, setLoading] = useState(!currentCourse);
+
+  useEffect(() => {
+    if (!currentCourse && id) {
+      axios
+        .get(`http://localhost:8000/courses/${id}/`)
+        .then((res) => {
+          setCourse(res.data);
+          selectCourse(res.data);
+        })
+        .catch((err) => console.error("Failed to fetch course:", err))
+        .finally(() => setLoading(false));
+    }
+  }, [id, currentCourse, selectCourse]);
+
+  if (loading) return <p>Loading course preparation...</p>;
+  if (!course) return <p>Course not found.</p>;
+
+  return <h1>Preparation for {course.title}</h1>;
 }
