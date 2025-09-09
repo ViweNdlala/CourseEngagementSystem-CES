@@ -1,41 +1,89 @@
 from django.shortcuts import render
 # courses/views.py
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import Course
-from .serializer import CourseSerializer
+from rest_framework.generics import RetrieveAPIView
 
-#APIView for courses
+
+#APIView for course
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Course, Enrollment
+from .serializer import CourseSerializer, EnrollmentSerializer
+from accounts.models import User
+
+# Course view
 class CourseView(APIView):
     serializer_class = CourseSerializer
 
-    # GET   list all courses
     def get(self, request):
-        courses = [
+        #GET /courses/
+        #Returns all courses with lecturer id
+
+        courses = Course.objects.all()
+        data = [
             {
                 "id": course.id,
-                "name": course.name,
+                "title": course.title,
                 "description": course.description,
-                "location": course.location
+                "lecturer": course.lecturer.id
             }
-            for course in Course.objects.all()
+            for course in courses
         ]
-        return Response({"courses": courses})
+        return Response(data)
 
-    # POST   create a new course
     def post(self, request):
+        #POST /courses/
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
+            lecturer = serializer.validated_data['lecturer']
+            if lecturer.role != "lecturer":
+                return Response({"error": "Only lecturers can create courses"}, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
-            return Response(serializer.data)
-        
-class CourseDetailView(APIView):
-    def get(self, request, pk):
-        try:
-            course = Course.objects.get(pk=pk)
-            serializer = CourseSerializer(course)
-            return Response(serializer.data)
-        except Course.DoesNotExist:
-            return Response({"error": "Course not found"}, status=404)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-# Create your views here.
+# Enrollment view
+class EnrollmentView(APIView):
+    serializer_class = EnrollmentSerializer
+
+    def get(self, request):
+
+        #GET /enrollments/
+        #Returns all enrollments
+        
+        enrollments = Enrollment.objects.all()
+        data = [
+            {
+                "id": e.id,
+                "student": e.student.id,
+                "course": e.course.id
+            }
+            for e in enrollments
+        ]
+        return Response(data)
+
+    def post(self, request):
+
+        #POST /enrollments/
+        #Enroll a student in a course
+
+        serializer = EnrollmentSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            student = serializer.validated_data['student']
+
+            if student.role != "student":
+                return Response({"error": "Only students can enroll"}, status=status.HTTP_400_BAD_REQUEST)
+
+            course = serializer.validated_data['course']
+
+            if Enrollment.objects.filter(student=student, course=course).exists():
+                return Response({"error": "Student already enrolled in this course"}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+
+class CourseDetailView(RetrieveAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
