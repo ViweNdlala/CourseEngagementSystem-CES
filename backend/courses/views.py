@@ -38,7 +38,7 @@ class CourseView(APIView):
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             lecturer = serializer.validated_data['lecturer']
-            if User.role != "lecturer":
+            if lecturer.role != "lecturer":
                 return Response({"error": "Only lecturers can create courses"}, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -72,7 +72,7 @@ class EnrollmentView(APIView):
         if serializer.is_valid(raise_exception=True):
             student = serializer.validated_data['student']
 
-            if User.role != "student":
+            if student.role != "student":
                 return Response({"error": "Only students can enroll"}, status=status.HTTP_400_BAD_REQUEST)
 
             course = serializer.validated_data['course']
