@@ -1,3 +1,5 @@
+/* This manages the current course state across the app*/
+
 import React, { createContext, useContext, useState } from "react";
 
 // Create the User Context
@@ -32,12 +34,22 @@ export const UserProvider = ({ children }) => {
       return `/student/${page}`;
     }
   };
+  /* generates course-specific routes*/
+  const getCourseRoute = (page, courseId) => {
+    if (!user || !courseId) return "/";
+    if (user.role === "lecturer") {
+      return `/lecturer/courses/${courseId}/${page}`;
+    } else {
+      return `/student/courses/${courseId}/${page}`;
+    }
+  };
 
   const value = {
     user,
     login,
     logout,
     getRoleBasedRoute,
+    getCourseRoute,
     isLoggedIn: !!user,
   };
 
