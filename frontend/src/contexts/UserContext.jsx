@@ -16,14 +16,22 @@ export const useUser = () => {
 
 // UserProvider component to wrap the app
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  // get user from localstorgae if avail (to keep user loged in)
+  const [user, setUser] = useState(() => {
+      const loggedInUser = localStorage.getItem("loggedInUser");
+      if (loggedInUser) {
+        return JSON.parse(loggedInUser);
+      }
+  });
 
   const login = (userData) => {
     setUser(userData);
+    localStorage.setItem("loggedInUser", JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("loggedInUser");
   };
 
   const getRoleBasedRoute = (page) => {
