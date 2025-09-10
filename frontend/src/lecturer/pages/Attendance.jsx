@@ -60,8 +60,7 @@ export default function Attendance() {
         setAttendanceByDate(groupedByDate);
 
         const total = courseAttendance.length;
-        const present = courseAttendance.filter((record) => record.status === "present")
-          .length;
+        const present = courseAttendance.filter((record) => record.status === "present").length;
         const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
         setStats({ total, present, percentage });
 
