@@ -17,7 +17,7 @@ function Navbar() {
     <nav className="navbar">
       <ul className="nav-list">
         <li>
-          <NavLink to={getCourseRoute("coursehome", currentCourse.id)}>
+          <NavLink to={getCourseRoute("", currentCourse.id)}>
             Course Home
           </NavLink>
         </li>

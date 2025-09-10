@@ -20,7 +20,7 @@ function Header() {
         Mavix
       </Link>
 
-      <div className="course">
+      <div className="center">
         {currentCourse ? currentCourse.title : "Course"}
       </div>
       <div className="header-right">
@@ -35,7 +35,9 @@ function Header() {
             </button>
           </div>
         </div>
-        <i className="bx bxs-bell"></i>
+        <button className="notification">
+          <i className="bx bxs-bell"></i>
+        </button>
       </div>
     </header>
   );
