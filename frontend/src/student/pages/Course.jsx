@@ -33,12 +33,6 @@ function StudentCourseHome() {
     <div>
       <h1>{course.title}</h1>
       <p>{course.description}</p>
-      <p>
-        <strong>Instructor:</strong> {course.instructor}
-      </p>
-
-      {/* Later: show assignments, resources, etc. */}
-      <button onClick={() => navigate(-1)}>← Back</button>
     </div>
   );
 }

@@ -55,9 +55,6 @@ function LecturerCourseHome() {
           ))}
         </ul>
       )}
-
-      {/* Later: add tools for uploading materials, managing assignments, etc. */}
-      <button onClick={() => navigate(-1)}>← Back</button>
     </div>
   );
 }
