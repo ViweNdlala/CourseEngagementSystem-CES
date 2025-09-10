@@ -8,7 +8,7 @@ import Layout from "./components/Layout";
 
 // Student pages
 import StudentHome from "./student/pages/Home";
-import StudentCourseHome from "./student/pages/CourseHome";
+import StudentCourseHome from "./student/pages/Course";
 import StudentPreparation from "./student/pages/Preparation";
 import StudentAttendance from "./student/pages/Attendance";
 import StudentQuizzes from "./student/pages/Quizzes";
@@ -17,7 +17,7 @@ import StudentPoints from "./student/pages/Points";
 
 // Lecturer pages
 import LecturerHome from "./lecturer/pages/Home";
-import LecturerCourseHome from "./lecturer/pages/CourseHome";
+import LecturerCourseHome from "./lecturer/pages/Course";
 import LecturerPreparation from "./lecturer/pages/Preparation";
 import LecturerAttendance from "./lecturer/pages/Attendance";
 import LecturerQuizzes from "./lecturer/pages/Quizzes";

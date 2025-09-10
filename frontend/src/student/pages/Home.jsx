@@ -1,13 +1,11 @@
-
-import '../styles/Home.css';
+import "../styles/Home.css";
 import { useEffect, useState } from "react";
-import { useNavigate , Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import { useUser } from "../../contexts/UserContext";
 
 import "../../components/Header.css"; // adjust path if needed Final\CourseEngagementSystem-CES\frontend\src\student\pages\Home.jsx
 import axios from "axios";
-
 
 function Header() {
   const { getRoleBasedRoute, user, logout } = useUser();
@@ -20,30 +18,30 @@ function Header() {
 
   return (
     <header className="header">
-      <div className="header-left">
+      <Link className="logo" to={getRoleBasedRoute("home")}>
+        Mavix
+      </Link>
+
+      <div className="center">Welcome to Mavix</div>
+      <div className="header-right">
         <div className="user-menu">
           <button className="user-icon-btn">
             <i className="bx bxs-user"></i>
           </button>
-          <span>Hi, {user?.name}</span>
+          Hi, {user?.name}
           <div className="user-dropdown">
             <button className="logout-btn" onClick={handleLogout}>
               Logout
             </button>
           </div>
         </div>
-      </div>
-
-      <Link className="logo" to={getRoleBasedRoute("home")}>
-        Welcome to Mavix
-      </Link>
-
-      <div className="header-right">
-        <i className="bx bxs-bell"></i>
+        <button className="notification">
+          <i className="bx bxs-bell"></i>
+        </button>
       </div>
     </header>
   );
-} 
+}
 
 function StudentHome() {
   const [student, setStudent] = useState(null);
@@ -83,34 +81,28 @@ function StudentHome() {
   if (!student) return <p>No student logged in</p>;
 
   return (
-
-   <>
+    <>
       <Header />
       <div className="courses-container">
-    
         <main className="courses-wrap">
           <h2 className="section-title">My Courses</h2>
 
           <div className="courses-grid">
-
             {enrolledCourses.length > 0 ? (
               enrolledCourses.map((c) => (
                 <div
                   key={c.id}
                   className="course-card"
-                  onClick={() => navigate(`/student/courses/${c.id}/coursehome`)}
+                  onClick={() => navigate(`/student/courses/${c.id}/`)}
                 >
                   <div className="course-info">
                     <h3>{c.title}</h3>
                     <p>{c.description}</p>
-
                   </div>
                 </div>
               ))
             ) : (
-
               <p>You are not enrolled in any courses.</p>
-
             )}
           </div>
         </main>
@@ -120,7 +112,3 @@ function StudentHome() {
 }
 
 export default StudentHome;
-
-
-
-
