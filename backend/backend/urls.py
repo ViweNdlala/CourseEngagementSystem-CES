@@ -19,6 +19,7 @@ from django.urls import path, include
 # from django.conf.urls import url
 from accounts.views import UserView
 from courses.views import CourseView , EnrollmentView ,CourseDetailView
+from attendance.views import StudentAttendanceView, LecturerAttendanceView
 
 
 
@@ -27,5 +28,7 @@ urlpatterns = [
     path('', UserView.as_view(), name = "user"),
     path('courses/', CourseView.as_view(), name='courses'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
-    path('enrollments/', EnrollmentView.as_view(), name='enroll-student'), 
+    path('enrollments/', EnrollmentView.as_view(), name='enroll-student'),
+    path('attendance/student/', StudentAttendanceView.as_view(), name='student_attendance'),
+    path('attendance/lecturer/', LecturerAttendanceView.as_view(), name='lecturer_attendance'),
 ]
