@@ -13,7 +13,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import "../styles/Attendance.css";
+import "../../lecturer/styles/Attendance.css";
 
 export default function Attendance() {
   const { id } = useParams();
@@ -57,24 +57,77 @@ export default function Attendance() {
     }
   }, [course, user]);
 
+  const prepareChartData = () => {
+    return attendanceRecords
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .map((record) => {
+        const attendanceValue = record.status === "present" ? 1 : 0;
+        
+        return {
+          date: new Date(record.date).toLocaleDateString("en-GB", {
+            month: "short",
+            day: "numeric",
+          }),
+          attendance: attendanceValue,
+          status: record.status,
+          originalDate: record.date,
+        };
+      });
+  };
+
+  const chartData = prepareChartData();
+
   if (loading) return <p>Loading attendance...</p>;
   if (!course) return <p>Course not found.</p>;
 
   return (
     <div className="attendance-container">
       <div className="attendance-header">
-        <h1>My Attendance for {course?.title}</h1>
+        <h1>My Attendance</h1>
       </div>
 
-      <div className="attendance-stats">
-        <p>Classes Attended: {stats.present} / {stats.total}</p>
-        <p>My Course Attendance: {stats.percentage}%</p>
+      <div className="mark-attendance-container">
+        <div className="attendance-stats">
+          <p>Classes Attended: {stats.present} / {stats.total}</p>
+          <p>My Course Attendance: {stats.percentage}%</p>
+        </div>
+        <button className="attendance-button">Mark attendance</button>
       </div>
 
       <div className="attendance-history">
         <h3>My Attendance History</h3>
         <div className="chart-container">
-          
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart
+                data={chartData}
+                margin={{
+                  top: 20,
+                  right: 30,
+                  left: 0,
+                  bottom: 0,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" fontSize={12} />
+                <YAxis
+                  domain={[0, 1]}
+                  fontSize={12}
+                  ticks={[0, 1]}
+                  tickFormatter={(value) => value === 1 ? 'Present' : 'Absent'}
+                />
+               
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="attendance"
+                  stroke="#295574"
+                  strokeWidth={3}
+                  dot={{ r: 6 }}
+                  activeDot={{ r: 8 }}
+                  name="Attendance"
+                />
+              </LineChart>
+            </ResponsiveContainer>
         </div>
       </div>
     </div>

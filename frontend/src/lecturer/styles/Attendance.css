@@ -3,7 +3,21 @@
   max-width: 1200px;
   margin: 0 auto;
 }
-
+.mark-attendance-container {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.mark-attendance-container .attendance-button {
+  background-color: #295574;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
 .attendance-stats {
   padding: 40px 0;
   gap: 20px;

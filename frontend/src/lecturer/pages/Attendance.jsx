@@ -72,15 +72,12 @@ export default function Attendance() {
       .catch((err) => console.error("Error fetching attendance data:", err));
   }, [course, user]);
 
-  // Prepare data for the line chart
   const prepareChartData = () => {
     return Object.keys(attendanceByDate)
-      .sort((a, b) => new Date(a) - new Date(b)) // chronological sort
+      .sort((a, b) => new Date(a) - new Date(b))
       .map((date) => {
         const dayRecords = attendanceByDate[date];
-        const presentCount = dayRecords.filter(
-          (record) => record.status === "present"
-        ).length;
+        const presentCount = dayRecords.filter((record) => record.status === "present").length;
         const absentRecords = dayRecords.filter((record) => record.status === "absent");
         const totalCount = dayRecords.length;
         const attendancePercentage =
@@ -91,7 +88,6 @@ export default function Attendance() {
             month: "short",
             day: "numeric",
           }),
-          fullDate: date,
           percentage: attendancePercentage,
           present: presentCount,
           total: totalCount,
@@ -102,7 +98,6 @@ export default function Attendance() {
 
   const chartData = prepareChartData();
 
-  // Custom Tooltip Component
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -131,10 +126,7 @@ export default function Attendance() {
 
   return (
     <div className="attendance-container">
-      <div className="attendance-header">
-        <h1>Attendance for {course?.title}</h1>
-      </div>
-
+       <div className="attendance-header"><h1>Attendance</h1></div> 
       <div className="attendance-stats">
           <p>Overall Course Attendance: {stats.percentage}%</p>
           <p>Enrolled Students: {enrolledStudents.length}</p>
