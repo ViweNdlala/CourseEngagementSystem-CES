@@ -74,7 +74,7 @@ export default function Attendance() {
       <div className="attendance-history">
         <h3>My Attendance History</h3>
         <div className="chart-container">
-          <p>Chart will go here - Records found: {attendanceRecords.length}</p>
+          
         </div>
       </div>
     </div>
