@@ -39,44 +39,52 @@ export default function Attendance() {
   }, [id, currentCourse, selectCourse]);
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:8000/attendance/lecturer/?id=${user.id}`)
-      .then((res) => {
-        console.log("Attendance response:", res.data);
-        const attendanceRecords = res.data.attendance_records || [];
-        const courseAttendance = attendanceRecords.filter(
-          (record) => record.course_title === course?.title
-        );
+    if (course && user) {
+      axios
+        .get(`http://localhost:8000/attendance/lecturer/?id=${user.id}`)
+        .then((res) => {
+          console.log("Attendance response:", res.data);
+          const attendanceRecords = res.data.attendance_records || [];
+          const courseAttendance = attendanceRecords.filter(
+            (record) => record.course_id === course?.id
+          );
+          // group records by date
+          const groupedByDate = {};
+          for (const record of courseAttendance) {
+            const dateKey = String(record.date);
+            if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
+            groupedByDate[dateKey].push(record);
+          }
+          setAttendanceByDate(groupedByDate);
 
-        // group records by date
-        const groupedByDate = {};
-        for (const record of courseAttendance) {
-          const dateKey = String(record.date);
-          if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
-          groupedByDate[dateKey].push(record);
-        }
-        setAttendanceByDate(groupedByDate);
+          const total = courseAttendance.length;
+          const present = courseAttendance.filter(
+            (record) => record.status === "present"
+          ).length;
+          const percentage =
+            total > 0 ? Math.round((present / total) * 100) : 0;
+          setStats({ total, present, percentage });
 
-        const total = courseAttendance.length;
-        const present = courseAttendance.filter((record) => record.status === "present").length;
-        const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
-        setStats({ total, present, percentage });
-
-        const students = [
-          ...new Set(courseAttendance.map((r) => r.student_email)),
-        ];
-        setEnrolledStudents(students);
-      })
-      .catch((err) => console.error("Error fetching attendance data:", err));
-  }, [course, user]);
+          const students = [
+            ...new Set(courseAttendance.map((r) => r.student_email)),
+          ];
+          setEnrolledStudents(students);
+        })
+        .catch((err) => console.error("Error fetching attendance data:", err));
+    }
+  }, [course?.id, user?.id]);
 
   const prepareChartData = () => {
     return Object.keys(attendanceByDate)
       .sort((a, b) => new Date(a) - new Date(b))
       .map((date) => {
         const dayRecords = attendanceByDate[date];
-        const presentCount = dayRecords.filter((record) => record.status === "present").length;
-        const absentRecords = dayRecords.filter((record) => record.status === "absent");
+        const presentCount = dayRecords.filter(
+          (record) => record.status === "present"
+        ).length;
+        const absentRecords = dayRecords.filter(
+          (record) => record.status === "absent"
+        );
         const totalCount = dayRecords.length;
         const attendancePercentage =
           totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
@@ -124,10 +132,12 @@ export default function Attendance() {
 
   return (
     <div className="attendance-container">
-       <div className="attendance-header"><h1>Attendance</h1></div> 
+      <div className="attendance-header">
+        <h1>Attendance</h1>
+      </div>
       <div className="attendance-stats">
-          <p>Average Attendance: {stats.percentage}%</p>
-          <p>Enrolled Students: {enrolledStudents.length}</p>
+        <p>Average Attendance: {stats.percentage}%</p>
+        <p>Enrolled Students: {enrolledStudents.length}</p>
       </div>
 
       <div className="attendance-history">
@@ -146,7 +156,7 @@ export default function Attendance() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" fontSize={12} />
               <YAxis
-                domain={[40, 100]}
+                domain={[20, 100]}
                 fontSize={12}
                 label={{ value: "Attendance %", angle: -90 }}
               />

@@ -115,15 +115,17 @@ class LecturerAttendanceView(APIView):
         attendance_data = [
             {
                 "date": record.date,
-                "course_title": record.enrollment.course.title,
                 "student_email": record.enrollment.student.email,
                 "status": record.status,
+                "course_title": record.enrollment.course.title,
+                "course_id": record.enrollment.course.id,
             }
             for record in attendance_records
         ]
         
         return Response({
             "lecturer_name": lecturer.name,
+            "course_title": attendance_records.first().enrollment.course.title,
             "attendance_percentage": attendance_percentage,
             "attendance_records": attendance_data
         })
