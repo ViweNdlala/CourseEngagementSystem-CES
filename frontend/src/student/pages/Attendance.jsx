@@ -88,8 +88,7 @@ export default function Attendance() {
 
       <div className="mark-attendance-container">
         <div className="attendance-stats">
-          <p>Classes Attended: {stats.present} / {stats.total}</p>
-          <p>My Course Attendance: {stats.percentage}%</p>
+          <p>Classes Attended: {stats.present} / {stats.total}: ({stats.percentage}%)</p>
         </div>
         <button className="attendance-button">Mark attendance</button>
       </div>

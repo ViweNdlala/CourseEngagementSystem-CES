@@ -44,10 +44,8 @@ export default function Attendance() {
       .then((res) => {
         console.log("Attendance response:", res.data);
         const attendanceRecords = res.data.attendance_records || [];
-
-        const currentCourseTitle = course.title;
         const courseAttendance = attendanceRecords.filter(
-          (record) => record.course_title === currentCourseTitle
+          (record) => record.course_title === course?.title
         );
 
         // group records by date
@@ -128,7 +126,7 @@ export default function Attendance() {
     <div className="attendance-container">
        <div className="attendance-header"><h1>Attendance</h1></div> 
       <div className="attendance-stats">
-          <p>Overall Course Attendance: {stats.percentage}%</p>
+          <p>Average Attendance: {stats.percentage}%</p>
           <p>Enrolled Students: {enrolledStudents.length}</p>
       </div>
 
