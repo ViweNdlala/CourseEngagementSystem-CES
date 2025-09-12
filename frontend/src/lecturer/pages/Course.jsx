@@ -1,6 +1,7 @@
 // src/pages/lecturer/LecturerCourseHome.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useCourse } from "../../contexts/CourseContext";
 import axios from "axios";
 
 function LecturerCourseHome() {
@@ -9,12 +10,16 @@ function LecturerCourseHome() {
   const [course, setCourse] = useState(null);
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { selectCourse } = useCourse();
 
    useEffect(() => {
     // Fetch course details
     axios
       .get(`http://localhost:8000/courses/${id}/`)
-      .then((res) => setCourse(res.data))
+      .then((res) => {
+        setCourse(res.data);
+        selectCourse(res.data);
+      })
       .catch((err) => {
         console.error("Failed getting course:", err);
         setCourse(null);
@@ -30,7 +35,7 @@ function LecturerCourseHome() {
       })
       .catch((err) => console.error("Failed getting enrollments:", err))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, selectCourse]);
 
   if (loading) return <p>Loading course...</p>;
   if (!course) return <p>Course not found.</p>;
