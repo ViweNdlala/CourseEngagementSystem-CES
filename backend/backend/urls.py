@@ -27,5 +27,6 @@ urlpatterns = [
     path('', UserView.as_view(), name = "user"),
     path('courses/', CourseView.as_view(), name='courses'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
-    path('enrollments/', EnrollmentView.as_view(), name='enroll-student'), 
+    path('enrollments/', EnrollmentView.as_view(), name='enroll-student'),
+    path('quizzes/', include('quizzes.urls')), 
 ]

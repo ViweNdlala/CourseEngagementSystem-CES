@@ -1,29 +1,40 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useCourse } from "../../contexts/CourseContext";
 import axios from "axios";
 
-export default function Quizzes() {
-  const { id } = useParams();
-  const { currentCourse, selectCourse } = useCourse();
-  const [course, setCourse] = useState(currentCourse);
-  const [loading, setLoading] = useState(!currentCourse);
+const Quizzes = () => {
+  const [quizzes, setQuizzes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!currentCourse && id) {
-      axios
-        .get(`http://localhost:8000/courses/${id}/`)
-        .then((res) => {
-          setCourse(res.data);
-          selectCourse(res.data);
-        })
-        .catch((err) => console.error("Failed to fetch course:", err))
-        .finally(() => setLoading(false));
-    }
-  }, [id, currentCourse, selectCourse]);
+    // Fetch quizzes from backend
+    axios.get("http://localhost:8000/quizzes/") // replace with your endpoint
+      .then((res) => {
+        setQuizzes(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError("Failed to fetch quizzes.");
+        setLoading(false);
+      });
+  }, []);
 
   if (loading) return <p>Loading quizzes...</p>;
-  if (!course) return <p>Course not found.</p>;
+  if (error) return <p>{error}</p>;
 
-  return <h1>Quizzes for {course.title}</h1>;
-}
+  return (
+    <div>
+      <h1>Available Quizzes</h1>
+      <ul>
+        {quizzes.map((quiz) => (
+          <li key={quiz.id}>
+            <strong>{quiz.title}</strong> - {quiz.description}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default Quizzes;
