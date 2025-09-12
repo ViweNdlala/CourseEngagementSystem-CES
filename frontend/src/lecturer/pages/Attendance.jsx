@@ -43,7 +43,6 @@ export default function Attendance() {
       axios
         .get(`http://localhost:8000/attendance/lecturer/?id=${user.id}`)
         .then((res) => {
-          console.log("Attendance response:", res.data);
           const attendanceRecords = res.data.attendance_records || [];
           const courseAttendance = attendanceRecords.filter(
             (record) => record.course_id === course?.id
@@ -52,7 +51,9 @@ export default function Attendance() {
           const groupedByDate = {};
           for (const record of courseAttendance) {
             const dateKey = String(record.date);
-            if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
+            if (!groupedByDate[dateKey]) {
+              groupedByDate[dateKey] = [];
+            }
             groupedByDate[dateKey].push(record);
           }
           setAttendanceByDate(groupedByDate);
@@ -61,13 +62,20 @@ export default function Attendance() {
           const present = courseAttendance.filter(
             (record) => record.status === "present"
           ).length;
-          const percentage =
-            total > 0 ? Math.round((present / total) * 100) : 0;
+          let percentage;
+          if (total > 0) {
+            percentage = Math.round((present / total) * 100);
+          } else {
+            percentage = 0;
+          }
           setStats({ total, present, percentage });
 
-          const students = [
-            ...new Set(courseAttendance.map((r) => r.student_email)),
-          ];
+          const studentEmails = courseAttendance.map((record) => record.student_email);
+          const uniqueEmails = new Set();
+          studentEmails.forEach((email) => {
+            if (email) uniqueEmails.add(email);
+          });
+          const students = Array.from(uniqueEmails);
           setEnrolledStudents(students);
         })
         .catch((err) => console.error("Error fetching attendance data:", err));
@@ -86,8 +94,12 @@ export default function Attendance() {
           (record) => record.status === "absent"
         );
         const totalCount = dayRecords.length;
-        const attendancePercentage =
-          totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
+        let attendancePercentage;
+        if (totalCount > 0) {
+          attendancePercentage = Math.round((presentCount / totalCount) * 100);
+        } else {
+          attendancePercentage = 0;
+        }
 
         return {
           date: new Date(date).toLocaleDateString("en-GB", {

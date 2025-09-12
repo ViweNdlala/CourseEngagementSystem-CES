@@ -44,13 +44,17 @@ export default function Attendance() {
           `http://localhost:8000/attendance/student/?id=${user.id}&course_id=${course.id}`
         )
         .then((res) => {
-          console.log("Student attendance response:", res.data);
           const records = res.data || [];
           setAttendanceRecords(records);
 
           const total = records.length;
           const present = records.filter((record) => record.status === "present").length;
-          const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+          let percentage;
+          if (total > 0) {
+            percentage = Math.round((present / total) * 100);
+          } else {
+            percentage = 0;
+          }
           setStats({ total, present, percentage });
         })
         .catch((err) => console.error("Failed to fetch attendance:", err));
@@ -61,7 +65,12 @@ export default function Attendance() {
     return attendanceRecords
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .map((record) => {
-        const attendanceValue = record.status === "present" ? 1 : 0;
+        let attendanceValue;
+        if (record.status === "present") {
+          attendanceValue = 1;
+        } else {
+          attendanceValue = 0;
+        }
         
         return {
           date: new Date(record.date).toLocaleDateString("en-GB", {
