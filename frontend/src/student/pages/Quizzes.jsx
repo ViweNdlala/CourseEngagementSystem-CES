@@ -1,40 +1,36 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const Quizzes = () => {
+export default function Quizzes() {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch quizzes from backend
-    axios.get("http://localhost:8000/quizzes/") // replace with your endpoint
-      .then((res) => {
+    // Fetch all quizzes
+    axios.get("http://127.0.0.1:8000/quizzes/quizzes/")
+      .then(res => {
         setQuizzes(res.data);
-        setLoading(false);
       })
-      .catch((err) => {
-        console.error(err);
-        setError("Failed to fetch quizzes.");
-        setLoading(false);
-      });
+      .catch(err => console.error("Failed to fetch quizzes:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <p>Loading quizzes...</p>;
-  if (error) return <p>{error}</p>;
+  if (quizzes.length === 0) return <p>No quizzes found.</p>;
 
   return (
     <div>
-      <h1>Available Quizzes</h1>
+      <h1>All Quizzes</h1>
       <ul>
         {quizzes.map((quiz) => (
           <li key={quiz.id}>
-            <strong>{quiz.title}</strong> - {quiz.description}
+            <h2>{quiz.title}</h2>
+            <p>Course: {quiz.course}</p>
+            <p>Author: {quiz.author}</p>
+            <p>Questions: {quiz.questions.length}</p>
           </li>
         ))}
       </ul>
     </div>
   );
-};
-
-export default Quizzes;
+}
