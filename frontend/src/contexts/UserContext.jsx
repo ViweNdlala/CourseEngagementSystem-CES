@@ -1,6 +1,6 @@
 /* This manages the current course state across the app*/
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState , useEffect } from "react";
 
 // Create the User Context
 const UserContext = createContext();
@@ -18,12 +18,20 @@ export const useUser = () => {
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
+   // Rehydrate from localStorage on startup
+  useEffect(() => {
+    const storedUser = localStorage.getItem("loggedInUser");
+    if (storedUser) setUser(JSON.parse(storedUser));
+  }, []);
+
   const login = (userData) => {
     setUser(userData);
+    localStorage.setItem("loggedInUser", JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("loggedInUser");
   };
 
   const getRoleBasedRoute = (page) => {

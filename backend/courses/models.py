@@ -113,8 +113,8 @@ class GeofenceAccessLog(models.Model):
         blank=True
     )
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="geofence_logs")
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    latitude = models.DecimalField(max_digits=24, decimal_places=16, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=24, decimal_places=16, null=True, blank=True)
     distance_meters = models.FloatField(null=True, blank=True)
     allowed = models.BooleanField()
     accessed_at = models.DateTimeField(auto_now_add=True)
