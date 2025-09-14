@@ -71,7 +71,9 @@ export default function Attendance() {
           setStats({ total, present, percentage });
 
           // Get unique students from attendance records
-          const studentEmails = courseAttendance.map((record) => record.student_email);
+          const studentEmails = courseAttendance.map(
+            (record) => record.student_email
+          );
           const uniqueEmails = new Set();
           studentEmails.forEach((email) => {
             if (email) uniqueEmails.add(email);
