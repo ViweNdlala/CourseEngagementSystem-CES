@@ -70,6 +70,7 @@ export default function Attendance() {
           }
           setStats({ total, present, percentage });
 
+          // Get unique students from attendance records
           const studentEmails = courseAttendance.map((record) => record.student_email);
           const uniqueEmails = new Set();
           studentEmails.forEach((email) => {
@@ -116,7 +117,7 @@ export default function Attendance() {
 
   const chartData = prepareChartData();
 
-  const CustomTooltip = ({ active, payload, label }) => {
+  const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (

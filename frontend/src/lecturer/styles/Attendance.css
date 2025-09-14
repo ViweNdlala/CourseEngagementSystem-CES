@@ -8,6 +8,7 @@
   grid-template-columns: 1fr auto;
   align-items: center;
   margin-bottom: 20px;
+  gap: 10px;
 }
 .mark-attendance-container .attendance-button {
   background-color: #295574;
@@ -26,6 +27,11 @@
 .attendance-stats p {
   font-size: 1.2rem;
   margin: 10px 0;
+}
+
+.attendance-button:disabled {
+  background-color: #b9bbbd;
+  cursor: not-allowed;
 }
 
 .attendance-history h3 {

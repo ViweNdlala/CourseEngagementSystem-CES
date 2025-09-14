@@ -9,7 +9,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   Legend,
   ResponsiveContainer,
 } from "recharts";
@@ -23,6 +22,79 @@ export default function Attendance() {
   const [loading, setLoading] = useState(!currentCourse);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 });
+  const [enrollment, setEnrollment] = useState(null);
+  const [hasMarkedToday, setHasMarkedToday] = useState(false);
+  const [lastRecordCount, setLastRecordCount] = useState(0);
+
+  // Function to fetch and update attendance data
+  const fetchAttendanceData = () => {
+    if (course && user) {
+      // Get student's individual attendance records
+      axios
+        .get(
+          `http://localhost:8000/attendance/student/?id=${user.id}&course_id=${course.id}`
+        )
+        .then((res) => {
+          const records = res.data || [];
+          setAttendanceRecords(records);
+
+          const studentPresent = records.filter((record) => record.status === "present").length;
+          
+          // Get course-wide stats using lecturer's view
+          axios
+            .get(`http://localhost:8000/attendance/lecturer/?id=${course.lecturer}`)
+            .then((lecturerRes) => {
+              const allRecords = lecturerRes.data.attendance_records || [];
+              const courseRecords = allRecords.filter(record => record.course_id === course.id);
+              
+              // Get unique dates to count total sessions
+              const uniqueDates = new Set(courseRecords.map(record => record.date));
+              const totalSessions = uniqueDates.size;
+              
+              let percentage;
+              if (totalSessions > 0) {
+                percentage = Math.round((studentPresent / totalSessions) * 100);
+              } else {
+                percentage = 0;
+              }
+              
+              setStats({ 
+                total: totalSessions, 
+                present: studentPresent, 
+                percentage 
+              });
+
+              // Update record count for change detection (use total sessions)
+              setLastRecordCount(totalSessions);
+            })
+            .catch(() => {
+              // Fallback to individual stats if lecturer data unavailable
+              const individualTotal = records.length;
+              let percentage = individualTotal > 0 ? Math.round((studentPresent / individualTotal) * 100) : 0;
+              
+              setStats({ 
+                total: individualTotal, 
+                present: studentPresent, 
+                percentage 
+              });
+              setLastRecordCount(individualTotal);
+            });
+
+          const today = new Date().toISOString().split('T')[0];
+          const cutoffDate = '2025-08-30';
+          const isNewBehavior = today >= cutoffDate;
+          
+          if (isNewBehavior) {
+            const todayRecord = records.find(record => record.date === today);
+            setHasMarkedToday(todayRecord && todayRecord.status === 'present');
+          } else {
+            const todayRecord = records.find(record => record.date === today);
+            setHasMarkedToday(!!todayRecord);
+          }
+        })
+        .catch((err) => console.error("Failed to fetch attendance:", err));
+    }
+  };
 
   useEffect(() => {
     if (!currentCourse && id) {
@@ -40,26 +112,72 @@ export default function Attendance() {
   useEffect(() => {
     if (course && user) {
       axios
-        .get(
-          `http://localhost:8000/attendance/student/?id=${user.id}&course_id=${course.id}`
-        )
+        .get("http://localhost:8000/enrollments/")
         .then((res) => {
-          const records = res.data || [];
-          setAttendanceRecords(records);
-
-          const total = records.length;
-          const present = records.filter((record) => record.status === "present").length;
-          let percentage;
-          if (total > 0) {
-            percentage = Math.round((present / total) * 100);
-          } else {
-            percentage = 0;
-          }
-          setStats({ total, present, percentage });
+          const studentEnrollment = res.data.find(
+            (enrollment) => enrollment.student === user.id && enrollment.course === course.id
+          );
+          setEnrollment(studentEnrollment);
         })
-        .catch((err) => console.error("Failed to fetch attendance:", err));
+        .catch((error) => console.error("Failed to fetch enrollment:", error));
+
+      // Initial fetch
+      fetchAttendanceData();
     }
   }, [course, user]);
+
+  // Polling effect to check for attendance updates
+  useEffect(() => {
+    if (course && user) {
+      const pollInterval = setInterval(() => {
+        // Only poll if the window is visible (to save resources)
+        if (!document.hidden) {
+          fetchAttendanceData();
+        }
+      }, 15000); // Poll every 15 seconds
+
+      // Also listen for window focus to immediately refresh
+      const handleFocus = () => {
+        fetchAttendanceData();
+      };
+
+      window.addEventListener('focus', handleFocus);
+
+      return () => {
+        clearInterval(pollInterval);
+        window.removeEventListener('focus', handleFocus);
+      };
+    }
+  }, [course, user]);
+
+  async function markAttendance() {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const cutoffDate = '2025-08-30';
+      const isNewBehavior = today >= cutoffDate;
+      
+      const attendanceData = {
+        enrollment: enrollment.id,
+        date: today,
+        status: "present"
+      };
+
+      const response = await axios.post(
+        "http://localhost:8000/attendance/student/",
+        attendanceData
+      );
+
+      if (response.status === 201) {
+        alert("Attendance marked successfully!");
+        
+        // Refresh the attendance data to show updated records
+        fetchAttendanceData();
+      }
+    } catch (error) {
+      console.error("Error marking attendance:", error);
+      alert("Failed to mark attendance. Please try again.");
+    }
+  };
 
   const prepareChartData = () => {
     return attendanceRecords
@@ -79,7 +197,6 @@ export default function Attendance() {
           }),
           attendance: attendanceValue,
           status: record.status,
-          originalDate: record.date,
         };
       });
   };
@@ -99,7 +216,12 @@ export default function Attendance() {
         <div className="attendance-stats">
           <p>Classes Attended: {stats.present} / {stats.total}: ({stats.percentage}%)</p>
         </div>
-        <button className="attendance-button">Mark attendance</button>
+        
+        <button className="attendance-button" 
+          onClick={markAttendance}
+          disabled={hasMarkedToday}
+        >Mark Attendance
+        </button>
       </div>
 
       <div className="attendance-history">

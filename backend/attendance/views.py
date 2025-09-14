@@ -1,15 +1,38 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.generics import DestroyAPIView
 from .models import Attendance
 from .serializers import StudentAttendanceSerializer, LecturerAttendanceSerializer
 from courses.models import Enrollment, Course
 from accounts.models import User
 from datetime import date
+from django.db import transaction
 
 
 class StudentAttendanceView(APIView):
     serializer_class = StudentAttendanceSerializer
+
+    def _create_absent_records_for_all_students(self, course, attendance_date):
+        """
+        Create 'absent' attendance records for all enrolled students in the course for the given date.
+        """
+        enrollments = Enrollment.objects.filter(course=course)
+        attendance_records = []
+        
+        for enrollment in enrollments:
+            # Only create if record doesn't already exist
+            if not Attendance.objects.filter(enrollment=enrollment, date=attendance_date).exists():
+                attendance_records.append(
+                    Attendance(
+                        enrollment=enrollment,
+                        date=attendance_date,
+                        status='absent'
+                    )
+                )
+        
+        if attendance_records:
+            Attendance.objects.bulk_create(attendance_records)
 
     def get(self, request):
         id = request.query_params.get('id')
@@ -69,26 +92,92 @@ class StudentAttendanceView(APIView):
             })
     
     def post(self, request):
+        # Extract data manually to avoid serializer unique constraint issues
+        enrollment_id = request.data.get('enrollment')
+        attendance_date_str = request.data.get('date')
+        attendance_status = request.data.get('status', 'present')
         
-        serializer = StudentAttendanceSerializer(data=request.data)
-        if serializer.is_valid():
-            enrollment = serializer.validated_data['enrollment']
-            attendance_date = serializer.validated_data['date']
+        # Basic validation
+        if not enrollment_id:
+            return Response({"error": "enrollment field is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not attendance_date_str:
+            return Response({"error": "date field is required"}, status=status.HTTP_400_BAD_REQUEST)
             
-            existing = Attendance.objects.filter(enrollment=enrollment, date=attendance_date).first()
-            if existing:
-                return Response({"error": f"Attendance already marked on {attendance_date}"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            # Parse date
+            if isinstance(attendance_date_str, str):
+                attendance_date = date.fromisoformat(attendance_date_str)
+            else:
+                attendance_date = attendance_date_str
+                
+            # Get enrollment
+            enrollment = Enrollment.objects.get(id=enrollment_id)
+        except (ValueError, Enrollment.DoesNotExist) as e:
+            return Response({"error": "Invalid enrollment or date"}, status=status.HTTP_400_BAD_REQUEST)
             
-            attendance = serializer.save()
-            response_data = {
-                "id": attendance.id,
-                "date": attendance.date,
-                "course_title": attendance.enrollment.course.title,
-                "status": attendance.status,
-                "marked_at": attendance.marked_at
-            }
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        course = enrollment.course
+        
+        # Define the cutoff date (August 30, 2025)
+        cutoff_date = date(2025, 8, 30)
+        
+        # Check if attendance date is on or after the cutoff date
+        if attendance_date >= cutoff_date:
+            # New behavior: Handle attendance with automatic absent records
+            with transaction.atomic():
+                # Check if there are any attendance records for this course/date
+                existing_records = Attendance.objects.filter(
+                    enrollment__course=course, 
+                    date=attendance_date
+                )
+                
+                if not existing_records.exists():
+                    # First student to mark attendance - create absent records for everyone
+                    self._create_absent_records_for_all_students(course, attendance_date)
+                
+                # Get or update the student's specific record
+                attendance_record, created = Attendance.objects.get_or_create(
+                    enrollment=enrollment,
+                    date=attendance_date,
+                    defaults={'status': attendance_status}
+                )
+                
+                if not created:
+                    # Record existed (was 'absent'), update to 'present'
+                    attendance_record.status = attendance_status
+                    attendance_record.save()
+                
+                response_data = {
+                    "id": attendance_record.id,
+                    "date": attendance_record.date,
+                    "course_title": attendance_record.enrollment.course.title,
+                    "status": attendance_record.status,
+                    "marked_at": attendance_record.marked_at
+                }
+                return Response(response_data, status=status.HTTP_201_CREATED)
+        
+        else:
+            # Old behavior: Use serializer validation for traditional flow
+            serializer = StudentAttendanceSerializer(data=request.data)
+            if serializer.is_valid():
+                # Don't allow duplicate attendance
+                existing = Attendance.objects.filter(enrollment=enrollment, date=attendance_date).first()
+                if existing:
+                    return Response(
+                        {"error": f"Attendance already marked on {attendance_date}"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                attendance = serializer.save()
+                response_data = {
+                    "id": attendance.id,
+                    "date": attendance.date,
+                    "course_title": attendance.enrollment.course.title,
+                    "status": attendance.status,
+                    "marked_at": attendance.marked_at
+                }
+                return Response(response_data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LecturerAttendanceView(APIView):
@@ -132,3 +221,20 @@ class LecturerAttendanceView(APIView):
     
     def post(self, request):
         return Response({"error": "Lecturers cannot mark attendance."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class AttendanceDeleteView(DestroyAPIView):
+    """
+    API view to delete attendance records.
+    """
+    queryset = Attendance.objects.all()
+    serializer_class = StudentAttendanceSerializer
+    
+    def delete(self, request, *args, **kwargs):
+        try:
+            return super().delete(request, *args, **kwargs)
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to delete attendance record: {str(e)}"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )

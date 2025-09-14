@@ -16,12 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-# from django.conf.urls import url
 from accounts.views import UserView
 from courses.views import CourseView , EnrollmentView ,CourseDetailView
-from attendance.views import StudentAttendanceView, LecturerAttendanceView
-
-
+from attendance.views import StudentAttendanceView, LecturerAttendanceView, AttendanceDeleteView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,4 +28,5 @@ urlpatterns = [
     path('enrollments/', EnrollmentView.as_view(), name='enroll-student'),
     path('attendance/student/', StudentAttendanceView.as_view(), name='student_attendance'),
     path('attendance/lecturer/', LecturerAttendanceView.as_view(), name='lecturer_attendance'),
+    path('attendance/delete/<int:pk>/', AttendanceDeleteView.as_view(), name='attendance_delete'),
 ]
