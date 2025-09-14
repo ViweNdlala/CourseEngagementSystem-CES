@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from accounts.views import UserView
-from courses.views import CourseView , EnrollmentView ,CourseDetailView
+from courses.views import CourseView , EnrollmentView ,CourseDetailView,GeofenceSessionCreateView, GeofenceActiveView,GeofenceCheckAccessView
 from attendance.views import StudentAttendanceView, LecturerAttendanceView, AttendanceDeleteView
 
 urlpatterns = [
@@ -25,8 +25,5 @@ urlpatterns = [
     path('', UserView.as_view(), name = "user"),
     path('courses/', CourseView.as_view(), name='courses'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
-    path('enrollments/', EnrollmentView.as_view(), name='enroll-student'),
-    path('attendance/student/', StudentAttendanceView.as_view(), name='student_attendance'),
-    path('attendance/lecturer/', LecturerAttendanceView.as_view(), name='lecturer_attendance'),
-    path('attendance/delete/<int:pk>/', AttendanceDeleteView.as_view(), name='attendance_delete'),
+    path('enrollments/', EnrollmentView.as_view(), name='enroll-student'), 
 ]

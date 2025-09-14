@@ -1,63 +1,103 @@
-// src/pages/lecturer/LecturerCourseHome.jsx
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
 import axios from "axios";
 
 function LecturerCourseHome() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const { id } = useParams(); // course id
+  const [loggedInUser, setLoggedInUser] = useState(null);
   const [course, setCourse] = useState(null);
-  const [enrolledStudents, setEnrolledStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [activeSession, setActiveSession] = useState(null);
+  const [duration, setDuration] = useState(60); // default duration
   const { selectCourse } = useCourse();
 
-   useEffect(() => {
-    // Fetch course details
-    axios
-      .get(`http://localhost:8000/courses/${id}/`)
-      .then((res) => {
-        setCourse(res.data);
-        selectCourse(res.data);
-      })
-      .catch((err) => {
-        console.error("Failed getting course:", err);
-        setCourse(null);
-      });
-    // Fetch enrollments for this course
-    axios
-      .get("http://localhost:8000/enrollments/")
-      .then((res) => {
-        const students = res.data
-          .filter((e) => String(e.course) === String(id))
-          .map((e) => e.student);
-        setEnrolledStudents(students);
-      })
-      .catch((err) => console.error("Failed getting enrollments:", err))
-      .finally(() => setLoading(false));
-  }, [id, selectCourse]);
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("loggedInUser"));
+    setLoggedInUser(user);
 
-  if (loading) return <p>Loading course...</p>;
-  if (!course) return <p>Course not found.</p>;
+    axios.get(`http://127.0.0.1:8000/courses/${id}/`)
+      .then(res => {
+        setCourse(res.data);
+        selectCourse(res.data); // <-- important!
+      })
+      .catch(err => console.error(err));
+
+      
+
+    fetchActiveSession(id);
+  }, [id]);
+
+  const fetchActiveSession = async (courseId) => {
+    try {
+      const resp = await axios.get(`http://127.0.0.1:8000/geofence/sessions/active/?course_id=${courseId}`);
+      if (resp.data.active) setActiveSession(resp.data.session);
+      else setActiveSession(null);
+    } catch (err) { console.error(err); }
+  };
+
+  const startSession = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      return;
+    }
+
+    if (!loggedInUser) {
+    alert("User not loaded yet");
+    return;
+    }
+
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      try {
+        const resp = await axios.post("http://127.0.0.1:8000/geofence/sessions/", {
+          course: id,
+          lecturer: loggedInUser.id,
+          latitude: lat,
+          longitude: lon,
+          radius_meters: 100,
+          duration_minutes: parseInt(duration, 10)
+        });
+        setActiveSession(resp.data);
+        alert("✅ Geofence session started!");
+      } catch (err) {
+        console.error(err.response?.data || err);
+        alert("❌ Failed to start session");
+      }
+    }, err => alert("Location error: " + err.message), 
+    { enableHighAccuracy: true ,timeout: 10000, maximumAge: 0});
+  };
+
+  if (!course) return <p>Loading course...</p>;
 
   return (
-    <div>
-      <h1>{course.title}</h1>
+    <div className="p-6">
+      <h2>Lecturer Course Home: {course.title}</h2>
       <p>{course.description}</p>
 
-      <h3>Enrolled Students (IDs)</h3>
-      {enrolledStudents.length === 0 ? (
-        <p>No students enrolled yet.</p>
-      ) : (
-        <ul>
-          {enrolledStudents.map((sId) => (
-            <li key={sId}>Student ID: {sId}</li>
-          ))}
-        </ul>
+      <div className="mt-4">
+        <label>Duration (minutes): </label>
+        <input type="number" value={duration} onChange={e => setDuration(e.target.value)} />
+      </div>
+
+      <button onClick={startSession}>Start Geofence Session</button>
+
+      {activeSession && (
+        <div>
+          <p>✅ Active session ID {activeSession.id}</p>
+          <p>Started at: {new Date(activeSession.start_time).toLocaleTimeString()}</p>
+          <p>Duration: {activeSession.duration_minutes} minutes</p>
+        </div>
       )}
     </div>
   );
 }
 
 export default LecturerCourseHome;
+
+
+
+
 

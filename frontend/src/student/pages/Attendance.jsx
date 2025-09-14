@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";
 import axios from "axios";
@@ -280,3 +279,5 @@ export default function Attendance() {
     </div>
   );
 }
+
+
