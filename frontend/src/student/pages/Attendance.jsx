@@ -1,4 +1,5 @@
-
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";
 import axios from "axios";
@@ -15,7 +16,13 @@ import "../../lecturer/styles/Attendance.css";
 
 export default function Attendance() {
   const { id } = useParams();
-  const { currentCourse, selectCourse } = useCourse();
+  const {
+    currentCourse,
+    selectCourse,
+    activeSession,
+    withinGeofence,
+    locationChecked,
+  } = useCourse();
   const { user } = useUser();
   const [course, setCourse] = useState(currentCourse);
   const [loading, setLoading] = useState(!currentCourse);
@@ -24,6 +31,8 @@ export default function Attendance() {
   const [enrollment, setEnrollment] = useState(null);
   const [hasMarkedToday, setHasMarkedToday] = useState(false);
   const [lastRecordCount, setLastRecordCount] = useState(0);
+  const isButtonDisabled =
+    !activeSession || !withinGeofence || !locationChecked || hasMarkedToday;
 
   // Function to fetch and update attendance data
   const fetchAttendanceData = () => {
@@ -217,10 +226,27 @@ export default function Attendance() {
   if (loading) return <p>Loading attendance...</p>;
   if (!course) return <p>Course not found.</p>;
 
+  let sessionMessage;
+  if (activeSession) {
+    sessionMessage = <p>✅ Active session ID {activeSession.id}</p>;
+  } else {
+    sessionMessage = <p style={{ color: "red" }}>No active session</p>;
+  }
+
+  let geofenceWarning = null;
+  if (activeSession && locationChecked && !withinGeofence) {
+    geofenceWarning = (
+      <p style={{ color: "red", marginTop: "0.5rem" }}>
+        ❌ You must be within the geofence to mark attendance
+      </p>
+    );
+  }
+
   return (
     <div className="attendance-container">
       <div className="attendance-header">
         <h1>My Attendance</h1>
+        {sessionMessage}
       </div>
 
       <div className="mark-attendance-container">
@@ -234,10 +260,11 @@ export default function Attendance() {
         <button
           className="attendance-button"
           onClick={markAttendance}
-          disabled={hasMarkedToday}
+          disabled={isButtonDisabled}
         >
           Mark Attendance
         </button>
+        {geofenceWarning}
       </div>
 
       <div className="attendance-history">
@@ -279,5 +306,3 @@ export default function Attendance() {
     </div>
   );
 }
-
-

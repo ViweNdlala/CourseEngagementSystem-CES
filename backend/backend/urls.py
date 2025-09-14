@@ -26,4 +26,12 @@ urlpatterns = [
     path('courses/', CourseView.as_view(), name='courses'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
     path('enrollments/', EnrollmentView.as_view(), name='enroll-student'), 
+    path('attendance/student/', StudentAttendanceView.as_view(), name='student_attendance'),
+    path('attendance/lecturer/', LecturerAttendanceView.as_view(), name='lecturer_attendance'),
+    path('attendance/<int:pk>/', AttendanceDeleteView.as_view(), name='attendance_delete'),
+    
+     # Geofencing
+    path('geofence/sessions/', GeofenceSessionCreateView.as_view(), name='geofence-sessions'),
+    path('geofence/sessions/active/', GeofenceActiveView.as_view(), name='geofence-active-session'),
+    path('geofence/check-access/', GeofenceCheckAccessView.as_view(), name='geofence-check-access'),
 ]
