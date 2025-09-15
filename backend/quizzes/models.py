@@ -1,4 +1,4 @@
-# quizzes/models.py
+
 from django.db import models
 from accounts.models import User
 from courses.models import Course
