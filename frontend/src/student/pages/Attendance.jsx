@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";
@@ -30,88 +30,81 @@ export default function Attendance() {
   const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 });
   const [enrollment, setEnrollment] = useState(null);
   const [hasMarkedToday, setHasMarkedToday] = useState(false);
-  const [lastRecordCount, setLastRecordCount] = useState(0);
   const isButtonDisabled =
     !activeSession || !withinGeofence || !locationChecked || hasMarkedToday;
 
   // Function to fetch and update attendance data
-  const fetchAttendanceData = () => {
-    if (course && user) {
+  const fetchAttendanceData = async () => {
+    if (!course || !user) return;
+
+    try {
       // Get student's individual attendance records
-      axios
-        .get(
-          `http://localhost:8000/attendance/student/?id=${user.id}&course_id=${course.id}`
-        )
-        .then((res) => {
-          const records = res.data || [];
-          setAttendanceRecords(records);
+      const studentResponse = await axios.get(
+        `http://localhost:8000/attendance/student/?id=${user.id}&course_id=${course.id}`
+      );
 
-          const studentPresent = records.filter(
-            (record) => record.status === "present"
-          ).length;
+      const records = studentResponse.data || [];
+      setAttendanceRecords(records);
 
-          // Get course-wide stats using lecturer's view
-          axios
-            .get(
-              `http://localhost:8000/attendance/lecturer/?id=${course.lecturer}`
-            )
-            .then((lecturerRes) => {
-              const allRecords = lecturerRes.data.attendance_records || [];
-              const courseRecords = allRecords.filter(
-                (record) => record.course_id === course.id
-              );
+      // Calculate number of times student marked present
+      const studentPresent = records.filter(
+        (record) => record.status === "present"
+      ).length;
 
-              // Get unique dates to count total sessions
-              const uniqueDates = new Set(
-                courseRecords.map((record) => record.date)
-              );
-              const totalSessions = uniqueDates.size;
+      try {
+        // Get course-wide stats using lecturer's view
+        const lecturerResponse = await axios.get(
+          `http://localhost:8000/attendance/lecturer/?id=${course.lecturer}`
+        );
 
-              let percentage;
-              if (totalSessions > 0) {
-                percentage = Math.round((studentPresent / totalSessions) * 100);
-              } else {
-                percentage = 0;
-              }
+        const allRecords = lecturerResponse.data.attendance_records || [];
+        const courseRecords = allRecords.filter(
+          (record) => record.course_id === course.id
+        );
 
-              setStats({
-                total: totalSessions,
-                present: studentPresent,
-                percentage,
-              });
+        // Get unique dates to count total sessions
+        const uniqueDates = new Set(courseRecords.map((record) => record.date));
+        const totalSessions = uniqueDates.size;
 
-              // Update record count for change detection (use total sessions)
-              setLastRecordCount(totalSessions);
-            })
-            .catch(() => {
-              // Fallback to individual stats if lecturer data unavailable
-              const individualTotal = records.length;
-              let percentage =
-                individualTotal > 0
-                  ? Math.round((studentPresent / individualTotal) * 100)
-                  : 0;
+        let percentage;
+        if (totalSessions > 0) {
+          percentage = Math.round((studentPresent / totalSessions) * 100);
+        } else {
+          percentage = 0;
+        }
 
-              setStats({
-                total: individualTotal,
-                present: studentPresent,
-                percentage,
-              });
-              setLastRecordCount(individualTotal);
-            });
+        setStats({
+          total: totalSessions,
+          present: studentPresent,
+          percentage,
+        });
+      } catch (lecturerError) {
+        console.warn(
+          "Lecturer data unavailable, using individual stats:",
+          lecturerError
+        );
+        // Fallback to individual stats if lecturer data unavailable
+        const individualTotal = records.length;
+        let percentage;
+        if (individualTotal > 0) {
+          percentage = Math.round((studentPresent / individualTotal) * 100);
+        } else {
+          percentage = 0;
+        }
 
-          const today = new Date().toISOString().split("T")[0];
-          const cutoffDate = "2025-08-30";
-          const isNewBehavior = today >= cutoffDate;
+        setStats({
+          total: individualTotal,
+          present: studentPresent,
+          percentage,
+        });
+      }
 
-          if (isNewBehavior) {
-            const todayRecord = records.find((record) => record.date === today);
-            setHasMarkedToday(todayRecord && todayRecord.status === "present");
-          } else {
-            const todayRecord = records.find((record) => record.date === today);
-            setHasMarkedToday(!!todayRecord);
-          }
-        })
-        .catch((err) => console.error("Failed to fetch attendance:", err));
+      // Check if student has marked attendance today
+      const today = new Date().toISOString().split("T")[0];
+      const todayRecord = records.find((record) => record.date === today);
+      setHasMarkedToday(todayRecord && todayRecord.status === "present");
+    } catch (error) {
+      console.error("Failed to fetch attendance data:", error);
     }
   };
 
@@ -149,12 +142,13 @@ export default function Attendance() {
   // Polling effect to check for attendance updates
   useEffect(() => {
     if (course && user) {
+      // Reduced polling frequency - attendance data doesn't change frequently
       const pollInterval = setInterval(() => {
         // Only poll if the window is visible (to save resources)
         if (!document.hidden) {
           fetchAttendanceData();
         }
-      }, 15000); // Poll every 15 seconds
+      }, 300000); // Poll every 5 minutes instead of 15 seconds
 
       // Also listen for window focus to immediately refresh
       const handleFocus = () => {
@@ -173,8 +167,6 @@ export default function Attendance() {
   async function markAttendance() {
     try {
       const today = new Date().toISOString().split("T")[0];
-      const cutoffDate = "2025-08-30";
-      const isNewBehavior = today >= cutoffDate;
 
       const attendanceData = {
         enrollment: enrollment.id,
@@ -199,29 +191,19 @@ export default function Attendance() {
     }
   }
 
-  const prepareChartData = () => {
+  // Memoized chart data to prevent unnecessary recalculations
+  const chartData = useMemo(() => {
     return attendanceRecords
       .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .map((record) => {
-        let attendanceValue;
-        if (record.status === "present") {
-          attendanceValue = 1;
-        } else {
-          attendanceValue = 0;
-        }
-
-        return {
-          date: new Date(record.date).toLocaleDateString("en-GB", {
-            month: "short",
-            day: "numeric",
-          }),
-          attendance: attendanceValue,
-          status: record.status,
-        };
-      });
-  };
-
-  const chartData = prepareChartData();
+      .map((record) => ({
+        date: new Date(record.date).toLocaleDateString("en-GB", {
+          month: "short",
+          day: "numeric",
+        }),
+        attendance: record.status === "present" ? 1 : 0,
+        status: record.status,
+      }));
+  }, [attendanceRecords]);
 
   if (loading) return <p>Loading attendance...</p>;
   if (!course) return <p>Course not found.</p>;

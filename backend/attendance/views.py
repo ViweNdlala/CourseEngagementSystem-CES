@@ -11,12 +11,9 @@ from django.db import transaction
 
 
 class StudentAttendanceView(APIView):
-    serializer_class = StudentAttendanceSerializer
-
+    # First student to mark attendance => create absent records for everyone
     def _create_absent_records_for_all_students(self, course, attendance_date):
-        """
-        Create 'absent' attendance records for all enrolled students in the course for the given date.
-        """
+        
         enrollments = Enrollment.objects.filter(course=course)
         attendance_records = []
         
@@ -92,12 +89,10 @@ class StudentAttendanceView(APIView):
             })
     
     def post(self, request):
-        # Extract data manually to avoid serializer unique constraint issues
         enrollment_id = request.data.get('enrollment')
         attendance_date_str = request.data.get('date')
         attendance_status = request.data.get('status', 'present')
         
-        # Basic validation
         if not enrollment_id:
             return Response({"error": "enrollment field is required"}, status=status.HTTP_400_BAD_REQUEST)
         if not attendance_date_str:
@@ -110,74 +105,43 @@ class StudentAttendanceView(APIView):
             else:
                 attendance_date = attendance_date_str
                 
-            # Get enrollment
             enrollment = Enrollment.objects.get(id=enrollment_id)
         except (ValueError, Enrollment.DoesNotExist) as e:
             return Response({"error": "Invalid enrollment or date"}, status=status.HTTP_400_BAD_REQUEST)
             
         course = enrollment.course
         
-        # Define the cutoff date (August 30, 2025)
-        cutoff_date = date(2025, 8, 30)
-        
-        # Check if attendance date is on or after the cutoff date
-        if attendance_date >= cutoff_date:
-            # New behavior: Handle attendance with automatic absent records
-            with transaction.atomic():
-                # Check if there are any attendance records for this course/date
-                existing_records = Attendance.objects.filter(
-                    enrollment__course=course, 
-                    date=attendance_date
-                )
-                
-                if not existing_records.exists():
-                    # First student to mark attendance - create absent records for everyone
-                    self._create_absent_records_for_all_students(course, attendance_date)
-                
-                # Get or update the student's specific record
-                attendance_record, created = Attendance.objects.get_or_create(
-                    enrollment=enrollment,
-                    date=attendance_date,
-                    defaults={'status': attendance_status}
-                )
-                
-                if not created:
-                    # Record existed (was 'absent'), update to 'present'
-                    attendance_record.status = attendance_status
-                    attendance_record.save()
-                
-                response_data = {
-                    "id": attendance_record.id,
-                    "date": attendance_record.date,
-                    "course_title": attendance_record.enrollment.course.title,
-                    "status": attendance_record.status,
-                    "marked_at": attendance_record.marked_at
-                }
-                return Response(response_data, status=status.HTTP_201_CREATED)
-        
-        else:
-            # Old behavior: Use serializer validation for traditional flow
-            serializer = StudentAttendanceSerializer(data=request.data)
-            if serializer.is_valid():
-                # Don't allow duplicate attendance
-                existing = Attendance.objects.filter(enrollment=enrollment, date=attendance_date).first()
-                if existing:
-                    return Response(
-                        {"error": f"Attendance already marked on {attendance_date}"}, 
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                
-                attendance = serializer.save()
-                response_data = {
-                    "id": attendance.id,
-                    "date": attendance.date,
-                    "course_title": attendance.enrollment.course.title,
-                    "status": attendance.status,
-                    "marked_at": attendance.marked_at
-                }
-                return Response(response_data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Handle attendance with automatic absent records for all students
+        with transaction.atomic():
+            # Check if there are any attendance records for this course/date
+            existing_records = Attendance.objects.filter(
+                enrollment__course=course, 
+                date=attendance_date
+            )
+            
+            if not existing_records.exists():
+                self._create_absent_records_for_all_students(course, attendance_date)
+            
+            # Get or update the student's specific record
+            attendance_record, created = Attendance.objects.get_or_create(
+                enrollment=enrollment,
+                date=attendance_date,
+                defaults={'status': attendance_status}
+            )
+            
+            if not created:
+                # Record existed (was 'absent'), update to 'present'
+                attendance_record.status = attendance_status
+                attendance_record.save()
+            
+            response_data = {
+                "id": attendance_record.id,
+                "date": attendance_record.date,
+                "course_title": attendance_record.enrollment.course.title,
+                "status": attendance_record.status,
+                "marked_at": attendance_record.marked_at
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class LecturerAttendanceView(APIView):

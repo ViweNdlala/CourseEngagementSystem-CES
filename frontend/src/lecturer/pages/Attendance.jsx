@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";
@@ -85,7 +85,7 @@ export default function Attendance() {
     }
   }, [course?.id, user?.id]);
 
-  const prepareChartData = () => {
+  const chartData = useMemo(() => {
     return Object.keys(attendanceByDate)
       .sort((a, b) => new Date(a) - new Date(b))
       .map((date) => {
@@ -115,9 +115,7 @@ export default function Attendance() {
           absentStudents: absentRecords.map((record) => record.student_email),
         };
       });
-  };
-
-  const chartData = prepareChartData();
+  }, [attendanceByDate]);
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
