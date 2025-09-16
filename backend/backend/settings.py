@@ -42,8 +42,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'accounts',
     'courses',
-    'points',
     'channels',
+    'quizzes',
 ]
 
 MIDDLEWARE = [
@@ -82,7 +82,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
-ASGI_APPLICATION = 'backend.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -135,3 +134,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+ASGI_APPLICATION = "backend.asgi.application"
