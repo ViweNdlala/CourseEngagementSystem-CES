@@ -12,7 +12,7 @@ export default function Quizzes() {
   const [submitted, setSubmitted] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // 🔎 Fetch quizzes when course changes
+  // Fetch quizzes when course changes
   useEffect(() => {
     if (!currentCourse) return;
 
@@ -24,19 +24,19 @@ export default function Quizzes() {
       .finally(() => setLoading(false));
   }, [currentCourse]);
 
-  // 🔎 Expand/collapse quiz
+  // Expand/collapse quiz
   const toggleExpand = (quizId) => {
     setExpandedQuiz(expandedQuiz === quizId ? null : quizId);
     setGrades({});
     setSubmitted({});
   };
 
-  // 🔎 Track selected answer
+  // Track selected answer
   const handleAnswerChange = (questionId, answerId) => {
     setAnswers({ ...answers, [questionId]: answerId });
   };
 
-  // 🔎 Grade quiz when submitted
+  // Grade quiz when submitted
   const handleSubmit = (quizId, questions) => {
     if (submitted[quizId]) return;
 
@@ -61,7 +61,7 @@ export default function Quizzes() {
     setSubmitted({ ...submitted, [quizId]: true });
   };
 
-  // 🔎 Filter only quizzes visible to students
+  // Filter only quizzes visible to students
   const visibleQuizzes = quizzes.filter((q) => q.is_visible);
 
   if (loading) return <p>Loading quizzes...</p>;
