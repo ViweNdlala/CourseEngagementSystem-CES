@@ -1,123 +1,160 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useCourse } from "../../contexts/CourseContext";
 import axios from "axios";
-
-// Component: create quizz
-function CreateQuiz({ courseId }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    axios
-      .post("http://localhost:8000/quizzes/", {
-        title,
-        description,
-        course: courseId,
-      })
-      .then(() => {
-        alert("Quiz created successfully!");
-        setTitle("");
-        setDescription("");
-      })
-      .catch((err) => console.error("Failed to create quiz:", err));
-  };
-
-  return (
-    <div>
-      <h2>Create a New Quiz</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Quiz title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <textarea
-          placeholder="Quiz description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <button type="submit">Create Quiz</button>
-      </form>
-    </div>
-  );
-}
-
-// Component: past quizzes
-function QuizTable({ courseId }) {
-  const [quizzes, setQuizzes] = useState([]);
-
-  useEffect(() => {
-    axios
-      .get(`http://localhost:8000/courses/${courseId}/quizzes/`)
-      .then((res) => setQuizzes(res.data))
-      .catch((err) => console.error("Failed to load quizzes:", err));
-  }, [courseId]);
-
-  return (
-    <div>
-      <h2>Past Quizzes</h2>
-      {quizzes.length === 0 ? (
-        <p>No quizzes yet.</p>
-      ) : (
-        <table border="1" cellPadding="8">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Created At</th>
-              <th>Questions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {quizzes.map((quiz) => (
-              <tr key={quiz.id}>
-                <td>{quiz.id}</td>
-                <td>{quiz.title}</td>
-                <td>{quiz.created_at}</td>
-                <td>{quiz.question_count}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
-}
+import { useCourse } from "../../contexts/CourseContext";
 
 export default function Quizzes() {
-  const { id } = useParams();
-  const { currentCourse, selectCourse } = useCourse();
-  const [course, setCourse] = useState(currentCourse);
-  const [loading, setLoading] = useState(!currentCourse);
+  const { currentCourse } = useCourse();
+
+  const [quizzes, setQuizzes] = useState([]);
+  const [expandedQuiz, setExpandedQuiz] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!currentCourse && id) {
-      axios
-        .get(`http://localhost:8000/courses/${id}/`)
-        .then((res) => {
-          setCourse(res.data);
-          selectCourse(res.data);
-        })
-        .catch((err) => console.error("Failed to fetch course:", err))
-        .finally(() => setLoading(false));
-    }
-  }, [id, currentCourse, selectCourse]);
+    if (!currentCourse) return;
 
-  if (loading) return <p>Loading quiz management...</p>;
-  if (!course) return <p>Course not found.</p>;
+    setLoading(true);
+    axios
+      .get(`http://127.0.0.1:8000/quizzes/quizzes/?course=${currentCourse.id}`)
+      .then((res) => setQuizzes(res.data))
+      .catch((err) => console.error("Failed to fetch quizzes:", err))
+      .finally(() => setLoading(false));
+  }, [currentCourse]);
+
+  const toggleExpand = (quizId) => {
+    setExpandedQuiz(expandedQuiz === quizId ? null : quizId);
+  };
+
+  const handleCorrectAnswerChange = (quizId, questionId, answerId) => {
+    setQuizzes((prev) =>
+      prev.map((quiz) =>
+        quiz.id === quizId
+          ? {
+              ...quiz,
+              questions: quiz.questions.map((q) =>
+                q.id === questionId
+                  ? {
+                      ...q,
+                      answers: q.answers.map((a) => ({
+                        ...a,
+                        is_correct: a.id === answerId,
+                      })),
+                    }
+                  : q
+              ),
+            }
+          : quiz
+      )
+    );
+  };
+
+  const handleVisibilityToggle = (quizId) => {
+    setQuizzes((prev) =>
+      prev.map((quiz) =>
+        quiz.id === quizId ? { ...quiz, is_visible: !quiz.is_visible } : quiz
+      )
+    );
+  };
+
+  const handleSave = async (quiz) => {
+    setSaving(true);
+    try {
+      await axios.patch(`http://127.0.0.1:8000/quizzes/quizzes/${quiz.id}/`, {
+        is_visible: quiz.is_visible,
+        questions: quiz.questions.map((q) => ({
+          id: q.id,
+          correct_answer: q.answers.find((a) => a.is_correct)?.id,
+        })),
+      });
+      alert("Changes saved successfully!");
+    } catch (err) {
+      console.error("Failed to save quiz:", err);
+      alert("Error saving quiz changes.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <p>Loading quizzes...</p>;
+  if (quizzes.length === 0) return <p>No quizzes found.</p>;
 
   return (
-    <div>
-      {/* Quiz management section */}
-      <CreateQuiz courseId={course.id} />
-      <QuizTable courseId={course.id} />
+    <div className="quizzes">
+      <h2>Lecturer Quizzes</h2>
+      {quizzes.map((quiz) => (
+        <div
+          key={quiz.id}
+          style={{
+            border: "1px solid black",
+            marginBottom: "15px",
+            padding: "10px",
+          }}
+        >
+          <div
+            style={{ cursor: "pointer", padding: "10px" }}
+            onClick={() => toggleExpand(quiz.id)}
+          >
+            <h3>
+              {quiz.title}{" "}
+              <span style={{ fontSize: "0.8rem", marginLeft: "10px" }}>
+                ({quiz.is_visible ? "Visible to students" : "Hidden from students"})
+              </span>
+            </h3>
+          </div>
 
-      {/* Existing heading */}
-      <h1>Lecturer Quizzes for {course.title}</h1>
+          {expandedQuiz === quiz.id && (
+            <div style={{ padding: "10px" }}>
+              <div style={{ marginBottom: "15px" }}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={quiz.is_visible}
+                    onChange={() => handleVisibilityToggle(quiz.id)}
+                  />{" "}
+                  Visible to students
+                </label>
+              </div>
+
+              {quiz.questions.map((q, index) => {
+                const correctAnswer = q.answers.find((a) => a.is_correct);
+                return (
+                  <div key={q.id} style={{ marginBottom: "15px" }}>
+                    <p>
+                      <strong>Question {index + 1}:</strong> {q.text}
+                    </p>
+                    <ul>
+                      {q.answers.map((a) => (
+                        <li key={a.id}>
+                          <label>
+                            <input
+                              type="radio"
+                              name={`question-${q.id}`}
+                              value={a.id}
+                              checked={a.id === correctAnswer?.id}
+                              onChange={() =>
+                                handleCorrectAnswerChange(quiz.id, q.id, a.id)
+                              }
+                            />
+                            {a.text}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+
+              <button
+                onClick={() => handleSave(quiz)}
+                disabled={saving}
+                style={{ marginTop: "10px" }}
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
