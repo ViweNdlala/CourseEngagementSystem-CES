@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
 
@@ -11,8 +11,10 @@ export default function Quizzes() {
   const [grades, setGrades] = useState({});
   const [submitted, setSubmitted] = useState({});
   const [loading, setLoading] = useState(true);
+  const [timers, setTimers] = useState({}); // Track remaining time per quiz
+  const intervalRefs = useRef({}); // Store intervals per quiz
 
-  // 🔎 Fetch quizzes when course changes
+  // Fetch quizzes when course changes
   useEffect(() => {
     if (!currentCourse) return;
 
@@ -24,31 +26,48 @@ export default function Quizzes() {
       .finally(() => setLoading(false));
   }, [currentCourse]);
 
-  // 🔎 Expand/collapse quiz
-  const toggleExpand = (quizId) => {
-    setExpandedQuiz(expandedQuiz === quizId ? null : quizId);
-    setGrades({});
-    setSubmitted({});
+  // Expand/collapse quiz
+  const toggleExpand = (quiz) => {
+    if (expandedQuiz === quiz.id) {
+      // Stop timer if collapsing
+      clearInterval(intervalRefs.current[quiz.id]);
+      setExpandedQuiz(null);
+    } else {
+      setExpandedQuiz(quiz.id);
+      setGrades({});
+      setSubmitted({});
+      // Start timer if quiz has a limit
+      if (quiz.timer && quiz.timer > 0) {
+        setTimers((prev) => ({ ...prev, [quiz.id]: quiz.timer * 60 })); // convert minutes to seconds
+        clearInterval(intervalRefs.current[quiz.id]);
+        intervalRefs.current[quiz.id] = setInterval(() => {
+          setTimers((prev) => {
+            if (prev[quiz.id] <= 1) {
+              clearInterval(intervalRefs.current[quiz.id]);
+              handleSubmit(quiz.id, quiz.questions);
+              return { ...prev, [quiz.id]: 0 };
+            }
+            return { ...prev, [quiz.id]: prev[quiz.id] - 1 };
+          });
+        }, 1000);
+      }
+    }
   };
 
-  // 🔎 Track selected answer
+  // Track selected answer
   const handleAnswerChange = (questionId, answerId) => {
     setAnswers({ ...answers, [questionId]: answerId });
   };
 
-  // 🔎 Grade quiz when submitted
+  // Grade quiz when submitted
   const handleSubmit = (quizId, questions) => {
     if (submitted[quizId]) return;
 
     let correctCount = 0;
-
     questions.forEach((q) => {
       const chosenAnswer = q.answers.find((a) => a.id === answers[q.id]);
       const correctAnswer = q.answers.find((a) => a.is_correct);
-
-      if (chosenAnswer?.id === correctAnswer?.id) {
-        correctCount++;
-      }
+      if (chosenAnswer?.id === correctAnswer?.id) correctCount++;
     });
 
     const grade = {
@@ -59,10 +78,22 @@ export default function Quizzes() {
 
     setGrades({ ...grades, [quizId]: grade });
     setSubmitted({ ...submitted, [quizId]: true });
+
+    // Stop the timer if quiz is submitted
+    clearInterval(intervalRefs.current[quizId]);
   };
 
-  // 🔎 Filter only quizzes visible to students
+  // Filter only quizzes visible to students
   const visibleQuizzes = quizzes.filter((q) => q.is_visible);
+
+  // Format timer as MM:SS
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   if (loading) return <p>Loading quizzes...</p>;
   if (visibleQuizzes.length === 0) return <p>No quizzes found.</p>;
@@ -81,9 +112,12 @@ export default function Quizzes() {
         >
           <div
             style={{ cursor: "pointer", padding: "10px" }}
-            onClick={() => toggleExpand(quiz.id)}
+            onClick={() => toggleExpand(quiz)}
           >
             <h3>{quiz.title}</h3>
+            {quiz.timer > 0 && expandedQuiz === quiz.id && (
+              <p>Time remaining: {formatTime(timers[quiz.id] || quiz.timer * 60)}</p>
+            )}
           </div>
 
           {expandedQuiz === quiz.id && (
@@ -125,9 +159,7 @@ export default function Quizzes() {
                                 name={`question-${q.id}`}
                                 value={a.id}
                                 checked={checked}
-                                onChange={() =>
-                                  handleAnswerChange(q.id, a.id)
-                                }
+                                onChange={() => handleAnswerChange(q.id, a.id)}
                                 disabled={submitted[quiz.id]}
                               />
                               {a.text}
@@ -158,8 +190,7 @@ export default function Quizzes() {
                 >
                   <h4>Grade Summary</h4>
                   <p>
-                    Mark: {grades[quiz.id].correct}/
-                    {grades[quiz.id].total}
+                    Mark: {grades[quiz.id].correct}/{grades[quiz.id].total}
                   </p>
                   <p>
                     Grade: <strong>{grades[quiz.id].percentage}%</strong>
