@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
 import axios from "axios";
+import "../../lecturer/styles/Preparation.css";
 
 export default function Preparation() {
   const { id } = useParams();
@@ -29,9 +30,9 @@ export default function Preparation() {
     }
   }, [course]);
 
-  async function fetchWeeks() {
+  const fetchWeeks = async () => {
     try {
-      const response = await axios.get(`http://localhost:8000/courses/${id}/preparation/weeks`);
+      const response = await axios.get("http://localhost:8000/courses/${id}/preparation/weeks");
       setWeeks(response.data);
     } catch (error) {
       console.error("Failed to fetch data: ", error);
@@ -53,6 +54,21 @@ export default function Preparation() {
             <div className="week-header">
               <h2>Week {week.week_number}</h2>
               <p>{week.welcome_message}</p>
+            </div>
+            <div className="week-content">
+              <div className="resources-section">
+                <div className="resources-header"></div>
+                <div className="resources-list">
+                  {week.resources.map((resource) => (
+                    <div key={resource.id} className="resource-item">
+                      <div className="resource-info">
+                        <p><strong>{resource.title}</strong></p>
+                        <a href={resource.url}>{resource.url}</a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         ))}

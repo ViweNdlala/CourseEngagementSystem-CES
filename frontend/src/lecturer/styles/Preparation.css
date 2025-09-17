@@ -23,3 +23,19 @@
   margin-bottom: 10px;
   width: fit-content;
 }
+.panel {
+  padding: 0 18px;
+  background-color: white;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.panel.active {
+  max-height: fit-content;
+  border: 2px solid #ddd;
+}
+
+.panel-content {
+  padding: 20px 0;
+}
+
