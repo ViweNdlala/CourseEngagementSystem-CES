@@ -32,13 +32,13 @@ export default function Preparation() {
 
   const fetchWeeks = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/courses/${id}/preparation/weeks");
+      const response = await axios.get(`http://localhost:8000/courses/${id}/preparation/weeks/`);
       setWeeks(response.data);
     } catch (error) {
       console.error("Failed to fetch data: ", error);
       alert("Failed to fetch preparation data.");
     }
-  }
+  };
   if (loading) return <p>Loading course preparation...</p>;
   if (!course) return <p>Course not found.</p>;
 
@@ -47,7 +47,7 @@ export default function Preparation() {
       <div className="preparation-header">
         <h1>Preparation for {course.title}</h1>
       </div>
-      
+
       <div className="weeks-list">
         {weeks.map((week) => (
           <div key={week.id} className="week-card">
@@ -59,7 +59,7 @@ export default function Preparation() {
               <div className="resources-section">
                 <div className="resources-header"></div>
                 <div className="resources-list">
-                  {week.resources.map((resource) => (
+                  {week.preparation_resources.map((resource) => (
                     <div key={resource.id} className="resource-item">
                       <div className="resource-info">
                         <p><strong>{resource.title}</strong></p>
