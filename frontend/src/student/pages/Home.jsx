@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 
 import { useUser } from "../../contexts/UserContext";
 
-import "../../components/Header.css"; // adjust path if needed Final\CourseEngagementSystem-CES\frontend\src\student\pages\Home.jsx
+import "../../components/Header.css";
 import axios from "axios";
 
 function Header() {
