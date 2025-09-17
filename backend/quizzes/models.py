@@ -2,16 +2,21 @@ from django.db import models
 from accounts.models import User
 from courses.models import Course
 
+
 class Quiz(models.Model):
     title = models.CharField(max_length=255)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="quizzes")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="quizzes")
     timer = models.IntegerField(default=0)  # in minutes, 0 means no time limit
+    attempts = models.IntegerField(
+        default=0,
+        help_text="0 means unlimited attempts, any positive number restricts attempts",
+    )
     is_visible = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.title
+        return f"{self.title} (Attempts: {'Unlimited' if self.attempts == 0 else self.attempts})"
 
 
 class Question(models.Model):
