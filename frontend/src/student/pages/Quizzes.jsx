@@ -113,6 +113,7 @@ export default function Quizzes() {
           <div
             style={{ cursor: "pointer", padding: "10px" }}
             onClick={() => toggleExpand(quiz)}
+            className="quiz-toggle"
           >
             <h3>{quiz.title}</h3>
             {quiz.timer > 0 && expandedQuiz === quiz.id && (
