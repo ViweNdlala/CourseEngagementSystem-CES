@@ -1,7 +1,6 @@
-# courses/serializers.py
 from rest_framework import serializers
 from .models import Course, Enrollment, GeofenceSession, GeofenceAccessLog
-from accounts.models import User  # use the User model from accounts app
+from accounts.models import User  
 
 # Course serializer
 class CourseSerializer(serializers.ModelSerializer):
@@ -15,7 +14,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
         model = Enrollment
         fields = ['id', 'student', 'course']
 
-# ----- Geofence serializers -----
+#Geofence serializers 
 class GeofenceSessionSerializer(serializers.ModelSerializer):
     # expose lat/lon as floats in the API so frontend receives numeric JSON values
     latitude = serializers.FloatField()
@@ -45,7 +44,7 @@ class GeofenceAccessCheckSerializer(serializers.Serializer):
     course_id = serializers.IntegerField()
     latitude = serializers.FloatField()
     longitude = serializers.FloatField()
-    # allow frontend to pass student id (for dev flow without login)
+    # allow frontend to pass student id 
     student = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.filter(role='student'),
         required=False,

@@ -33,4 +33,6 @@ urlpatterns = [
     path('geofence/sessions/', GeofenceSessionCreateView.as_view(), name='geofence-sessions'),
     path('geofence/sessions/active/', GeofenceActiveView.as_view(), name='geofence-active-session'),
     path('geofence/check-access/', GeofenceCheckAccessView.as_view(), name='geofence-check-access'),
+
+    path('points/', include('points.urls')),
 ]

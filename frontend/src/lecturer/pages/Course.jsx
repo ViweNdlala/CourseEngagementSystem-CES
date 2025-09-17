@@ -18,7 +18,7 @@ function LecturerCourseHome() {
     axios.get(`http://127.0.0.1:8000/courses/${id}/`)
       .then(res => {
         setCourse(res.data);
-        selectCourse(res.data); // <-- important!
+        selectCourse(res.data); 
       })
       .catch(err => console.error(err));
 

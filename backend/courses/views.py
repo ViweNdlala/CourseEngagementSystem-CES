@@ -86,14 +86,10 @@ class CourseDetailView(RetrieveAPIView):
     serializer_class = CourseSerializer
 
 
-# ------------------------
-# Geofence endpoints
-# ------------------------
 
 # GeofenceSessionCreateView
 class GeofenceSessionCreateView(APIView):
     serializer_class = GeofenceSessionSerializer
-    # permission_classes left empty for development (as you requested)
 
     def get(self, request):
         sessions = GeofenceSession.objects.all()
@@ -105,7 +101,7 @@ class GeofenceSessionCreateView(APIView):
         serializer.is_valid(raise_exception=True)
 
         course = serializer.validated_data.get("course")
-        lecturer_id = request.data.get("lecturer")  # Frontend sends lecturer ID
+        lecturer_id = request.data.get("lecturer")  
 
         if not lecturer_id:
             return Response({"error": "Lecturer ID required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -122,7 +118,7 @@ class GeofenceSessionCreateView(APIView):
 
         return Response(GeofenceSessionSerializer(session).data, status=status.HTTP_201_CREATED)
 
-# GeofenceActiveView unchanged except small improvement in returned data
+
 class GeofenceActiveView(APIView):
     def get(self, request):
         course_id = request.query_params.get("course_id")
@@ -141,7 +137,7 @@ class GeofenceActiveView(APIView):
 # GeofenceCheckAccessView (student checks location; accept student id from payload)
 class GeofenceCheckAccessView(APIView):
     serializer_class = GeofenceAccessCheckSerializer
-    # permission_classes left empty for dev purposes
+    
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
