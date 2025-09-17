@@ -1,0 +1,25 @@
+.preparation-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.preparation-header{
+  display: flex;
+  flex-direction: column;
+}
+.preparation-header h1 {
+  padding-bottom: 50px;
+}
+
+.accordion {
+  cursor: pointer;
+  background-color: #295474;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  text-align: left;
+  margin-bottom: 10px;
+  width: fit-content;
+}
