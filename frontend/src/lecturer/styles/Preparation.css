@@ -16,7 +16,7 @@
   cursor: pointer;
   background-color: #295474;
   color: white;
-  padding: 10px 20px;
+  padding: 10px 10px;
   border: none;
   border-radius: 5px;
   text-align: left;
@@ -37,5 +37,130 @@
 
 .panel-content {
   padding: 20px 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 10px;
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #295474;
+  box-shadow: 0 0 5px rgba(41, 84, 116, 0.3);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.form-button1 {
+  background-color: #295474;
+  color: white;
+  border: none;
+  padding: 5px 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.form-button2 {
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  padding: 5px 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.weeks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.week-card {
+  padding-bottom: 50px;
+  border-bottom: 1px solid #000000;
+}
+
+.week-header {
+  justify-items: left;
+}
+.week-header h2 {
+  color: #295474;
+  font-size: 1.5rem;
+}
+.week-header p {
+  font-size: 1.2rem;
+}
+.week-content {
+  margin-bottom: 15px;
+}
+
+.resources-section {
+  margin-top: 20px;
+}
+
+.resources-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.resource-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+.resource-info {
+  justify-items: left;
+}
+.resource-info p {
+  margin: 8px;  
+}
+.resource-info a {
+  text-decoration: none;
+  font-size: 14px;
+}
+.resource-info a:hover {
+  text-decoration: underline;
+}
+.resource-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.resource-form {
+  border: 1px solid #295474;
+}
+
+.resource-form h4 {
+  color: #295474;
 }
 
