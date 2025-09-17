@@ -1,9 +1,7 @@
-// src/pages/LecturerHome.jsx
 import "../styles/Home.css";
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useUser } from "../../contexts/UserContext";
-
 import "../../components/Header.css"; 
 import axios from "axios";
 
@@ -44,8 +42,9 @@ function Header() {
 }
 
 function LecturerHome() {
-  const [courses, setCourses] = useState([]);
   const [lecturer, setLecturer] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,15 +55,18 @@ function LecturerHome() {
   }, []);
 
   useEffect(() => {
-    if (lecturer) {
-      axios
-        .get("http://localhost:8000/courses/")
-        .then((res) => {
-          const myCourses = res.data.filter((c) => c.lecturer === lecturer.id);
-          setCourses(myCourses);
-        })
-        .catch((err) => console.log(err));
-    }
+    if (!lecturer) return;
+
+    setLoading(true);
+
+    axios
+      .get("http://localhost:8000/courses/")
+      .then((res) => {
+        const myCourses = res.data.filter((c) => c.lecturer === lecturer.id);
+        setCourses(myCourses);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
   }, [lecturer]);
 
   if (!lecturer) return <p>No lecturer logged in</p>;
@@ -76,7 +78,9 @@ function LecturerHome() {
         <main className="courses-wrap">
           <h2 className="section-title">My Courses</h2>
           <div className="courses-grid">
-            {courses.length > 0 ? (
+            {loading ? (
+              <p>Loading courses...</p>
+            ) : courses.length > 0 ? (
               courses.map((c) => (
                 <div
                   key={c.id}
@@ -100,3 +104,4 @@ function LecturerHome() {
 }
 
 export default LecturerHome;
+

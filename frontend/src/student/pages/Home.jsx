@@ -1,9 +1,7 @@
 import "../styles/Home.css";
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-
 import { useUser } from "../../contexts/UserContext";
-
 import "../../components/Header.css";
 import axios from "axios";
 
@@ -47,6 +45,7 @@ function StudentHome() {
   const [student, setStudent] = useState(null);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [allCourses, setAllCourses] = useState([]);
+  const [loading, setLoading] = useState(true); 
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,18 +62,22 @@ function StudentHome() {
 
   useEffect(() => {
     if (student) {
+      setLoading(true); 
       axios
         .get("http://localhost:8000/enrollments/")
         .then((res) => {
           const myEnrollmentIds = res.data
             .filter((e) => e.student === student.id)
             .map((e) => e.course);
+
           const myCourses = allCourses.filter((c) =>
             myEnrollmentIds.includes(c.id)
           );
+
           setEnrolledCourses(myCourses);
         })
-        .catch((err) => console.log(err));
+        .catch((err) => console.log(err))
+        .finally(() => setLoading(false)); 
     }
   }, [student, allCourses]);
 
@@ -88,7 +91,9 @@ function StudentHome() {
           <h2 className="section-title">My Courses</h2>
 
           <div className="courses-grid">
-            {enrolledCourses.length > 0 ? (
+            {loading ? (
+              <p>Loading courses...</p>
+            ) : enrolledCourses.length > 0 ? (
               enrolledCourses.map((c) => (
                 <div
                   key={c.id}
@@ -112,3 +117,7 @@ function StudentHome() {
 }
 
 export default StudentHome;
+
+
+
+
