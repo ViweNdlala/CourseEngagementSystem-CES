@@ -3,7 +3,7 @@ import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
 
 export default function Quizzes() {
-  const { currentCourse } = useCourse();
+  const { currentCourse ,activeSession, withinGeofence, locationChecked} = useCourse();
 
   const [quizzes, setQuizzes] = useState([]);
   const [expandedQuiz, setExpandedQuiz] = useState(null);
@@ -11,6 +11,9 @@ export default function Quizzes() {
   const [grades, setGrades] = useState({});
   const [submitted, setSubmitted] = useState({});
   const [loading, setLoading] = useState(true);
+
+   // Determine if student can access quizzes
+  const canAccessQuizzes = activeSession && withinGeofence && locationChecked;
 
   // Fetch quizzes when course changes
   useEffect(() => {
@@ -26,6 +29,7 @@ export default function Quizzes() {
 
   // Expand/collapse quiz
   const toggleExpand = (quizId) => {
+     if (!canAccessQuizzes) return; // prevent expanding if not allowed
     setExpandedQuiz(expandedQuiz === quizId ? null : quizId);
     setGrades({});
     setSubmitted({});
@@ -65,6 +69,18 @@ export default function Quizzes() {
   const visibleQuizzes = quizzes.filter((q) => q.is_visible);
 
   if (loading) return <p>Loading quizzes...</p>;
+
+  if (!canAccessQuizzes) {
+    return (
+      <div className="quizzes">
+        <h2>Quizzes</h2>
+        <p style={{ color: "red", marginTop: "1rem" }}>
+          ❌ You must be within the geofence and have an active session to view quizzes
+        </p>
+      </div>
+    );
+  }
+
   if (visibleQuizzes.length === 0) return <p>No quizzes found.</p>;
 
   return (

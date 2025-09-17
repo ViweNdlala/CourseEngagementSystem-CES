@@ -1,29 +1,61 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+
 import { useCourse } from "../../contexts/CourseContext";
-import axios from "axios";
 
-export default function Attendance() {
-  const { id } = useParams();
-  const { currentCourse, selectCourse } = useCourse();
-  const [course, setCourse] = useState(currentCourse);
-  const [loading, setLoading] = useState(!currentCourse);
+function StudentAttendance() {
+  const { activeSession, withinGeofence, locationChecked } = useCourse();
 
-  useEffect(() => {
-    if (!currentCourse && id) {
-      axios
-        .get(`http://localhost:8000/courses/${id}/`)
-        .then((res) => {
-          setCourse(res.data);
-          selectCourse(res.data);
-        })
-        .catch((err) => console.error("Failed to fetch course:", err))
-        .finally(() => setLoading(false));
-    }
-  }, [id, currentCourse, selectCourse]);
+  const handleAttendance = () => {
+    alert("Attendance submitted!");
+  };
 
-  if (loading) return <p>Loading attendance data...</p>;
-  if (!course) return <p>Course not found.</p>;
+  
+  // Disable button if:
+  // - no active session
+  // - OR not within geofence
+  // - OR location not yet checked
+  
+  const isButtonDisabled = !activeSession || !withinGeofence || !locationChecked;
 
-  return <h1>Attendance for {course.title}</h1>;
+  
+  // Decide what session message to show
+  
+  let sessionMessage;
+  if (activeSession) {
+    sessionMessage = <p>✅ Active session ID {activeSession.id}</p>;
+  } else {
+    sessionMessage = <p style={{ color: "red" }}>No active session</p>;
+  }
+
+  
+  // Decide what geofence warning to show
+  
+  let geofenceWarning = null;
+  if (activeSession && locationChecked && !withinGeofence) {
+    geofenceWarning = (
+      <p style={{ color: "red", marginTop: "0.5rem" }}>
+        ❌ You must be within the geofence to mark attendance
+      </p>
+    );
+  }
+
+  
+  return (
+    <div className="attendance-page" style={{ padding: "1.5rem" }}>
+      <h2>Attendance</h2>
+
+      {/* Active session or fallback message */}
+      {sessionMessage}
+
+      {/* Attendance button */}
+      <button onClick={handleAttendance} disabled={isButtonDisabled}>
+        Mark Attendance
+      </button>
+
+      {/* Show geofence warning if needed */}
+      {geofenceWarning}
+    </div>
+  );
 }
+
+export default StudentAttendance;
+

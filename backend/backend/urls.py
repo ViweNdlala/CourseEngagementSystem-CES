@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 # from django.conf.urls import url
 from accounts.views import UserView
-from courses.views import CourseView , EnrollmentView ,CourseDetailView
+from courses.views import CourseView , EnrollmentView ,CourseDetailView,GeofenceSessionCreateView, GeofenceActiveView,GeofenceCheckAccessView
 
 
 
@@ -29,4 +29,12 @@ urlpatterns = [
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
     path('enrollments/', EnrollmentView.as_view(), name='enroll-student'),
     path('quizzes/', include('quizzes.urls')), 
+
+    # Geofencing
+    path('geofence/sessions/', GeofenceSessionCreateView.as_view(), name='geofence-sessions'),
+    path('geofence/sessions/active/', GeofenceActiveView.as_view(), name='geofence-active-session'),
+    path('geofence/check-access/', GeofenceCheckAccessView.as_view(), name='geofence-check-access'),
+
+    path('points/', include('points.urls')),
+
 ]
