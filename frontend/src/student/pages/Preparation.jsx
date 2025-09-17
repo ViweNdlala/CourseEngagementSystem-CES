@@ -7,6 +7,7 @@ export default function Preparation() {
   const { id } = useParams();
   const { currentCourse, selectCourse } = useCourse();
   const [course, setCourse] = useState(currentCourse);
+  const [weeks, setWeeks] = useState([]);
   const [loading, setLoading] = useState(!currentCourse);
 
   useEffect(() => {
@@ -22,8 +23,40 @@ export default function Preparation() {
     }
   }, [id, currentCourse, selectCourse]);
 
+  useEffect(() => {
+    if (course){
+      fetchWeeks();
+    }
+  }, [course]);
+
+  async function fetchWeeks() {
+    try {
+      const response = await axios.get(`http://localhost:8000/courses/${id}/preparation/weeks`);
+      setWeeks(response.data);
+    } catch (error) {
+      console.error("Failed to fetch data: ", error);
+      alert("Failed to fetch preparation data.");
+    }
+  }
   if (loading) return <p>Loading course preparation...</p>;
   if (!course) return <p>Course not found.</p>;
 
-  return <h1>Preparation for {course.title}</h1>;
+  return (
+    <div className="preparation-container">
+      <div className="preparation-header">
+        <h1>Preparation for {course.title}</h1>
+      </div>
+      
+      <div className="weeks-list">
+        {weeks.map((week) => (
+          <div key={week.id} className="week-card">
+            <div className="week-header">
+              <h2>Week {week.week_number}</h2>
+              <p>{week.welcome_message}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
