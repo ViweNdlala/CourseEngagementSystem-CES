@@ -119,10 +119,10 @@ export default function Quizzes() {
       setQuizzes([...quizzes, res.data]);
       // reset quiz state with attempts: 0 again
       setNewQuiz({ title: "", timer: 0, attempts: 0, is_visible: false, questions: [] });
-      setMessages({ ...messages, create: "✅ Quiz created successfully!" });
+      setMessages({ ...messages, create: " Quiz created successfully!" });
     } catch (err) {
       console.error("Failed to create quiz:", err.response?.data || err.message);
-      setMessages({ ...messages, create: "❌ Failed to create quiz." });
+      setMessages({ ...messages, create: " Failed to create quiz." });
     } finally {
       setCreating(false);
     }

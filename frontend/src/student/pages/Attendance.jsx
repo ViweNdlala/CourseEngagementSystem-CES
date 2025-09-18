@@ -210,7 +210,7 @@ export default function Attendance() {
 
   let sessionMessage;
   if (activeSession) {
-    sessionMessage = <p>✅ Active session ID {activeSession.id}</p>;
+    sessionMessage = <p> Active session ID {activeSession.id}</p>;
   } else {
     sessionMessage = <p style={{ color: "red" }}>No active session</p>;
   }
@@ -219,7 +219,7 @@ export default function Attendance() {
   if (activeSession && locationChecked && !withinGeofence) {
     geofenceWarning = (
       <p style={{ color: "red", marginTop: "0.5rem" }}>
-        ❌ You must be within the geofence to mark attendance
+         You must be within the geofence to mark attendance
       </p>
     );
   }

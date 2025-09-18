@@ -88,7 +88,7 @@ function StudentCourseHome() {
 
       {activeSession ? (
         <div className="session-info">
-          <p>✅ Active session running (ID {activeSession.id})</p>
+          <p> Active session running (ID {activeSession.id})</p>
           <p>Started at: {new Date(activeSession.start_time).toLocaleTimeString()}</p>
           <p>Duration: {activeSession.duration_minutes} minutes</p>
 
@@ -98,7 +98,7 @@ function StudentCourseHome() {
 
           {locationChecked &&  (
             <p className="location-message">
-              {withinGeofence ? "✅ You are within the geofence" : "❌ You are outside the geofence"}
+              {withinGeofence ? " You are within the geofence" : " You are outside the geofence"}
               <br />
               {message}
             </p>
