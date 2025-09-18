@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";
+import "../styles/Quizzes.css";
 
 export default function Quizzes() {
   const { currentCourse } = useCourse();
