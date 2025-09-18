@@ -44,8 +44,10 @@ INSTALLED_APPS = [
     'courses',
     'channels',
     'quizzes',
-    'points'
+    'points',
 
+    'attendance',
+    'preparation',
 ]
 
 MIDDLEWARE = [

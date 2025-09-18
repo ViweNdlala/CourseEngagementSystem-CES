@@ -16,7 +16,13 @@ export const useUser = () => {
 
 // UserProvider component to wrap the app
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  // get user from localstorgae if avail (to keep user loged in)
+  const [user, setUser] = useState(() => {
+      const loggedInUser = localStorage.getItem("loggedInUser");
+      if (loggedInUser) {
+        return JSON.parse(loggedInUser);
+      }
+  });
 
    // Rehydrate from localStorage on startup
   useEffect(() => {
