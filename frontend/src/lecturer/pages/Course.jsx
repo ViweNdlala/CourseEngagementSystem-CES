@@ -18,7 +18,7 @@ function LecturerCourseHome() {
     axios.get(`http://127.0.0.1:8000/courses/${id}/`)
       .then(res => {
         setCourse(res.data);
-        selectCourse(res.data); // <-- important!
+        selectCourse(res.data); 
       })
       .catch(err => console.error(err));
 
@@ -61,10 +61,10 @@ function LecturerCourseHome() {
           duration_minutes: parseInt(duration, 10)
         });
         setActiveSession(resp.data);
-        alert("✅ Geofence session started!");
+        alert(" Geofence session started!");
       } catch (err) {
         console.error(err.response?.data || err);
-        alert("❌ Failed to start session");
+        alert(" Failed to start session");
       }
     }, err => alert("Location error: " + err.message), 
     { enableHighAccuracy: true ,timeout: 10000, maximumAge: 0});
@@ -86,7 +86,7 @@ function LecturerCourseHome() {
 
       {activeSession && (
         <div>
-          <p>✅ Active session ID {activeSession.id}</p>
+          <p> Active session ID {activeSession.id}</p>
           <p>Started at: {new Date(activeSession.start_time).toLocaleTimeString()}</p>
           <p>Duration: {activeSession.duration_minutes} minutes</p>
         </div>
