@@ -36,7 +36,7 @@ urlpatterns = [
     path('attendance/student/', StudentAttendanceView.as_view(), name='student_attendance'),
     path('attendance/lecturer/', LecturerAttendanceView.as_view(), name='lecturer_attendance'),
     path('attendance/<int:pk>/', AttendanceDeleteView.as_view(), name='attendance_delete'),
-    
+    path('quizzes/', include('quizzes.urls')), 
      # Geofencing
     path('geofence/sessions/', GeofenceSessionCreateView.as_view(), name='geofence-sessions'),
     path('geofence/sessions/active/', GeofenceActiveView.as_view(), name='geofence-active-session'),
