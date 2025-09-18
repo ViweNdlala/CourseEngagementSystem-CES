@@ -64,9 +64,9 @@ function StudentPoints() {
 
   const renderStatus = (request) => {
     if (!request) return "";
-    if (request.approved) return "✅ Approved";
-    if (request.declined) return "❌ Declined";
-    return "⏳ Pending";
+    if (request.approved) return " Approved";
+    if (request.declined) return " Declined";
+    return " Pending";
   };
 
 
@@ -104,12 +104,12 @@ function StudentPoints() {
 
         {!withinGeofence && locationChecked && (
           <p style={{ color: "red", marginTop: "0.5rem" }}>
-            ❌ You must be within the geofence to request points
+             You must be within the geofence to request points
           </p>
         )}
         {!activeSession && (
           <p style={{ color: "red", marginTop: "0.5rem" }}>
-            ❌ No active session
+             No active session
           </p>
         )}
       </div>
