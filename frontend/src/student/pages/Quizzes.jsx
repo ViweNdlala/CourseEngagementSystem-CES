@@ -1,25 +1,23 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
+import "../styles/Quizzes.css";
 
 export default function Quizzes() {
-  const { currentCourse ,activeSession, withinGeofence, locationChecked} = useCourse();
+  const { currentCourse, activeSession, withinGeofence, locationChecked } = useCourse();
 
   const [quizzes, setQuizzes] = useState([]);
   const [expandedQuiz, setExpandedQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
   const [grades, setGrades] = useState({});
   const [submitted, setSubmitted] = useState({});
-  const [attemptsTaken, setAttemptsTaken] = useState({}); // Track attempts per quiz
+  const [attemptsTaken, setAttemptsTaken] = useState({});
   const [loading, setLoading] = useState(true);
   const [timers, setTimers] = useState({});
   const intervalRefs = useRef({});
 
-  // Fetch quizzes
-   // Determine if student can access quizzes
   const canAccessQuizzes = activeSession && withinGeofence && locationChecked;
 
-  // Fetch quizzes when course changes
   useEffect(() => {
     if (!currentCourse) return;
 
@@ -28,11 +26,8 @@ export default function Quizzes() {
       .get(`http://127.0.0.1:8000/quizzes/quizzes/?course=${currentCourse.id}`)
       .then((res) => {
         setQuizzes(res.data);
-
-        // Initialize attemptsTaken from backend if included
         const attemptsMap = {};
-        res.data.forEach(q => {
-          // assuming backend returns attemptsTaken field (or can default to 0)
+        res.data.forEach((q) => {
           attemptsMap[q.id] = q.attempts_taken || 0;
         });
         setAttemptsTaken(attemptsMap);
@@ -41,7 +36,6 @@ export default function Quizzes() {
       .finally(() => setLoading(false));
   }, [currentCourse]);
 
-  // Expand/collapse quiz and start timer
   const toggleExpand = (quiz) => {
     if (expandedQuiz === quiz.id) {
       clearInterval(intervalRefs.current[quiz.id]);
@@ -68,16 +62,12 @@ export default function Quizzes() {
     }
   };
 
-  // Track selected answer
   const handleAnswerChange = (questionId, answerId) => {
     setAnswers({ ...answers, [questionId]: answerId });
   };
 
-  // Submit quiz
-  // Grade quiz when submitted
   const handleSubmit = (quizId, questions) => {
-    // Enforce attempt limit
-    const quiz = quizzes.find(q => q.id === quizId);
+    const quiz = quizzes.find((q) => q.id === quizId);
     if (quiz.attempts > 0 && attemptsTaken[quizId] >= quiz.attempts) {
       alert("You have reached the maximum number of attempts for this quiz.");
       return;
@@ -100,14 +90,11 @@ export default function Quizzes() {
 
     setGrades({ ...grades, [quizId]: grade });
     setSubmitted({ ...submitted, [quizId]: true });
-
-    // Increment attempts
     setAttemptsTaken({ ...attemptsTaken, [quizId]: (attemptsTaken[quizId] || 0) + 1 });
 
     clearInterval(intervalRefs.current[quizId]);
   };
 
-  // Filter only quizzes visible to students
   const visibleQuizzes = quizzes.filter((q) => q.is_visible);
 
   const formatTime = (seconds) => {
@@ -122,8 +109,8 @@ export default function Quizzes() {
     return (
       <div className="quizzes">
         <h2>Quizzes</h2>
-        <p style={{ color: "red", marginTop: "1rem" }}>
-          ❌ You must be within the geofence and have an active session to view quizzes
+        <p className="error-msg">
+           You must be within the geofence and have an active session to view quizzes
         </p>
       </div>
     );
@@ -135,66 +122,55 @@ export default function Quizzes() {
     <div className="quizzes">
       <h2>Quizzes</h2>
       {visibleQuizzes.map((quiz) => (
-        <div
-          key={quiz.id}
-          style={{ border: "1px solid black", marginBottom: "15px", padding: "10px" }}
-        >
-          <div
-            style={{ cursor: "pointer", padding: "10px" }}
-            onClick={() => toggleExpand(quiz)}
-            className="quiz-toggle"
-          >
+        <div key={quiz.id} className="quiz-card">
+          <div className="quiz-header" onClick={() => toggleExpand(quiz)}>
             <h3>{quiz.title}</h3>
-
-            {/* Show attempts */}
-            <p>
-              Attempts: {attemptsTaken[quiz.id] || 0} /{" "}
-              {quiz.attempts === 0 ? "Unlimited" : quiz.attempts}
-            </p>
-
-            {quiz.timer > 0 && expandedQuiz === quiz.id && (
-              <p>Time remaining: {formatTime(timers[quiz.id] || quiz.timer * 60)}</p>
-            )}
+            <div className="quiz-settings">
+              <span>
+                Attempts: {attemptsTaken[quiz.id] || 0} /{" "}
+                {quiz.attempts === 0 ? "Unlimited" : quiz.attempts}
+              </span>
+              {quiz.timer > 0 && expandedQuiz === quiz.id && (
+                <span>Time: {formatTime(timers[quiz.id] || quiz.timer * 60)}</span>
+              )}
+            </div>
           </div>
 
           {expandedQuiz === quiz.id && (
-            <div style={{ padding: "10px" }}>
+            <div className="quiz-body">
               {quiz.questions.map((q, index) => {
                 const correctAnswer = q.answers.find((a) => a.is_correct);
                 const selectedAnswerId = answers[q.id];
 
                 return (
-                  <div key={q.id} style={{ marginBottom: "15px" }}>
-                    <p>
-                      <strong>Question {index + 1}:</strong> {q.text}
-                    </p>
-                    <ul>
+                  <div key={q.id} className="quiz-question">
+                    <strong>Question {index + 1}:</strong> {q.text}
+                    <ul className="answer-list">
                       {q.answers.map((a) => {
                         const isCorrect = a.id === correctAnswer?.id;
                         const isSelected = selectedAnswerId === a.id;
 
-                        let labelStyle = {};
+                        let labelClass = "";
                         let mark = "";
-                        let checked = isSelected;
 
                         if (submitted[quiz.id]) {
                           if (isCorrect) {
-                            labelStyle = { color: "green" };
-                            mark = " ✔";
+                            labelClass = "answer-correct";
+                            mark = " correct";
                           } else if (isSelected && !isCorrect) {
-                            labelStyle = { color: "red" };
-                            mark = " ✖";
+                            labelClass = "answer-wrong";
+                            mark = " incorrect";
                           }
                         }
 
                         return (
                           <li key={a.id}>
-                            <label style={labelStyle}>
+                            <label className={labelClass}>
                               <input
                                 type="radio"
                                 name={`question-${q.id}`}
                                 value={a.id}
-                                checked={checked}
+                                checked={isSelected}
                                 onChange={() => handleAnswerChange(q.id, a.id)}
                                 disabled={submitted[quiz.id]}
                               />
@@ -210,6 +186,7 @@ export default function Quizzes() {
               })}
 
               <button
+                className="btn"
                 onClick={() => handleSubmit(quiz.id, quiz.questions)}
                 disabled={
                   submitted[quiz.id] ||
@@ -220,7 +197,7 @@ export default function Quizzes() {
               </button>
 
               {grades[quiz.id] && (
-                <div style={{ marginTop: "15px", borderTop: "1px solid #ddd", paddingTop: "10px" }}>
+                <div className="grade-summary">
                   <h4>Grade Summary</h4>
                   <p>
                     Mark: {grades[quiz.id].correct}/{grades[quiz.id].total}
