@@ -1,7 +1,11 @@
+
+
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";
+import "../styles/Quizzes.css";
 
 export default function Quizzes() {
   const { currentCourse } = useCourse();
@@ -14,16 +18,15 @@ export default function Quizzes() {
   const [submitted, setSubmitted] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // ADDED: attempts: 0 (0 = unlimited) as explicit default for new quizzes
   const [newQuiz, setNewQuiz] = useState({
     title: "",
     timer: 0,
-    attempts: 0, // ADDED: 0 means "Unlimited" (frontend convention)
+    attempts: 0,
     questions: [{ text: "", answers: [{ text: "", is_correct: false }] }],
   });
 
   const [creating, setCreating] = useState(false);
-  const [messages, setMessages] = useState({}); // Messages per quiz
+  const [messages, setMessages] = useState({});
 
   useEffect(() => {
     if (!currentCourse) return;
@@ -48,7 +51,6 @@ export default function Quizzes() {
 
   const handleSubmit = (quizId, questions) => {
     if (submitted[quizId]) return;
-
     let correctCount = 0;
     questions.forEach((q) => {
       const chosenAnswer = q.answers.find((a) => a.id === answers[q.id]);
@@ -65,7 +67,6 @@ export default function Quizzes() {
     setSubmitted({ ...submitted, [quizId]: true });
   };
 
-  // Lecturer: create new quiz
   const addQuestion = () => {
     setNewQuiz({
       ...newQuiz,
@@ -110,14 +111,13 @@ export default function Quizzes() {
         title: newQuiz.title || "",
         course: currentCourse?.id || null,
         timer: newQuiz.timer !== undefined ? Number(newQuiz.timer) : 0,
-        attempts: newQuiz.attempts, // ADDED: include attempts in creation payload
+        attempts: newQuiz.attempts,
         is_visible: newQuiz.is_visible ?? false,
         questions: validQuestions
       };
 
       const res = await axios.post("http://127.0.0.1:8000/quizzes/quizzes/", payload);
       setQuizzes([...quizzes, res.data]);
-      // reset quiz state with attempts: 0 again
       setNewQuiz({ title: "", timer: 0, attempts: 0, is_visible: false, questions: [] });
       setMessages({ ...messages, create: " Quiz created successfully!" });
     } catch (err) {
@@ -128,13 +128,12 @@ export default function Quizzes() {
     }
   };
 
-  // Save changes for a specific quiz
   const handleSaveQuizChanges = async (quiz) => {
     try {
       const payload = {
         title: quiz.title,
         timer: quiz.timer,
-        attempts: quiz.attempts ?? 0, // ADDED: ensure attempts saved on update (0 => Unlimited)
+        attempts: quiz.attempts ?? 0,
         is_visible: quiz.is_visible,
         questions: quiz.questions.map(q => ({
           id: q.id,
@@ -165,14 +164,11 @@ export default function Quizzes() {
     setQuizzes(quizzes.map(q => q.id === quiz.id ? updatedQuiz : q));
   };
 
-  // ADDED: updateAttempts - updates the attempts value in UI state (lecturer can change via dropdown)
-  // NOTE: attempts is stored as an integer where 0 means Unlimited.
   const updateAttempts = (quiz, newAttempts) => {
     const updatedQuiz = { ...quiz, attempts: newAttempts };
     setQuizzes(prev => prev.map(q => q.id === quiz.id ? updatedQuiz : q));
   };
 
-  // CHANGED: replaced "Mark Correct" button behavior with this function which toggles is_correct for an answer
   const toggleCorrectAnswer = (quizId, questionId, answerId, checked) => {
     setQuizzes(prev =>
       prev.map(quiz =>
@@ -202,121 +198,99 @@ export default function Quizzes() {
     <div className="quizzes">
       <h2>Quizzes</h2>
 
-      {messages.create && <p>{messages.create}</p>}
+      {messages.create && <p className="message">{messages.create}</p>}
 
       {user?.role === "lecturer" && (
-        <div style={{ border: "1px solid gray", padding: "10px", marginBottom: "20px" }}>
+        <div className="create-quiz">
           <h3>Create New Quiz</h3>
-          <input type="text" placeholder="Quiz Title" value={newQuiz.title} onChange={e => handleQuizChange("title", e.target.value)} />
+          <input className="quiz-input" type="text" placeholder="Quiz Title" value={newQuiz.title} onChange={e => handleQuizChange("title", e.target.value)} />
           <div>
-            <label>Time Limit (minutes): <input type="number" min="0" value={newQuiz.timer} onChange={e => handleQuizChange("timer", parseInt(e.target.value))} /></label>
+            <label>Time Limit (minutes): <input className="quiz-input" type="number" min="0" value={newQuiz.timer} onChange={e => handleQuizChange("timer", parseInt(e.target.value))} /></label>
           </div>
-
-          {/* ADDED: Dropdown to set attempts when creating (lecturer) */}
           <div>
             <label>
               Attempts:
-              <select value={newQuiz.attempts} onChange={e => handleQuizChange("attempts", parseInt(e.target.value))}>
+              <select className="quiz-select" value={newQuiz.attempts} onChange={e => handleQuizChange("attempts", parseInt(e.target.value))}>
                 <option value={0}>Unlimited</option>
-                {/* Example set: allow 1..10 attempts — adjust as required */}
                 {[...Array(10)].map((_, i) => (
                   <option key={i+1} value={i+1}>{i+1}</option>
                 ))}
               </select>
             </label>
-            <small style={{ marginLeft: 8 }}>Note: 0 = Unlimited</small>
+            <small className="note">Note: 0 = Unlimited</small>
           </div>
 
           {newQuiz.questions.map((q, qIndex) => (
-            <div key={qIndex}>
-              <input type="text" placeholder={`Question ${qIndex + 1}`} value={q.text} onChange={e => handleQuestionChange(qIndex, e.target.value)} />
+            <div key={qIndex} className="question">
+              <input className="quiz-input" type="text" placeholder={`Question ${qIndex + 1}`} value={q.text} onChange={e => handleQuestionChange(qIndex, e.target.value)} />
               {q.answers.map((a, aIndex) => (
-                <div key={aIndex}>
-                  <input type="text" placeholder={`Answer ${aIndex + 1}`} value={a.text} onChange={e => handleNewAnswerChange(qIndex, aIndex, "text", e.target.value)} />
+                <div key={aIndex} className="answer">
+                  <input className="quiz-input" type="text" placeholder={`Answer ${aIndex + 1}`} value={a.text} onChange={e => handleNewAnswerChange(qIndex, aIndex, "text", e.target.value)} />
                   <label>
                     <input type="checkbox" checked={a.is_correct} onChange={e => handleNewAnswerChange(qIndex, aIndex, "is_correct", e.target.checked)} />
                     Correct
                   </label>
                 </div>
               ))}
-              <button onClick={() => addAnswer(qIndex)}>+ Add Answer</button>
+              <button className="btn" onClick={() => addAnswer(qIndex)}>+ Add Answer</button>
             </div>
           ))}
 
-          <button onClick={addQuestion}>+ Add Question</button>
-          <button onClick={handleCreateQuiz} disabled={creating}>{creating ? "Creating..." : "Create Quiz"}</button>
+          <button className="btn" onClick={addQuestion}>+ Add Question</button>
+          <button className="btn" onClick={handleCreateQuiz} disabled={creating}>{creating ? "Creating..." : "Create Quiz"}</button>
         </div>
       )}
 
       {quizzes.map(quiz => (
-        <div key={quiz.id} style={{ border: "1px solid black", marginBottom: "15px", padding: "10px" }}>
-          <div style={{ cursor: "pointer", padding: "10px" }} onClick={() => toggleExpand(quiz.id)}>
+        <div key={quiz.id} className="quiz-card">
+          <div className="quiz-header" onClick={() => toggleExpand(quiz.id)}>
             <h3>{quiz.title}</h3>
             <p>Time Limit: {quiz.timer > 0 ? `${quiz.timer} minutes` : "No limit"}</p>
-            <p>Attempts: {quiz.attempts === 0 ? "Unlimited" : quiz.attempts}</p> {/* display attempts */}
-
+            <p>Attempts: {quiz.attempts === 0 ? "Unlimited" : quiz.attempts}</p>
             {user?.role === "lecturer" && (
-              <div>
-                <label>Visible to students: <input type="checkbox" checked={quiz.is_visible} onChange={() => toggleVisibility(quiz)} /></label>
-                <label>Update Timer: <input type="number" min="0" defaultValue={quiz.timer} onBlur={e => updateTimer(quiz, parseInt(e.target.value))} /></label>
-
-                {/* ADDED: Dropdown for lecturer to change attempts (0 = Unlimited) */}
-                <label style={{ marginLeft: 10 }}>
+              <div className="quiz-settings">
+                <label>Visible: <input type="checkbox" checked={quiz.is_visible} onChange={() => toggleVisibility(quiz)} /></label>
+                <label>Update Timer: <input className="quiz-input" type="number" min="0" defaultValue={quiz.timer} onBlur={e => updateTimer(quiz, parseInt(e.target.value))} /></label>
+                <label>
                   Attempts:
-                  <select
-                    value={quiz.attempts ?? 0}
-                    onChange={e => updateAttempts(quiz, parseInt(e.target.value))}
-                    style={{ marginLeft: 6 }}
-                  >
+                  <select className="quiz-select" value={quiz.attempts ?? 0} onChange={e => updateAttempts(quiz, parseInt(e.target.value))}>
                     <option value={0}>Unlimited</option>
                     {[...Array(10)].map((_, i) => (
                       <option key={i+1} value={i+1}>{i+1}</option>
                     ))}
                   </select>
                 </label>
-                <small style={{ marginLeft: 8 }}>Change attempts then click "Save Changes" to persist.</small>
+                <small className="note">Change attempts then click "Save Changes"</small>
               </div>
             )}
           </div>
 
           {expandedQuiz === quiz.id && quiz.questions.map((q, idx) => (
-            <div key={q.id}>
+            <div key={q.id} className="quiz-question">
               <p><strong>Question {idx + 1}:</strong> {q.text}</p>
               <ul>
                 {q.answers.map(a => (
                   <li key={a.id}>
                     <label>
-                      {/* CHANGED: lecturers get checkboxes to set is_correct; students get radios to select answer */}
                       {user?.role === "lecturer" ? (
-                        <input
-                          type="checkbox"
-                          checked={!!a.is_correct}
-                          onChange={e => toggleCorrectAnswer(quiz.id, q.id, a.id, e.target.checked)}
-                        />
+                        <input type="checkbox" checked={!!a.is_correct} onChange={e => toggleCorrectAnswer(quiz.id, q.id, a.id, e.target.checked)} />
                       ) : (
-                        <input
-                          type="radio"
-                          name={`q-${q.id}`}
-                          checked={answers[q.id] === a.id}
-                          onChange={() => handleAnswerChange(q.id, a.id)}
-                        />
+                        <input type="radio" name={`q-${q.id}`} checked={answers[q.id] === a.id} onChange={() => handleAnswerChange(q.id, a.id)} />
                       )}
                       {a.text}
                     </label>
                   </li>
                 ))}
               </ul>
-              {user?.role !== "lecturer" && <button onClick={() => handleSubmit(quiz.id, quiz.questions)} disabled={submitted[quiz.id]}>Submit</button>}
+              {user?.role !== "lecturer" && <button className="btn" onClick={() => handleSubmit(quiz.id, quiz.questions)} disabled={submitted[quiz.id]}>Submit</button>}
             </div>
           ))}
 
           {user?.role === "lecturer" && (
-            <button onClick={() => handleSaveQuizChanges(quiz)} style={{ marginTop: "10px" }}>
-              Save Changes
-            </button>
+            <button className="btn save-btn" onClick={() => handleSaveQuizChanges(quiz)}>Save Changes</button>
           )}
 
-          {messages[quiz.id] && <p>{messages[quiz.id]}</p>}
+          {messages[quiz.id] && <p className="message">{messages[quiz.id]}</p>}
         </div>
       ))}
     </div>

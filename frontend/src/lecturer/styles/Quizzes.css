@@ -1,0 +1,142 @@
+.quizzes {
+  max-width: 800px;
+  margin: 2rem auto;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+.quizzes h2 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+}
+
+.create-quiz,
+.quiz-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: #fafafa;
+}
+
+/* Quiz Header */
+.quiz-header {
+  cursor: pointer;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.quiz-header h3 {
+  margin: 0;
+  color: #295474;
+  font-size: 1.2rem;
+}
+
+.quiz-settings {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.quiz-settings span {
+  display: inline-block;
+  margin-right: 1rem;
+  background: #e8f0f5;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+
+/* Inputs */
+.quiz-input,
+.quiz-select {
+  margin: 0.4rem 0;
+  padding: 0.4rem;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Questions */
+.quiz-body {
+  margin-top: 1rem;
+}
+
+.question,
+.quiz-question {
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.question strong,
+.quiz-question strong {
+  color: #295474;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Answers */
+.answer-list {
+  list-style: none;
+  padding-left: 1.2rem;
+}
+
+.answer-list li {
+  margin: 0.4rem 0;
+  padding: 0.3rem 0.6rem;
+  border-left: 3px solid #295474;
+  background: #f4f8fa;
+  border-radius: 4px;
+}
+
+.answer {
+  margin-left: 0.5rem;
+}
+
+/* Buttons */
+.btn {
+  margin-top: 0.6rem;
+  margin-right: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  background: #295474;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn:hover {
+  background: #2980b9;
+}
+
+.save-btn {
+  background: #295474;
+}
+
+.save-btn:hover {
+  background: #23445f;
+}
+
+.btn-group {
+  margin-top: 0.8rem;
+  display: flex;
+  gap: 0.8rem;
+}
+
+.note {
+  font-size: 0.8rem;
+  color: #555;
+  margin-top: 0.4rem;
+}
+
+/* Messages */
+.message {
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+  color: #295474;
+}
