@@ -1,4 +1,3 @@
-/* Modern Header Styles */
 .header {
   height: 150px;
   display: grid;
@@ -117,11 +116,6 @@
   font-weight: 500;
   transition: all 0.3s ease;
   text-align: left;
-}
-
-.logout-btn:hover {
-  background: #f8f9fa;
-  color: #c0392b;
 }
 
 .notification{

@@ -1,13 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
+import { useUser } from "../../contexts/UserContext";
 import axios from "axios";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import "../styles/Attendance.css";
 
 export default function Attendance() {
   const { id } = useParams();
   const { currentCourse, selectCourse } = useCourse();
+  const { user } = useUser();
   const [course, setCourse] = useState(currentCourse);
   const [loading, setLoading] = useState(!currentCourse);
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [attendanceByDate, setAttendanceByDate] = useState({});
+  const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 });
 
   useEffect(() => {
     if (!currentCourse && id) {
@@ -22,8 +38,156 @@ export default function Attendance() {
     }
   }, [id, currentCourse, selectCourse]);
 
+  useEffect(() => {
+    if (course && user) {
+      axios
+        .get(`http://localhost:8000/attendance/lecturer/?id=${user.id}`)
+        .then((res) => {
+          const attendanceRecords = res.data.attendance_records || [];
+          const courseAttendance = attendanceRecords.filter(
+            (record) => record.course_id === course?.id
+          );
+          // group records by date
+          const groupedByDate = {};
+          for (const record of courseAttendance) {
+            const dateKey = String(record.date);
+            if (!groupedByDate[dateKey]) {
+              groupedByDate[dateKey] = [];
+            }
+            groupedByDate[dateKey].push(record);
+          }
+          setAttendanceByDate(groupedByDate);
+
+          const total = courseAttendance.length;
+          const present = courseAttendance.filter(
+            (record) => record.status === "present"
+          ).length;
+          let percentage;
+          if (total > 0) {
+            percentage = Math.round((present / total) * 100);
+          } else {
+            percentage = 0;
+          }
+          setStats({ total, present, percentage });
+
+          // Get unique students from attendance records
+          const studentEmails = courseAttendance.map(
+            (record) => record.student_email
+          );
+          const uniqueEmails = new Set();
+          studentEmails.forEach((email) => {
+            if (email) uniqueEmails.add(email);
+          });
+          const students = Array.from(uniqueEmails);
+          setEnrolledStudents(students);
+        })
+        .catch((err) => console.error("Error fetching attendance data:", err));
+    }
+  }, [course?.id, user?.id]);
+
+  const chartData = useMemo(() => {
+    return Object.keys(attendanceByDate)
+      .sort((a, b) => new Date(a) - new Date(b))
+      .map((date) => {
+        const dayRecords = attendanceByDate[date];
+        const presentCount = dayRecords.filter(
+          (record) => record.status === "present"
+        ).length;
+        const absentRecords = dayRecords.filter(
+          (record) => record.status === "absent"
+        );
+        const totalCount = dayRecords.length;
+        let attendancePercentage;
+        if (totalCount > 0) {
+          attendancePercentage = Math.round((presentCount / totalCount) * 100);
+        } else {
+          attendancePercentage = 0;
+        }
+
+        return {
+          date: new Date(date).toLocaleDateString("en-GB", {
+            month: "short",
+            day: "numeric",
+          }),
+          percentage: attendancePercentage,
+          present: presentCount,
+          total: totalCount,
+          absentStudents: absentRecords.map((record) => record.student_email),
+        };
+      });
+  }, [attendanceByDate]);
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="custom-tooltip">
+          <h4>Attendance: {data.percentage}%</h4>
+          <p>Absent students: {data.absentStudents.length}</p>
+
+          {data.absentStudents && data.absentStudents.length > 0 && (
+            <div>
+              <ul>
+                {data.absentStudents.map((email, index) => (
+                  <li key={index}>{email}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
+
   if (loading) return <p>Loading attendance data...</p>;
   if (!course) return <p>Course not found.</p>;
 
-  return <h1>Lecturer Attendance: {course.title}</h1>;
+  return (
+    <div className="attendance-container">
+      <div className="attendance-header">
+        <h1>Attendance</h1>
+      </div>
+      <div className="attendance-stats">
+        <p>Average Attendance: {stats.percentage}%</p>
+        <p>Enrolled Students: {enrolledStudents.length}</p>
+      </div>
+
+      <div className="attendance-history">
+        <h3>Attendance History</h3>
+        <div className="chart-container">
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart
+              data={chartData}
+              margin={{
+                top: 20,
+                right: 30,
+                left: 0,
+                bottom: 0,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" fontSize={12} />
+              <YAxis
+                domain={[20, 100]}
+                fontSize={12}
+                label={{ value: "Attendance %", angle: -90 }}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="percentage"
+                stroke="#295574"
+                strokeWidth={3}
+                dot={{ r: 6 }}
+                activeDot={{ r: 8 }}
+                name="Attendance %"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
 }
