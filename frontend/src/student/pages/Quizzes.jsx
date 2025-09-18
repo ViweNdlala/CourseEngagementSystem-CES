@@ -3,7 +3,7 @@ import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
 
 export default function Quizzes() {
-  const { currentCourse } = useCourse();
+  const { currentCourse ,activeSession, withinGeofence, locationChecked} = useCourse();
 
   const [quizzes, setQuizzes] = useState([]);
   const [expandedQuiz, setExpandedQuiz] = useState(null);
@@ -16,6 +16,10 @@ export default function Quizzes() {
   const intervalRefs = useRef({});
 
   // Fetch quizzes
+   // Determine if student can access quizzes
+  const canAccessQuizzes = activeSession && withinGeofence && locationChecked;
+
+  // Fetch quizzes when course changes
   useEffect(() => {
     if (!currentCourse) return;
 
@@ -64,11 +68,21 @@ export default function Quizzes() {
     }
   };
 
+  // Expand/collapse quiz
+  const toggleExpand = (quizId) => {
+     if (!canAccessQuizzes) return; // prevent expanding if not allowed
+    setExpandedQuiz(expandedQuiz === quizId ? null : quizId);
+    setGrades({});
+    setSubmitted({});
+  };
+
+  // Track selected answer
   const handleAnswerChange = (questionId, answerId) => {
     setAnswers({ ...answers, [questionId]: answerId });
   };
 
   // Submit quiz
+  // Grade quiz when submitted
   const handleSubmit = (quizId, questions) => {
     // Enforce attempt limit
     const quiz = quizzes.find(q => q.id === quizId);
@@ -101,6 +115,7 @@ export default function Quizzes() {
     clearInterval(intervalRefs.current[quizId]);
   };
 
+  // Filter only quizzes visible to students
   const visibleQuizzes = quizzes.filter((q) => q.is_visible);
 
   const formatTime = (seconds) => {
@@ -110,6 +125,18 @@ export default function Quizzes() {
   };
 
   if (loading) return <p>Loading quizzes...</p>;
+
+  if (!canAccessQuizzes) {
+    return (
+      <div className="quizzes">
+        <h2>Quizzes</h2>
+        <p style={{ color: "red", marginTop: "1rem" }}>
+          ❌ You must be within the geofence and have an active session to view quizzes
+        </p>
+      </div>
+    );
+  }
+
   if (visibleQuizzes.length === 0) return <p>No quizzes found.</p>;
 
   return (
