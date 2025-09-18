@@ -1,5 +1,5 @@
 from django.db import models
-from accounts.models import User  # existing User model
+from accounts.models import User  
 from django.utils import timezone
 import math 
 
@@ -41,9 +41,6 @@ class Enrollment(models.Model):
     
 
 
-# ------------------------
-# Geofencing models
-# ------------------------
 
 class GeofenceSession(models.Model):
     """
@@ -124,17 +121,15 @@ class GeofenceAccessLog(models.Model):
         return f"AccessLog(student={self.student}, allowed={self.allowed}, at={self.accessed_at})"
 
 
-# ------------------------
-# Geospatial helper
-# ------------------------
 
-EARTH_RADIUS_METERS = 6371000.0  # approximate mean Earth radius in meters
+# approximate mean Earth radius in meters
+EARTH_RADIUS_METERS = 6371000.0  
 
 def haversine_distance_m(lat1, lon1, lat2, lon2):
-    """
-    Haversine formula: returns distance in meters between two latitude/longitude points.
-    Input: lat/lon in decimal degrees (floats or Decimal-convertible).
-    """
+    
+    #Haversine formula: returns distance in meters between two latitude or longitude points.
+    #Input: lat/lon in decimal degrees (floats or Decimal-convertible).
+   
     # Ensure floats
     lat1, lon1, lat2, lon2 = map(float, (lat1, lon1, lat2, lon2))
 
