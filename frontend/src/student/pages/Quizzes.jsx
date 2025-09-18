@@ -68,14 +68,6 @@ export default function Quizzes() {
     }
   };
 
-  // Expand/collapse quiz
-  const toggleExpand = (quizId) => {
-     if (!canAccessQuizzes) return; // prevent expanding if not allowed
-    setExpandedQuiz(expandedQuiz === quizId ? null : quizId);
-    setGrades({});
-    setSubmitted({});
-  };
-
   // Track selected answer
   const handleAnswerChange = (questionId, answerId) => {
     setAnswers({ ...answers, [questionId]: answerId });
