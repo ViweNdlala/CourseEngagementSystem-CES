@@ -1,68 +1,99 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from .models import Quiz, Question, Answer
 from .serializers import QuizSerializer, QuestionSerializer, AnswerSerializer
 
 
 class QuizViewSet(viewsets.ModelViewSet):
-    """
-    Quiz ViewSet:
-    - Students: retrieve visible quizzes for their course.
-    - Lecturers: update quiz visibility, set correct answers.
-    """
     serializer_class = QuizSerializer
     queryset = Quiz.objects.all()
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Allow filtering quizzes by course (?course=ID).
-        Students will only see visible quizzes (handled on frontend).
-        """
         queryset = Quiz.objects.all()
         course_id = self.request.query_params.get("course")
         if course_id:
             queryset = queryset.filter(course_id=course_id)
         return queryset
 
+    def perform_create(self, serializer):
+        """
+        Handles creating a new quiz with nested questions & answers.
+        Your QuizSerializer should already support nested create.
+        """
+        serializer.save()
+
     def partial_update(self, request, *args, **kwargs):
-        """
-        Lecturer update handler:
-        - Toggle quiz visibility (is_visible).
-        - Update correct answers for questions.
-        """
         quiz = self.get_object()
         data = request.data
 
-        # ✅ Handle visibility toggle
-        if "is_visible" in data:
-            quiz.is_visible = data["is_visible"]
-            quiz.save()
+        #  Update top-level fields
+        quiz.title = data.get("title", quiz.title)
+        quiz.timer = data.get("timer", quiz.timer)
+        quiz.is_visible = data.get("is_visible", quiz.is_visible)
+        quiz.attempts = data.get("attempts", quiz.attempts)
+        quiz.save()
 
-        # ✅ Handle correct answer updates
+        #  Handle questions & answers
         if "questions" in data:
+            existing_question_ids = []
             for q_data in data["questions"]:
-                try:
-                    question = quiz.questions.get(id=q_data["id"])
-                    correct_answer_id = q_data.get("correct_answer")
-                    if correct_answer_id:
-                        # Reset all answers to false first
-                        question.answers.update(is_correct=False)
-                        # Mark the chosen answer as correct
-                        question.answers.filter(id=correct_answer_id).update(is_correct=True)
-                except Question.DoesNotExist:
-                    continue
+                q_id = q_data.get("id")
+
+                if q_id:
+                    # Update existing question
+                    question = quiz.questions.filter(id=q_id).first()
+                    if question:
+                        question.text = q_data.get("text", question.text)
+                        question.save()
+                else:
+                    # Create new question
+                    question = Question.objects.create(
+                        quiz=quiz,
+                        text=q_data.get("text", "")
+                    )
+
+                existing_question_ids.append(question.id)
+
+                # Handle answers for this question
+                if "answers" in q_data:
+                    existing_answer_ids = []
+                    for a_data in q_data["answers"]:
+                        a_id = a_data.get("id")
+                        if a_id:
+                            # Update existing answer
+                            answer = question.answers.filter(id=a_id).first()
+                            if answer:
+                                answer.text = a_data.get("text", answer.text)
+                                answer.is_correct = a_data.get("is_correct", answer.is_correct)
+                                answer.save()
+                        else:
+                            # Create new answer
+                            answer = Answer.objects.create(
+                                question=question,
+                                text=a_data.get("text", ""),
+                                is_correct=a_data.get("is_correct", False)
+                            )
+                        existing_answer_ids.append(answer.id)
+
+                    # (Optional) Remove answers not in payload
+                    question.answers.exclude(id__in=existing_answer_ids).delete()
+
+            # (Optional) Remove questions not in payload
+            quiz.questions.exclude(id__in=existing_question_ids).delete()
 
         serializer = self.get_serializer(quiz)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class QuestionViewSet(viewsets.ModelViewSet):
-    """Direct CRUD access for Questions (not always used by frontend)."""
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class AnswerViewSet(viewsets.ModelViewSet):
-    """Direct CRUD access for Answers (not always used by frontend)."""
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
+    permission_classes = [IsAuthenticated]
