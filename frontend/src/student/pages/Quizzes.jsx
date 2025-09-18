@@ -123,7 +123,7 @@ export default function Quizzes() {
       <div className="quizzes">
         <h2>Quizzes</h2>
         <p style={{ color: "red", marginTop: "1rem" }}>
-          ❌ You must be within the geofence and have an active session to view quizzes
+           You must be within the geofence and have an active session to view quizzes
         </p>
       </div>
     );
@@ -180,10 +180,10 @@ export default function Quizzes() {
                         if (submitted[quiz.id]) {
                           if (isCorrect) {
                             labelStyle = { color: "green" };
-                            mark = " ✔";
+                            mark = " correct";
                           } else if (isSelected && !isCorrect) {
                             labelStyle = { color: "red" };
-                            mark = " ✖";
+                            mark = " incorrect";
                           }
                         }
 
