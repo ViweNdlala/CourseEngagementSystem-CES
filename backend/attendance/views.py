@@ -169,6 +169,7 @@ class LecturerAttendanceView(APIView):
             {
                 "date": record.date,
                 "student_email": record.enrollment.student.email,
+                "student_name": record.enrollment.student.name,
                 "status": record.status,
                 "course_title": record.enrollment.course.title,
                 "course_id": record.enrollment.course.id,

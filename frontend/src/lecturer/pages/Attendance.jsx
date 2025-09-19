@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";
@@ -21,10 +21,15 @@ export default function Attendance() {
   const { user } = useUser();
   const [course, setCourse] = useState(currentCourse);
   const [loading, setLoading] = useState(!currentCourse);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [attendanceByDate, setAttendanceByDate] = useState({});
+  const [rawAttendanceData, setRawAttendanceData] = useState([]);
   const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 });
   const [clickedDataPoint, setClickedDataPoint] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentAttendanceData, setStudentAttendanceData] = useState([]);
 
   useEffect(() => {
     if (!currentCourse && id) {
@@ -41,6 +46,9 @@ export default function Attendance() {
 
   useEffect(() => {
     if (course && user) {
+      setDataLoading(true);
+      setError(null);
+      
       axios
         .get(`http://localhost:8000/attendance/lecturer/?id=${user.id}`)
         .then((res) => {
@@ -48,62 +56,128 @@ export default function Attendance() {
           const courseAttendance = attendanceRecords.filter(
             (record) => record.course_id === course?.id
           );
-          // group records by date
+          
+          // Store raw data for reuse
+          setRawAttendanceData(courseAttendance);
+          
+          // Optimize: Combine all data processing in a single loop
           const groupedByDate = {};
-          for (const record of courseAttendance) {
+          const uniqueStudents = new Set();
+          let totalRecords = 0;
+          let presentCount = 0;
+          
+          courseAttendance.forEach((record) => {
+            // Group by date
             const dateKey = String(record.date);
             if (!groupedByDate[dateKey]) {
               groupedByDate[dateKey] = [];
             }
             groupedByDate[dateKey].push(record);
-          }
-          setAttendanceByDate(groupedByDate);
-
-          const total = courseAttendance.length;
-          const present = courseAttendance.filter(
-            (record) => record.status === "present"
-          ).length;
-          let percentage;
-          if (total > 0) {
-            percentage = Math.round((present / total) * 100);
-          } else {
-            percentage = 0;
-          }
-          setStats({ total, present, percentage });
-
-          // Get unique students from attendance records
-          const studentEmails = courseAttendance.map(
-            (record) => record.student_email
-          );
-          const uniqueEmails = new Set();
-          studentEmails.forEach((email) => {
-            if (email) uniqueEmails.add(email);
+            
+            // Count stats
+            totalRecords++;
+            if (record.status === "present") {
+              presentCount++;
+            }
+            
+            // Collect unique students
+            if (record.student_email) {
+              uniqueStudents.add(record.student_email);
+            }
           });
-          const students = Array.from(uniqueEmails);
-          setEnrolledStudents(students);
+          
+          setAttendanceByDate(groupedByDate);
+          
+          // Calculate percentage
+          const percentage = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 0;
+          setStats({ total: totalRecords, present: presentCount, percentage });
+          
+          // Set unique students
+          setEnrolledStudents(Array.from(uniqueStudents));
         })
-        .catch((err) => console.error("Error fetching attendance data:", err));
+        .catch((err) => {
+          console.error("Error fetching attendance data:", err);
+          setError("Failed to load attendance data. Please try again.");
+        })
+        .finally(() => {
+          setDataLoading(false);
+        });
     }
   }, [course?.id, user?.id]);
 
-  const chartData = useMemo(() => {
-    return Object.keys(attendanceByDate)
-      .sort((a, b) => new Date(a) - new Date(b))
-      .map((date) => {
-        const dayRecords = attendanceByDate[date];
-        const presentCount = dayRecords.filter(
-          (record) => record.status === "present"
-        ).length;
-        const absentRecords = dayRecords.filter(
-          (record) => record.status === "absent"
-        );
-        const totalCount = dayRecords.length;
-        let attendancePercentage;
-        if (totalCount > 0) {
-          attendancePercentage = Math.round((presentCount / totalCount) * 100);
-        } else {
-          attendancePercentage = 0;
+  // Memoize the student chart data to avoid recalculation
+  const studentChartData = useMemo(() => {
+    if (!selectedStudent || !rawAttendanceData.length) {
+      return [];
+    }
+
+    // Only process if student is selected (lazy loading)
+    const studentRecords = rawAttendanceData.filter(
+      (record) =>
+        record.student_email === selectedStudent.email &&
+        record.course_id === course?.id
+    );
+
+    // Group and process efficiently
+    const chartData = studentRecords
+      .reduce((acc, record) => {
+        const date = record.date;
+        if (!acc[date]) {
+          acc[date] = [];
         }
+        acc[date].push(record);
+        return acc;
+      }, {});
+
+    return Object.entries(chartData)
+      .map(([date, records]) => {
+        const isPresent = records.some(record => record.status === "present");
+        return {
+          date: new Date(date).toLocaleDateString("en-GB", {
+            month: "short",
+            day: "numeric",
+          }),
+          status: isPresent ? 1 : 0,
+          statusText: isPresent ? "Present" : "Absent",
+          rawDate: date,
+        };
+      })
+      .sort((a, b) => new Date(a.rawDate) - new Date(b.rawDate));
+  }, [selectedStudent, rawAttendanceData, course?.id]);
+
+  // Update student attendance data when chart data changes
+  useEffect(() => {
+    setStudentAttendanceData(studentChartData);
+  }, [studentChartData]);
+
+  // Optimize chart data calculation with better memoization
+  const chartData = useMemo(() => {
+    if (!attendanceByDate || Object.keys(attendanceByDate).length === 0) {
+      return [];
+    }
+
+    return Object.entries(attendanceByDate)
+      .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
+      .map(([date, dayRecords]) => {
+        // Process records more efficiently
+        let presentCount = 0;
+        const absentStudents = [];
+        
+        dayRecords.forEach((record) => {
+          if (record.status === "present") {
+            presentCount++;
+          } else if (record.status === "absent") {
+            absentStudents.push({
+              email: record.student_email,
+              name: record.student_name || record.student_email,
+            });
+          }
+        });
+
+        const totalCount = dayRecords.length;
+        const attendancePercentage = totalCount > 0 
+          ? Math.round((presentCount / totalCount) * 100) 
+          : 0;
 
         return {
           date: new Date(date).toLocaleDateString("en-GB", {
@@ -113,17 +187,25 @@ export default function Attendance() {
           percentage: attendancePercentage,
           present: presentCount,
           total: totalCount,
-          absentStudents: absentRecords.map((record) => record.student_email),
+          absentStudents,
+          rawDate: date, // Keep for potential future sorting needs
         };
       });
   }, [attendanceByDate]);
+
+  const handleStudentClick = useCallback((studentEmail) => {
+    const studentData = clickedDataPoint.absentStudents.find(
+      (s) => s.email === studentEmail
+    );
+    setSelectedStudent(studentData);
+  }, [clickedDataPoint]);
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       // Set the clicked data point when tooltip becomes active
       setClickedDataPoint(data);
-      
+
       return (
         <div className="custom-tooltip">
           <h4>Attendance: {data.percentage}%</h4>
@@ -137,6 +219,7 @@ export default function Attendance() {
 
   if (loading) return <p>Loading attendance data...</p>;
   if (!course) return <p>Course not found.</p>;
+  if (error) return <p className="error-message">{error}</p>;
 
   return (
     <div className="attendance-container">
@@ -151,7 +234,7 @@ export default function Attendance() {
       <div className="attendance-history">
         <h3>Attendance History</h3>
         <div className="chart-container">
-          <ResponsiveContainer width="100%" height={400} >
+          <ResponsiveContainer width="100%" height={400}>
             <LineChart
               data={chartData}
               margin={{
@@ -162,41 +245,94 @@ export default function Attendance() {
               }}
               stroke="black"
             >
-              <XAxis dataKey="date" fontSize={12} stroke="black"/>
+              <XAxis dataKey="date" fontSize={12} stroke="black" />
               <YAxis
                 domain={[0, 100]}
                 fontSize={12}
-                label={{ value: "Attendance %", angle: -90 }}
                 stroke="black"
+                label={{ value: "Attendance %", angle: -90 }}
               />
-              <Tooltip content={<CustomTooltip />} trigger="click" wrapperStyle={{ pointerEvents: "auto"}} />
+              <Tooltip
+                content={<CustomTooltip />}
+                trigger="click"
+                wrapperStyle={{ pointerEvents: "auto" }}
+              />
               <Line
                 type="monotone"
                 dataKey="percentage"
                 stroke="#295574"
-                strokeWidth={3}
-                dot={{ r: 6 }}
-                activeDot={{ r: 8 }}
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
                 name="Attendance %"
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
-        
+
         {clickedDataPoint && (
           <div className="absent-students-section">
             <h4>Absent Students on {clickedDataPoint.date}:</h4>
             {clickedDataPoint.absentStudents.length > 0 ? (
-              <ul className="absent-students-list"><p>{console.log(clickedDataPoint.absentStudents)}</p>
-                {clickedDataPoint.absentStudents.map((email, index) => (
+              <ul className="absent-students-list">
+                {clickedDataPoint.absentStudents.map((student, index) => (
                   <li key={index} className="absent-student-email">
-                    <p>{index + 1}. <a href={`mailto:${email}`}>{email}</a></p>
+                    <p> {index + 1}.
+                      <span
+                        className="student-name"
+                        onClick={() => handleStudentClick(student.email)}
+                      >
+                        {student.name}
+                      </span>
+                      <a href={`mailto:${student.email}`}>{student.email}</a>
+                    </p>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p>None!</p>
+              <p>None</p>
             )}
+          </div>
+        )}
+
+        {selectedStudent && studentAttendanceData.length > 0 && (
+          <div className="student-chart-section">
+            <h4>Attendance Chart for {selectedStudent.name}</h4>
+            <div className="chart-container">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={studentAttendanceData}
+                  margin={{
+                    top: 20,
+                    right: 30,
+                    left: 0,
+                    bottom: 5,
+                  }}
+                >
+                  <XAxis dataKey="date" fontSize={12} stroke="black"/>
+                  <YAxis
+                    domain={[0, 1]}
+                    fontSize={12}
+                    stroke="black"
+                    ticks={[0, 1]}
+                    tickFormatter={(value) =>
+                      value === 1 ? "Present" : "Absent"
+                    }
+                  />
+                  <Tooltip labelFormatter={(label) => `Date: ${label}`} trigger="click"
+                wrapperStyle={{ pointerEvents: "auto" }}/>
+                  <Line
+                    type="monotone"
+                    dataKey="status"
+                    stroke="#295574"
+                    strokeWidth={2}
+                    dot={{ r: 4}}
+                    activeDot={{ r: 6 }}
+                    name="Attendance Status"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
       </div>

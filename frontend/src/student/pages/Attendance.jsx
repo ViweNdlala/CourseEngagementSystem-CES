@@ -11,6 +11,7 @@ import {
   CartesianGrid,
   Legend,
   ResponsiveContainer,
+  Tooltip,
 } from "recharts";
 import "../../lecturer/styles/Attendance.css";
 
@@ -252,7 +253,7 @@ export default function Attendance() {
       <div className="attendance-history">
         <h3>My Attendance History</h3>
         <div className="chart-container">
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={300}>
             <LineChart
               data={chartData}
               margin={{
@@ -261,24 +262,25 @@ export default function Attendance() {
                 left: 0,
                 bottom: 0,
               }}
+              
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" fontSize={12} />
+              <XAxis dataKey="date" fontSize={12} stroke="black"/>
               <YAxis
                 domain={[0, 1]}
                 fontSize={12}
+                stroke="black"
                 ticks={[0, 1]}
                 tickFormatter={(value) => (value === 1 ? "Present" : "Absent")}
               />
-
-              <Legend />
+              <Tooltip labelFormatter={(label) => `Date: ${label}`} trigger="click"
+                wrapperStyle={{ pointerEvents: "auto" }}/>
               <Line
                 type="monotone"
                 dataKey="attendance"
                 stroke="#295574"
-                strokeWidth={3}
-                dot={{ r: 6 }}
-                activeDot={{ r: 8 }}
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
                 name="Attendance"
               />
             </LineChart>
