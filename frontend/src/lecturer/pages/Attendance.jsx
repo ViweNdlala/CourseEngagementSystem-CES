@@ -24,6 +24,7 @@ export default function Attendance() {
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [attendanceByDate, setAttendanceByDate] = useState({});
   const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 });
+  const [clickedDataPoint, setClickedDataPoint] = useState(null);
 
   useEffect(() => {
     if (!currentCourse && id) {
@@ -120,20 +121,14 @@ export default function Attendance() {
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      // Set the clicked data point when tooltip becomes active
+      setClickedDataPoint(data);
+      
       return (
         <div className="custom-tooltip">
           <h4>Attendance: {data.percentage}%</h4>
           <p>Absent students: {data.absentStudents.length}</p>
-
-          {data.absentStudents && data.absentStudents.length > 0 && (
-            <div>
-              <ul>
-                {data.absentStudents.map((email, index) => (
-                  <li key={index}>{email}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <p>See details below</p>
         </div>
       );
     }
@@ -156,7 +151,7 @@ export default function Attendance() {
       <div className="attendance-history">
         <h3>Attendance History</h3>
         <div className="chart-container">
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={400} >
             <LineChart
               data={chartData}
               margin={{
@@ -165,16 +160,16 @@ export default function Attendance() {
                 left: 0,
                 bottom: 0,
               }}
+              stroke="black"
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" fontSize={12} />
+              <XAxis dataKey="date" fontSize={12} stroke="black"/>
               <YAxis
-                domain={[20, 100]}
+                domain={[0, 100]}
                 fontSize={12}
                 label={{ value: "Attendance %", angle: -90 }}
+                stroke="black"
               />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
+              <Tooltip content={<CustomTooltip />} trigger="click" wrapperStyle={{ pointerEvents: "auto"}} />
               <Line
                 type="monotone"
                 dataKey="percentage"
@@ -187,6 +182,23 @@ export default function Attendance() {
             </LineChart>
           </ResponsiveContainer>
         </div>
+        
+        {clickedDataPoint && (
+          <div className="absent-students-section">
+            <h4>Absent Students on {clickedDataPoint.date}:</h4>
+            {clickedDataPoint.absentStudents.length > 0 ? (
+              <ul className="absent-students-list"><p>{console.log(clickedDataPoint.absentStudents)}</p>
+                {clickedDataPoint.absentStudents.map((email, index) => (
+                  <li key={index} className="absent-student-email">
+                    <p>{index + 1}. <a href={`mailto:${email}`}>{email}</a></p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>None!</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
