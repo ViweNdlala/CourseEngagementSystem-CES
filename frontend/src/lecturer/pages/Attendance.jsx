@@ -48,7 +48,7 @@ export default function Attendance() {
     if (course && user) {
       setDataLoading(true);
       setError(null);
-      
+
       axios
         .get(`http://localhost:8000/attendance/lecturer/?id=${user.id}`)
         .then((res) => {
@@ -56,16 +56,16 @@ export default function Attendance() {
           const courseAttendance = attendanceRecords.filter(
             (record) => record.course_id === course?.id
           );
-          
+
           // Store raw data for reuse
           setRawAttendanceData(courseAttendance);
-          
+
           // Optimize: Combine all data processing in a single loop
           const groupedByDate = {};
           const uniqueStudents = new Set();
           let totalRecords = 0;
           let presentCount = 0;
-          
+
           courseAttendance.forEach((record) => {
             // Group by date
             const dateKey = String(record.date);
@@ -73,25 +73,28 @@ export default function Attendance() {
               groupedByDate[dateKey] = [];
             }
             groupedByDate[dateKey].push(record);
-            
+
             // Count stats
             totalRecords++;
             if (record.status === "present") {
               presentCount++;
             }
-            
+
             // Collect unique students
             if (record.student_email) {
               uniqueStudents.add(record.student_email);
             }
           });
-          
+
           setAttendanceByDate(groupedByDate);
-          
+
           // Calculate percentage
-          const percentage = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 0;
+          const percentage =
+            totalRecords > 0
+              ? Math.round((presentCount / totalRecords) * 100)
+              : 0;
           setStats({ total: totalRecords, present: presentCount, percentage });
-          
+
           // Set unique students
           setEnrolledStudents(Array.from(uniqueStudents));
         })
@@ -119,19 +122,18 @@ export default function Attendance() {
     );
 
     // Group and process efficiently
-    const chartData = studentRecords
-      .reduce((acc, record) => {
-        const date = record.date;
-        if (!acc[date]) {
-          acc[date] = [];
-        }
-        acc[date].push(record);
-        return acc;
-      }, {});
+    const chartData = studentRecords.reduce((acc, record) => {
+      const date = record.date;
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(record);
+      return acc;
+    }, {});
 
     return Object.entries(chartData)
       .map(([date, records]) => {
-        const isPresent = records.some(record => record.status === "present");
+        const isPresent = records.some((record) => record.status === "present");
         return {
           date: new Date(date).toLocaleDateString("en-GB", {
             month: "short",
@@ -162,7 +164,7 @@ export default function Attendance() {
         // Process records more efficiently
         let presentCount = 0;
         const absentStudents = [];
-        
+
         dayRecords.forEach((record) => {
           if (record.status === "present") {
             presentCount++;
@@ -175,9 +177,8 @@ export default function Attendance() {
         });
 
         const totalCount = dayRecords.length;
-        const attendancePercentage = totalCount > 0 
-          ? Math.round((presentCount / totalCount) * 100) 
-          : 0;
+        const attendancePercentage =
+          totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
 
         return {
           date: new Date(date).toLocaleDateString("en-GB", {
@@ -193,12 +194,15 @@ export default function Attendance() {
       });
   }, [attendanceByDate]);
 
-  const handleStudentClick = useCallback((studentEmail) => {
-    const studentData = clickedDataPoint.absentStudents.find(
-      (s) => s.email === studentEmail
-    );
-    setSelectedStudent(studentData);
-  }, [clickedDataPoint]);
+  const handleStudentClick = useCallback(
+    (studentEmail) => {
+      const studentData = clickedDataPoint.absentStudents.find(
+        (s) => s.email === studentEmail
+      );
+      setSelectedStudent(studentData);
+    },
+    [clickedDataPoint]
+  );
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -277,7 +281,9 @@ export default function Attendance() {
               <ul className="absent-students-list">
                 {clickedDataPoint.absentStudents.map((student, index) => (
                   <li key={index} className="absent-student-email">
-                    <p> {index + 1}.
+                    <p>
+                      {" "}
+                      {index + 1}.
                       <span
                         className="student-name"
                         onClick={() => handleStudentClick(student.email)}
@@ -309,7 +315,7 @@ export default function Attendance() {
                     bottom: 5,
                   }}
                 >
-                  <XAxis dataKey="date" fontSize={12} stroke="black"/>
+                  <XAxis dataKey="date" fontSize={12} stroke="black" />
                   <YAxis
                     domain={[0, 1]}
                     fontSize={12}
@@ -319,14 +325,17 @@ export default function Attendance() {
                       value === 1 ? "Present" : "Absent"
                     }
                   />
-                  <Tooltip labelFormatter={(label) => `Date: ${label}`} trigger="click"
-                wrapperStyle={{ pointerEvents: "auto" }}/>
+                  <Tooltip
+                    labelFormatter={(label) => `Date: ${label}`}
+                    trigger="click"
+                    wrapperStyle={{ pointerEvents: "auto" }}
+                  />
                   <Line
                     type="monotone"
                     dataKey="status"
                     stroke="#295574"
                     strokeWidth={2}
-                    dot={{ r: 4}}
+                    dot={{ r: 4 }}
                     activeDot={{ r: 6 }}
                     name="Attendance Status"
                   />

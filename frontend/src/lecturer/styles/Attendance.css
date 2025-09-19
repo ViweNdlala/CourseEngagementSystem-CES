@@ -79,13 +79,12 @@
 .absent-student-email a:hover {
   text-decoration: underline;
 }
-.student-name{
+.student-name {
   color: #295574;
   cursor: pointer;
   margin: 0 8px;
-  
 }
-.student-name:hover{
+.student-name:hover {
   font-weight: bold;
 }
 .email-link {
@@ -109,7 +108,6 @@
   font-size: 1.1rem;
 }
 
-
 .error-message {
   color: #dc3545;
   background-color: #f8d7da;
@@ -119,4 +117,3 @@
   margin: 20px 0;
   text-align: center;
 }
-
