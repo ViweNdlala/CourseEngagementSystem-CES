@@ -56,11 +56,7 @@ export default function Attendance() {
           const courseAttendance = attendanceRecords.filter(
             (record) => record.course_id === course?.id
           );
-
-          // Store raw data for reuse
           setRawAttendanceData(courseAttendance);
-
-          //Data processing in a single loop
           const groupedByDate = {};
           const uniqueStudents = new Set();
           let totalRecords = 0;
@@ -73,14 +69,10 @@ export default function Attendance() {
               groupedByDate[dateKey] = [];
             }
             groupedByDate[dateKey].push(record);
-
-            // Count stats
             totalRecords++;
             if (record.status === "present") {
               presentCount++;
             }
-
-            // Collect unique students
             if (record.student_email) {
               uniqueStudents.add(record.student_email);
             }
@@ -109,15 +101,12 @@ export default function Attendance() {
     if (!selectedStudent || !rawAttendanceData.length) {
       return [];
     }
-
-    // Only process if student is selected (lazy loading)
     const studentRecords = rawAttendanceData.filter(
       (record) =>
         record.student_email === selectedStudent.email &&
         record.course_id === course?.id
     );
 
-    // Group and process efficiently
     const chartData = studentRecords.reduce((acc, record) => {
       const date = record.date;
       if (!acc[date]) {
@@ -148,7 +137,6 @@ export default function Attendance() {
     setStudentAttendanceData(studentChartData);
   }, [studentChartData]);
 
-  // Optimize chart data calculation with better memoization
   const chartData = useMemo(() => {
     if (!attendanceByDate || Object.keys(attendanceByDate).length === 0) {
       return [];
@@ -157,7 +145,6 @@ export default function Attendance() {
     return Object.entries(attendanceByDate)
       .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
       .map(([date, dayRecords]) => {
-        // Process records more efficiently
         let presentCount = 0;
         const absentStudents = [];
 
