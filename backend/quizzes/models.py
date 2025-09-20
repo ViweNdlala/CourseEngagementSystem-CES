@@ -36,7 +36,7 @@ class Answer(models.Model):
         return f"{self.text} ({'Correct' if self.is_correct else 'Wrong'})"
 
 
-class Attempt(models.Model): 
+class Attempt(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="attempts_made")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="quiz_attempts")
     attempt_number = models.PositiveIntegerField()
@@ -56,4 +56,19 @@ class Attempt(models.Model):
         if self.max_score == 0:
             return 0
         return round((self.score / self.max_score) * 100, 2)
+
+    @classmethod
+    def latest_or_highest_per_quiz(cls, user):
+        """
+        Returns a dict with quiz_id → highest percentage for each quiz the user attempted.
+        """
+        results = {}
+        user_attempts = cls.objects.filter(user=user)
+
+        for attempt in user_attempts:
+            current_best = results.get(attempt.quiz_id, 0)
+            if attempt.percentage > current_best:
+                results[attempt.quiz_id] = attempt.percentage
+
+        return results
 

@@ -2,6 +2,16 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
 import "../styles/Quizzes.css";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function Quizzes() {
   const { currentCourse, activeSession, withinGeofence, locationChecked } = useCourse();
@@ -17,24 +27,22 @@ export default function Quizzes() {
   const intervalRefs = useRef({});
   const [studentId, setStudentId] = useState(null);
 
+  const [quizPerformance, setQuizPerformance] = useState([]);
+
   const canAccessQuizzes = activeSession && withinGeofence && locationChecked;
 
+  // Fetch student ID and quizzes
   useEffect(() => {
     if (!currentCourse) return;
-
     setLoading(true);
 
-    // Fetch student enrollment to get user_id
     axios
       .get(`http://127.0.0.1:8000/enrollments/?course=${currentCourse.id}`)
       .then((res) => {
-        if (res.data.length > 0) {
-          setStudentId(res.data[0].student); // assumes first enrolled student is current
-        }
+        if (res.data.length > 0) setStudentId(res.data[0].student);
       })
-      .catch((err) => console.error("Failed to fetch enrollment:", err));
+      .catch((err) => console.error(err));
 
-    // Fetch quizzes
     axios
       .get(`http://127.0.0.1:8000/quizzes/quizzes/?course=${currentCourse.id}`)
       .then((res) => {
@@ -45,9 +53,33 @@ export default function Quizzes() {
         });
         setAttemptsTaken(attemptsMap);
       })
-      .catch((err) => console.error("Failed to fetch quizzes:", err))
+      .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, [currentCourse]);
+
+  // Fetch performance for graph from backend (highest attempt per quiz)
+  const fetchPerformance = () => {
+    if (!studentId) return;
+
+    axios
+      .get(`http://127.0.0.1:8000/quizzes/attempts/user-performance/${studentId}/`)
+      .then((res) => {
+        // Map highest percentage per quiz
+        const performanceData = quizzes.map((q) => {
+          const perf = res.data.find((p) => p.quiz === q.id);
+          return {
+            quiz: q.title,
+            grade: perf ? perf.percentage : null, // highest score from backend
+          };
+        });
+        setQuizPerformance(performanceData);
+      })
+      .catch((err) => console.error(err));
+  };
+
+  useEffect(() => {
+    fetchPerformance();
+  }, [studentId, quizzes]);
 
   const toggleExpand = (quiz) => {
     if (expandedQuiz === quiz.id) {
@@ -57,7 +89,6 @@ export default function Quizzes() {
       setExpandedQuiz(quiz.id);
       setGrades({});
       setSubmitted({});
-
       if (quiz.timer && quiz.timer > 0) {
         setTimers((prev) => ({ ...prev, [quiz.id]: quiz.timer * 60 }));
         clearInterval(intervalRefs.current[quiz.id]);
@@ -80,12 +111,7 @@ export default function Quizzes() {
   };
 
   const handleSubmit = async (quiz) => {
-    if (!studentId) {
-      console.error("No student ID found for current course.");
-      return;
-    }
-
-    if (submitted[quiz.id]) return;
+    if (!studentId || submitted[quiz.id]) return;
 
     let correctCount = 0;
     quiz.questions.forEach((q) => {
@@ -102,20 +128,19 @@ export default function Quizzes() {
 
     setGrades({ ...grades, [quiz.id]: grade });
     setSubmitted({ ...submitted, [quiz.id]: true });
-    setAttemptsTaken({ ...attemptsTaken, [quiz.id]: (attemptsTaken[quiz.id] || 0) + 1 });
-
-    clearInterval(intervalRefs.current[quiz.id]);
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/quizzes/attempts/", {
+      await axios.post("http://127.0.0.1:8000/quizzes/attempts/", {
         quiz_id: quiz.id,
         user_id: studentId,
         score: correctCount,
         max_score: quiz.questions.length,
       });
-      console.log("Attempt recorded:", response.data);
-    } catch (error) {
-      console.error("Failed to record attempt:", error.response?.data || error);
+
+      // Refresh backend data for graph (highest score now)
+      fetchPerformance();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -127,9 +152,21 @@ export default function Quizzes() {
     return `${m}:${s}`;
   };
 
-  if (loading) return <p>Loading quizzes...</p>;
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const grade = payload[0].value;
+      return (
+        <div className="custom-tooltip">
+          <p>{label}</p>
+          {grade === null ? <p>Not attempted yet</p> : <p>Grade: {grade}%</p>}
+        </div>
+      );
+    }
+    return null;
+  };
 
-  if (!canAccessQuizzes) {
+  if (loading) return <p>Loading quizzes...</p>;
+  if (!canAccessQuizzes)
     return (
       <div className="quizzes">
         <h2>Quizzes</h2>
@@ -138,7 +175,6 @@ export default function Quizzes() {
         </p>
       </div>
     );
-  }
 
   if (visibleQuizzes.length === 0) return <p>No quizzes found.</p>;
 
@@ -165,7 +201,6 @@ export default function Quizzes() {
               {quiz.questions.map((q, index) => {
                 const correctAnswer = q.answers.find((a) => a.is_correct);
                 const selectedAnswerId = answers[q.id];
-
                 return (
                   <div key={q.id} className="quiz-question">
                     <strong>Question {index + 1}:</strong> {q.text}
@@ -173,7 +208,6 @@ export default function Quizzes() {
                       {q.answers.map((a) => {
                         const isCorrect = a.id === correctAnswer?.id;
                         const isSelected = selectedAnswerId === a.id;
-
                         let labelClass = "";
                         let mark = "";
 
@@ -235,6 +269,22 @@ export default function Quizzes() {
           )}
         </div>
       ))}
+
+      {quizPerformance.length > 0 && (
+        <div className="quiz-graph">
+          <h3>Performance Over Quizzes</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={quizPerformance}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="quiz" />
+              <YAxis domain={[0, 100]} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Line type="monotone" dataKey="grade" stroke="#8884d8" connectNulls />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }

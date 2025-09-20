@@ -1,8 +1,10 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from .models import Quiz, Question, Answer, Attempt
-from .serializers import QuizSerializer, QuestionSerializer, AnswerSerializer, AttemptSerializer
-
+from .serializers import QuizSerializer, QuestionSerializer, AnswerSerializer, AttemptSerializer, PerformanceSerializer
+from rest_framework.decorators import api_view
+from .serializers import PerformanceSerializer
+from django.db.models import Max
 
 class QuizViewSet(viewsets.ModelViewSet):
     serializer_class = QuizSerializer
@@ -38,3 +40,19 @@ class AttemptViewSet(viewsets.ModelViewSet):
         attempt = serializer.save()
         return Response(self.get_serializer(attempt).data, status=status.HTTP_201_CREATED)
 
+@api_view(["GET"])
+def user_performance(request, user_id):
+    """
+    Returns the latest/highest attempt per quiz for the given user.
+    """
+    # Get latest attempt id per quiz for this user
+    latest_attempts = (
+        Attempt.objects.filter(user_id=user_id)
+        .values("quiz_id")
+        .annotate(latest_id=Max("id"))
+        .values_list("latest_id", flat=True)
+    )
+
+    attempts = Attempt.objects.filter(id__in=latest_attempts)
+    serializer = PerformanceSerializer(attempts, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)

@@ -95,10 +95,25 @@ class AttemptSerializer(serializers.ModelSerializer):
     quiz_id = serializers.IntegerField(write_only=True)
     user_id = serializers.IntegerField(write_only=True)
     attempt_number = serializers.IntegerField(read_only=True)
+    percentage = serializers.SerializerMethodField(read_only=True)
+    quiz_title = serializers.CharField(source="quiz.title", read_only=True)
 
     class Meta:
         model = Attempt
-        fields = ["id", "quiz_id", "user_id", "attempt_number", "score", "max_score", "created_at"]
+        fields = [
+            "id",
+            "quiz_id",
+            "quiz_title",
+            "user_id",
+            "attempt_number",
+            "score",
+            "max_score",
+            "percentage",
+            "created_at",
+        ]
+
+    def get_percentage(self, obj):
+        return obj.percentage
 
     def create(self, validated_data):
         quiz_id = validated_data.pop("quiz_id")
@@ -123,3 +138,38 @@ class AttemptSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return attempt
+
+
+class PerformanceSerializer(serializers.ModelSerializer):
+    """
+    Serializer for plotting graph data.
+    It uses Attempt model's percentage property.
+    Only the best/latest attempt per quiz per user should be fed here.
+    """
+    quiz_title = serializers.CharField(source="quiz.title", read_only=True)
+    percentage = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Attempt
+        fields = ["quiz", "quiz_title", "percentage"]
+
+    def get_percentage(self, obj):
+        return obj.percentage
+
+    @staticmethod
+    def build_from_user(user):
+        """
+        Helper method: returns serialized performance data for all quizzes attempted by a user.
+        Uses Attempt.latest_or_highest_per_quiz().
+        """
+        best_scores = Attempt.latest_or_highest_per_quiz(user)
+        attempts = Attempt.objects.filter(user=user, quiz_id__in=best_scores.keys())
+
+        # Keep only the best attempt for each quiz
+        best_attempts = []
+        for quiz_id, best_percentage in best_scores.items():
+            best_attempt = attempts.filter(quiz_id=quiz_id, score__gt=0).order_by("-percentage").first()
+            if best_attempt:
+                best_attempts.append(best_attempt)
+
+        return PerformanceSerializer(best_attempts, many=True).data
