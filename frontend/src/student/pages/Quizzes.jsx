@@ -15,6 +15,7 @@ export default function Quizzes() {
   const [loading, setLoading] = useState(true);
   const [timers, setTimers] = useState({});
   const intervalRefs = useRef({});
+  const [studentId, setStudentId] = useState(null);
 
   const canAccessQuizzes = activeSession && withinGeofence && locationChecked;
 
@@ -22,6 +23,18 @@ export default function Quizzes() {
     if (!currentCourse) return;
 
     setLoading(true);
+
+    // Fetch student enrollment to get user_id
+    axios
+      .get(`http://127.0.0.1:8000/enrollments/?course=${currentCourse.id}`)
+      .then((res) => {
+        if (res.data.length > 0) {
+          setStudentId(res.data[0].student); // assumes first enrolled student is current
+        }
+      })
+      .catch((err) => console.error("Failed to fetch enrollment:", err));
+
+    // Fetch quizzes
     axios
       .get(`http://127.0.0.1:8000/quizzes/quizzes/?course=${currentCourse.id}`)
       .then((res) => {
@@ -52,7 +65,7 @@ export default function Quizzes() {
           setTimers((prev) => {
             if (prev[quiz.id] <= 1) {
               clearInterval(intervalRefs.current[quiz.id]);
-              handleSubmit(quiz.id, quiz.questions);
+              handleSubmit(quiz);
               return { ...prev, [quiz.id]: 0 };
             }
             return { ...prev, [quiz.id]: prev[quiz.id] - 1 };
@@ -66,33 +79,44 @@ export default function Quizzes() {
     setAnswers({ ...answers, [questionId]: answerId });
   };
 
-  const handleSubmit = (quizId, questions) => {
-    const quiz = quizzes.find((q) => q.id === quizId);
-    if (quiz.attempts > 0 && attemptsTaken[quizId] >= quiz.attempts) {
-      alert("You have reached the maximum number of attempts for this quiz.");
+  const handleSubmit = async (quiz) => {
+    if (!studentId) {
+      console.error("No student ID found for current course.");
       return;
     }
 
-    if (submitted[quizId]) return;
+    if (submitted[quiz.id]) return;
 
     let correctCount = 0;
-    questions.forEach((q) => {
+    quiz.questions.forEach((q) => {
       const chosenAnswer = q.answers.find((a) => a.id === answers[q.id]);
       const correctAnswer = q.answers.find((a) => a.is_correct);
       if (chosenAnswer?.id === correctAnswer?.id) correctCount++;
     });
 
     const grade = {
-      total: questions.length,
+      total: quiz.questions.length,
       correct: correctCount,
-      percentage: Math.round((correctCount / questions.length) * 100),
+      percentage: Math.round((correctCount / quiz.questions.length) * 100),
     };
 
-    setGrades({ ...grades, [quizId]: grade });
-    setSubmitted({ ...submitted, [quizId]: true });
-    setAttemptsTaken({ ...attemptsTaken, [quizId]: (attemptsTaken[quizId] || 0) + 1 });
+    setGrades({ ...grades, [quiz.id]: grade });
+    setSubmitted({ ...submitted, [quiz.id]: true });
+    setAttemptsTaken({ ...attemptsTaken, [quiz.id]: (attemptsTaken[quiz.id] || 0) + 1 });
 
-    clearInterval(intervalRefs.current[quizId]);
+    clearInterval(intervalRefs.current[quiz.id]);
+
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/quizzes/attempts/", {
+        quiz_id: quiz.id,
+        user_id: studentId,
+        score: correctCount,
+        max_score: quiz.questions.length,
+      });
+      console.log("Attempt recorded:", response.data);
+    } catch (error) {
+      console.error("Failed to record attempt:", error.response?.data || error);
+    }
   };
 
   const visibleQuizzes = quizzes.filter((q) => q.is_visible);
@@ -110,7 +134,7 @@ export default function Quizzes() {
       <div className="quizzes">
         <h2>Quizzes</h2>
         <p className="error-msg">
-           You must be within the geofence and have an active session to view quizzes
+          You must be within the geofence and have an active session to view quizzes
         </p>
       </div>
     );
@@ -187,7 +211,7 @@ export default function Quizzes() {
 
               <button
                 className="btn"
-                onClick={() => handleSubmit(quiz.id, quiz.questions)}
+                onClick={() => handleSubmit(quiz)}
                 disabled={
                   submitted[quiz.id] ||
                   (quiz.attempts > 0 && attemptsTaken[quiz.id] >= quiz.attempts)

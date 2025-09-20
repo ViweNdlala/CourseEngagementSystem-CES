@@ -34,3 +34,26 @@ class Answer(models.Model):
 
     def __str__(self):
         return f"{self.text} ({'Correct' if self.is_correct else 'Wrong'})"
+
+
+class Attempt(models.Model): 
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="attempts_made")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="quiz_attempts")
+    attempt_number = models.PositiveIntegerField()
+    score = models.PositiveIntegerField(default=0)
+    max_score = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("quiz", "user", "attempt_number")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} - {self.quiz.title} (Attempt {self.attempt_number}, Score {self.score}/{self.max_score})"
+
+    @property
+    def percentage(self):
+        if self.max_score == 0:
+            return 0
+        return round((self.score / self.max_score) * 100, 2)
+
