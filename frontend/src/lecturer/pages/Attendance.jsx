@@ -60,7 +60,7 @@ export default function Attendance() {
           // Store raw data for reuse
           setRawAttendanceData(courseAttendance);
 
-          // Optimize: Combine all data processing in a single loop
+          //Data processing in a single loop
           const groupedByDate = {};
           const uniqueStudents = new Set();
           let totalRecords = 0;
@@ -85,17 +85,13 @@ export default function Attendance() {
               uniqueStudents.add(record.student_email);
             }
           });
-
           setAttendanceByDate(groupedByDate);
 
-          // Calculate percentage
           const percentage =
             totalRecords > 0
               ? Math.round((presentCount / totalRecords) * 100)
               : 0;
           setStats({ total: totalRecords, present: presentCount, percentage });
-
-          // Set unique students
           setEnrolledStudents(Array.from(uniqueStudents));
         })
         .catch((err) => {
@@ -108,7 +104,7 @@ export default function Attendance() {
     }
   }, [course?.id, user?.id]);
 
-  // Memoize the student chart data to avoid recalculation
+  // Memoized to avoid recalculation
   const studentChartData = useMemo(() => {
     if (!selectedStudent || !rawAttendanceData.length) {
       return [];
@@ -189,7 +185,7 @@ export default function Attendance() {
           present: presentCount,
           total: totalCount,
           absentStudents,
-          rawDate: date, // Keep for potential future sorting needs
+          rawDate: date,
         };
       });
   }, [attendanceByDate]);
@@ -207,7 +203,6 @@ export default function Attendance() {
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      // Set the clicked data point when tooltip becomes active
       setClickedDataPoint(data);
 
       return (
@@ -282,7 +277,6 @@ export default function Attendance() {
                 {clickedDataPoint.absentStudents.map((student, index) => (
                   <li key={index} className="absent-student-email">
                     <p>
-                      {" "}
                       {index + 1}.
                       <span
                         className="student-name"
@@ -303,7 +297,7 @@ export default function Attendance() {
 
         {selectedStudent && studentAttendanceData.length > 0 && (
           <div className="student-chart-section">
-            <h4>Attendance Chart for {selectedStudent.name}</h4>
+            <h4>{selectedStudent.name}'s Attendance</h4>
             <div className="chart-container">
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart

@@ -85,7 +85,7 @@
   margin: 0 8px;
 }
 .student-name:hover {
-  font-weight: bold;
+  text-decoration: underline;
 }
 .email-link {
   margin-left: 8px;
