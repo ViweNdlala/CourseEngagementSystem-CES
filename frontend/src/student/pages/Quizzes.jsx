@@ -64,12 +64,12 @@ export default function Quizzes() {
     axios
       .get(`http://127.0.0.1:8000/quizzes/attempts/user-performance/${studentId}/`)
       .then((res) => {
-        // Map highest percentage per quiz
+        // Map all quizzes, showing 0% for non-attempted ones
         const performanceData = quizzes.map((q) => {
           const perf = res.data.find((p) => p.quiz === q.id);
           return {
             quiz: q.title,
-            grade: perf ? perf.percentage : null, // highest score from backend
+            grade: perf ? perf.percentage : 0, // Show 0 instead of null for non-attempted
           };
         });
         setQuizPerformance(performanceData);
@@ -158,7 +158,7 @@ export default function Quizzes() {
       return (
         <div className="custom-tooltip">
           <p>{label}</p>
-          {grade === null ? <p>Not attempted yet</p> : <p>Grade: {grade}%</p>}
+          <p>Grade: {grade}%</p>
         </div>
       );
     }
@@ -272,12 +272,24 @@ export default function Quizzes() {
 
       {quizPerformance.length > 0 && (
         <div className="quiz-graph">
-          <h3>Performance Over Quizzes</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={quizPerformance}>
+          <h3>Quiz Performances</h3>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={quizPerformance} margin={{ top: 20, right: 30, left: 30, bottom: 60 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="quiz" />
-              <YAxis domain={[0, 100]} />
+              <XAxis 
+                dataKey="quiz" 
+                // angle={-45}
+                angle={-55}
+                textAnchor="end"
+                height={100}
+                interval={0}
+                label={{ value: '', position: 'insideBottom', offset: -10 }}
+              />
+              <YAxis 
+                domain={[0, 100]} 
+                ticks={[0, 25, 50, 75, 100]}
+                label={{ value: 'Grade', angle: -90, position: 'insideLeft' }}
+              />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
               <Line type="monotone" dataKey="grade" stroke="#8884d8" connectNulls />
