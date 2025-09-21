@@ -20,9 +20,6 @@ export default function Quizzes() {
 
   const [quizzes, setQuizzes] = useState([]);
   const [expandedQuiz, setExpandedQuiz] = useState(null);
-  const [answers, setAnswers] = useState({});
-  const [grades, setGrades] = useState({});
-  const [submitted, setSubmitted] = useState({});
   const [loading, setLoading] = useState(true);
 
   const [newQuiz, setNewQuiz] = useState({
@@ -39,6 +36,7 @@ export default function Quizzes() {
   const [clickedDataPoint, setClickedDataPoint] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentPerformance, setStudentPerformance] = useState([]);
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
 
   // Fetch quizzes
   useEffect(() => {
@@ -51,112 +49,118 @@ export default function Quizzes() {
       .finally(() => setLoading(false));
   }, [currentCourse]);
 
-  // Fetch enrollments + performances for graph
+  // Fetch enrolled students
   useEffect(() => {
-    if (!currentCourse || quizzes.length === 0) return;
-
+    if (!currentCourse) return;
+    
     axios
-      .get(`http://127.0.0.1:8000/enrollments/?course=${currentCourse.id}`)
-      .then(async (res) => {
+      .get(`http://127.0.0.1:8000/enrollments/`)
+      .then((res) => {
         const enrollments = res.data || [];
-        const students = enrollments
-          .filter((en) => en.course === currentCourse.id)
-          .map((en) => ({
-            student: en.student,
-            name: en.student_name || en.email || "Unknown",
-            email: en.email,
-          }));
-
-        if (students.length === 0) return;
-
-        const allPerformances = {};
-        for (const quiz of quizzes) {
-          allPerformances[quiz.id] = {
-            quiz: quiz.title,
-            scores: students.map((s) => ({
-              student: s.student,
-              name: s.name,
-              email: s.email,
-              grade: 0,
-            })),
-          };
-        }
-
-        for (const s of students) {
-          try {
-            const perfRes = await axios.get(
-              `http://127.0.0.1:8000/quizzes/attempts/user-performance/${s.student}/`
-            );
-            perfRes.data.forEach((p) => {
-              const quizEntry = Object.values(allPerformances).find(
-                (q) => q.quiz === p.quiz_title
-              );
-              if (quizEntry) {
-                const idx = quizEntry.scores.findIndex(
-                  (sc) => sc.student === s.student
-                );
-                if (idx !== -1) {
-                  quizEntry.scores[idx].grade = p.percentage;
-                }
-              }
-            });
-          } catch (err) {
-            console.error("Error fetching performance for student:", s, err);
-          }
-        }
-
-        const aggregated = Object.values(allPerformances).map((q) => {
-          const grades = q.scores.map((s) => s.grade);
-          const avg =
-            grades.length > 0
-              ? Math.round(grades.reduce((a, b) => a + b, 0) / grades.length)
-              : 0;
-          const underperforming = q.scores.filter((s) => s.grade < 50);
-          return {
-            quiz: q.quiz,
-            avg,
-            underperforming: underperforming.map((s) => ({
-              name: s.name,
-              email: s.email,
-              grades: [{ quiz: q.quiz, grade: s.grade }],
-              studentId: s.student,
-            })),
-          };
+        // Filter enrollments for current course
+        const courseEnrollments = enrollments.filter(
+          (enrollment) => enrollment.course === currentCourse.id
+        );
+        
+        // Extract student IDs
+        const studentIds = courseEnrollments.map(enrollment => enrollment.student);
+        
+        // Fetch student details for each enrolled student
+        const studentPromises = studentIds.map(studentId => 
+          axios.get(`http://127.0.0.1:8000/`)
+            .then(res => {
+              const users = res.data || [];
+              return users.find(user => user.id === studentId);
+            })
+            .catch(err => {
+              console.error("Failed to fetch student:", err);
+              return null;
+            })
+        );
+        
+        Promise.all(studentPromises).then(students => {
+          const validStudents = students.filter(student => student !== null);
+          setEnrolledStudents(validStudents);
         });
-
-        setQuizPerformance(aggregated);
       })
       .catch((err) => console.error("Failed to fetch enrollments:", err));
-  }, [currentCourse, quizzes]);
+  }, [currentCourse]);
+
+  // Fetch performances for graph
+  useEffect(() => {
+    if (!currentCourse || quizzes.length === 0 || enrolledStudents.length === 0) return;
+
+    const fetchPerformanceData = async () => {
+      const allPerformances = {};
+      
+      // Initialize performance data structure
+      for (const quiz of quizzes) {
+        allPerformances[quiz.id] = {
+          quiz: quiz.title,
+          scores: enrolledStudents.map((student) => ({
+            student: student.id,
+            name: student.name,
+            email: student.email,
+            grade: 0,
+          })),
+        };
+      }
+
+      // Fetch performance for each student
+      for (const student of enrolledStudents) {
+        try {
+          const perfRes = await axios.get(
+            `http://127.0.0.1:8000/quizzes/attempts/user-performance/${student.id}/`
+          );
+          
+          perfRes.data.forEach((p) => {
+            const quizEntry = Object.values(allPerformances).find(
+              (q) => q.quiz === p.quiz_title
+            );
+            if (quizEntry) {
+              const studentScore = quizEntry.scores.find(
+                (sc) => sc.student === student.id
+              );
+              if (studentScore) {
+                studentScore.grade = p.percentage;
+              }
+            }
+          });
+        } catch (err) {
+          console.error("Error fetching performance for student:", student, err);
+        }
+      }
+
+      // Aggregate data for the chart
+      const aggregated = Object.values(allPerformances).map((q) => {
+        const grades = q.scores.map((s) => s.grade);
+        const avg =
+          grades.length > 0
+            ? Math.round(grades.reduce((a, b) => a + b, 0) / grades.length)
+            : 0;
+        const underperforming = q.scores.filter((s) => s.grade < 50);
+        return {
+          quiz: q.quiz,
+          avg,
+          underperforming: underperforming.map((s) => ({
+            name: s.name,
+            email: s.email,
+            grade: s.grade,
+            studentId: s.student,
+          })),
+        };
+      });
+
+      setQuizPerformance(aggregated);
+    };
+
+    fetchPerformanceData();
+  }, [currentCourse, quizzes, enrolledStudents]);
 
   const toggleExpand = (quizId) => {
     setExpandedQuiz(expandedQuiz === quizId ? null : quizId);
-    setGrades({});
-    setSubmitted({});
     setMessages({});
   };
-
-  // const handleAnswerChange = (questionId, answerId) => {
-  //   setAnswers({ ...answers, [questionId]: answerId });
-  // };
-
-  // const handleSubmit = (quizId, questions) => {
-  //   if (submitted[quizId]) return;
-  //   let correctCount = 0;
-  //   questions.forEach((q) => {
-  //     const chosenAnswer = q.answers.find((a) => a.id === answers[q.id]);
-  //     const correctAnswer = q.answers.find((a) => a.is_correct);
-  //     if (chosenAnswer?.id === correctAnswer?.id) correctCount++;
-  //   });
-
-  //   const grade = {
-  //     total: questions.length,
-  //     correct: correctCount,
-  //     percentage: Math.round((correctCount / questions.length) * 100),
-  //   };
-  //   setGrades({ ...grades, [quizId]: grade });
-  //   setSubmitted({ ...submitted, [quizId]: true });
-  // };
 
   // --- Quiz Creation ---
   const addQuestion = () => {
@@ -222,7 +226,7 @@ export default function Quizzes() {
         timer: 0,
         attempts: 0,
         is_visible: false,
-        questions: [],
+        questions: [{ text: "", answers: [{ text: "", is_correct: false }] }],
       });
       setMessages({ ...messages, create: " Quiz created successfully!" });
     } catch (err) {
@@ -264,24 +268,37 @@ export default function Quizzes() {
   };
 
   const handleStudentClick = useCallback(
-    async (studentEmail, studentId) => {
-      if (!clickedDataPoint) return;
-      setSelectedStudent({ email: studentEmail });
+    async (studentId, studentName, studentEmail) => {
+      setSelectedStudent({ 
+        id: studentId, 
+        name: studentName, 
+        email: studentEmail 
+      });
 
       try {
         const perfRes = await axios.get(
           `http://127.0.0.1:8000/quizzes/attempts/user-performance/${studentId}/`
         );
-        const data = perfRes.data.map((p) => ({
-          quiz: p.quiz_title,
-          grade: p.percentage,
-        }));
-        setStudentPerformance(data);
+        
+        // Sort quizzes in the order they appear in the main graph
+        const sortedData = perfRes.data
+          .map((p) => ({
+            quiz: p.quiz_title,
+            grade: p.percentage,
+          }))
+          .sort((a, b) => {
+            // Get the index of each quiz in the main performance data
+            const aIndex = quizPerformance.findIndex(q => q.quiz === a.quiz);
+            const bIndex = quizPerformance.findIndex(q => q.quiz === b.quiz);
+            return aIndex - bIndex; // Sort in the same order as main graph
+          });
+          
+        setStudentPerformance(sortedData);
       } catch (err) {
         console.error("Failed to fetch student performance:", err);
       }
     },
-    [clickedDataPoint]
+    [quizPerformance]
   );
 
   const CustomTooltip = ({ active, payload }) => {
@@ -292,11 +309,51 @@ export default function Quizzes() {
           <h4>{data.quiz}</h4>
           <p>Average Grade: {data.avg}%</p>
           <p>Underperforming: {data.underperforming?.length || 0}</p>
-          <p>Click a point for details</p>
+          <p>Click the point for details</p>
         </div>
       );
     }
     return null;
+  };
+
+  // Custom dot component for better click handling
+  const CustomDot = (props) => {
+    const { cx, cy, payload, ...rest } = props;
+    
+    return (
+      <g>
+        <circle
+          cx={cx}
+          cy={cy}
+          r={6}
+          fill="#8884d8"
+          stroke="#fff"
+          strokeWidth={2}
+          style={{ cursor: 'pointer' }}
+          onClick={() => setClickedDataPoint(payload)}
+        />
+      </g>
+    );
+  };
+
+  // Custom active dot component for better click handling
+  const CustomActiveDot = (props) => {
+    const { cx, cy, payload, ...rest } = props;
+    
+    return (
+      <g>
+        <circle
+          cx={cx}
+          cy={cy}
+          r={8}
+          fill="#8884d8"
+          stroke="#fff"
+          strokeWidth={2}
+          style={{ cursor: 'pointer' }}
+          onClick={() => setClickedDataPoint(payload)}
+        />
+      </g>
+    );
   };
 
   if (loading) return <p>Loading quizzes...</p>;
@@ -424,7 +481,6 @@ export default function Quizzes() {
           {messages.create && <p className="message">{messages.create}</p>}
         </div>
       )}
-
 
       {/* Quizzes Section */}
       {quizzes.map((quiz) => (
@@ -577,14 +633,19 @@ export default function Quizzes() {
             <LineChart
               data={quizPerformance}
               margin={{ top: 20, right: 30, left: 30, bottom: 60 }}
+              onClick={(data) => {
+                if (data && data.activePayload && data.activePayload.length) {
+                  setClickedDataPoint(data.activePayload[0].payload);
+                }
+              }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="quiz"
-                // angle={-25}
-                // textAnchor="end"
+                angle={-45}
+                textAnchor="end"
+                height={80}
                 interval={0}
-                tickFormatter={(label) => label.split(":")[0]}
               />
               <YAxis domain={[0, 100]} label={{ value: "Grade %", angle: -90, position: "insideLeft"}} />
               <Tooltip content={<CustomTooltip />} />
@@ -593,11 +654,8 @@ export default function Quizzes() {
                 dataKey="avg"
                 stroke="#8884d8"
                 strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{
-                  r: 6,
-                  onClick: (e) => setClickedDataPoint(e.payload),
-                }}
+                dot={<CustomDot />}
+                activeDot={<CustomActiveDot />}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -611,43 +669,55 @@ export default function Quizzes() {
                     <tr>
                       <th>Name</th>
                       <th>Email</th>
+                      <th>Grade</th>
                     </tr>
                   </thead>
                   <tbody>
                     {clickedDataPoint.underperforming.map((student, i) => (
                       <tr key={i}>
                         <td>
-                          <span
-                            className="student-name"
+                          <button
+                            className="student-name-link"
                             onClick={() =>
-                              handleStudentClick(student.email, student.studentId)
+                              handleStudentClick(student.studentId, student.name, student.email)
                             }
+                            title={`View ${student.name}'s performance`}
                           >
                             {student.name}
-                          </span>
+                          </button>
                         </td>
                         <td>
-                          <a href={`mailto:${student.email}`}>{student.email}</a>
+                          <a href={`mailto:${student.email}`} className="email-link">
+                            {student.email}
+                          </a>
                         </td>
+                        <td>{student.grade}%</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               ) : (
-                <p>None</p>
+                <p>No underperforming students in this quiz</p>
               )}
             </div>
           )}
 
           {selectedStudent && studentPerformance.length > 0 && (
             <div className="student-performance-section">
-              <h4>{selectedStudent.email}'s Quiz Grades</h4>
+              <h4>{selectedStudent.name}'s Quiz Grades</h4>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={studentPerformance}>
-                  <XAxis dataKey="quiz" />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="quiz" angle={-45} textAnchor="end" height={80} />
                   <YAxis domain={[0, 100]} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="grade" stroke="#82ca9d" />
+                  <Line 
+                    type="monotone" 
+                    dataKey="grade" 
+                    stroke="#8884d8" 
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
