@@ -35,58 +35,79 @@ export default function Quizzes() {
   const [creating, setCreating] = useState(false);
   const [messages, setMessages] = useState({});
 
-  // --- Graph related states ---
-  const [quizPerformance, setQuizPerformance] = useState([]); // [{quiz, avg, underperforming:[{name,email,grades:[]},..]}]
+  // --- Graph states ---
+  const [quizPerformance, setQuizPerformance] = useState([]);
   const [clickedDataPoint, setClickedDataPoint] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentPerformance, setStudentPerformance] = useState([]);
 
-  // Fetch quizzes + enrolled students’ performances
+  // Fetch quizzes
   useEffect(() => {
     if (!currentCourse) return;
     setLoading(true);
-
     axios
       .get(`http://127.0.0.1:8000/quizzes/quizzes/?course=${currentCourse.id}`)
       .then((res) => setQuizzes(res.data))
       .catch((err) => console.error("Failed to fetch quizzes:", err))
       .finally(() => setLoading(false));
+  }, [currentCourse]);
 
-    // fetch enrolled students
+  // Fetch enrollments + performances AFTER quizzes loaded
+  useEffect(() => {
+    if (!currentCourse || quizzes.length === 0) return;
+
     axios
       .get(`http://127.0.0.1:8000/enrollments/?course=${currentCourse.id}`)
       .then(async (res) => {
-        const students = res.data || [];
+        const enrollments = res.data || [];
+        // ✅ filter only students belonging to this course
+        const students = enrollments
+          .filter((en) => en.course === currentCourse.id)
+          .map((en) => ({
+            student: en.student,
+            name: en.student_name || en.email || "Unknown",
+            email: en.email,
+          }));
+
         if (students.length === 0) return;
 
-        // fetch each student’s performance
         const allPerformances = {};
+        for (const quiz of quizzes) {
+          allPerformances[quiz.id] = {
+            quiz: quiz.title,
+            scores: students.map((s) => ({
+              student: s.student,
+              name: s.name,
+              email: s.email,
+              grade: 0,
+            })),
+          };
+        }
+
+        // fill in actual performances
         for (const s of students) {
           try {
             const perfRes = await axios.get(
               `http://127.0.0.1:8000/quizzes/attempts/user-performance/${s.student}/`
             );
             perfRes.data.forEach((p) => {
-              if (!allPerformances[p.quiz]) {
-                allPerformances[p.quiz] = {
-                  quiz: p.quiz_title,
-                  scores: [],
-                  underperforming: [],
-                };
+              const quizEntry = Object.values(allPerformances).find(
+                (q) => q.quiz === p.quiz_title
+              );
+              if (quizEntry) {
+                const idx = quizEntry.scores.findIndex(
+                  (sc) => sc.student === s.student
+                );
+                if (idx !== -1) {
+                  quizEntry.scores[idx].grade = p.percentage;
+                }
               }
-              allPerformances[p.quiz].scores.push({
-                student: s.student,
-                name: s.student_name || s.email || "Unknown",
-                email: s.email,
-                grade: p.percentage,
-              });
             });
           } catch (err) {
             console.error("Error fetching performance for student:", s, err);
           }
         }
 
-        // compute averages and underperforming
         const aggregated = Object.values(allPerformances).map((q) => {
           const grades = q.scores.map((s) => s.grade);
           const avg =
@@ -101,6 +122,7 @@ export default function Quizzes() {
               name: s.name,
               email: s.email,
               grades: [{ quiz: q.quiz, grade: s.grade }],
+              studentId: s.student,
             })),
           };
         });
@@ -108,7 +130,7 @@ export default function Quizzes() {
         setQuizPerformance(aggregated);
       })
       .catch((err) => console.error("Failed to fetch enrollments:", err));
-  }, [currentCourse]);
+  }, [currentCourse, quizzes]);
 
   const toggleExpand = (quizId) => {
     setExpandedQuiz(expandedQuiz === quizId ? null : quizId);
@@ -139,6 +161,7 @@ export default function Quizzes() {
     setSubmitted({ ...submitted, [quizId]: true });
   };
 
+  // --- Quiz Creation ---
   const addQuestion = () => {
     setNewQuiz({
       ...newQuiz,
@@ -213,95 +236,37 @@ export default function Quizzes() {
     }
   };
 
-  const handleSaveQuizChanges = async (quiz) => {
-    try {
-      const payload = {
-        title: quiz.title,
-        timer: quiz.timer,
-        attempts: quiz.attempts ?? 0,
-        is_visible: quiz.is_visible,
-        questions: quiz.questions.map((q) => ({
-          id: q.id,
-          text: q.text,
-          answers: q.answers.map((a) => ({
-            id: a.id,
-            text: a.text,
-            is_correct: a.is_correct,
-          })),
-        })),
-      };
-      const res = await axios.patch(
-        `http://127.0.0.1:8000/quizzes/quizzes/${quiz.id}/`,
-        payload
-      );
-      setQuizzes(quizzes.map((q) => (q.id === quiz.id ? res.data : q)));
-      setMessages({ ...messages, [quiz.id]: "Changes saved!" });
-    } catch (err) {
-      console.error("Failed to save changes:", err);
-      setMessages({ ...messages, [quiz.id]: "Failed to save changes." });
-    }
-  };
-
-  const toggleVisibility = (quiz) => {
-    const updatedQuiz = { ...quiz, is_visible: !quiz.is_visible };
-    setQuizzes(quizzes.map((q) => (q.id === quiz.id ? updatedQuiz : q)));
-  };
-
-  const updateTimer = (quiz, newTimer) => {
-    const updatedQuiz = { ...quiz, timer: newTimer };
-    setQuizzes(quizzes.map((q) => (q.id === quiz.id ? updatedQuiz : q)));
-  };
-
-  const updateAttempts = (quiz, newAttempts) => {
-    const updatedQuiz = { ...quiz, attempts: newAttempts };
-    setQuizzes((prev) =>
-      prev.map((q) => (q.id === quiz.id ? updatedQuiz : q))
-    );
-  };
-
-  const toggleCorrectAnswer = (quizId, questionId, answerId, checked) => {
-    setQuizzes((prev) =>
-      prev.map((quiz) =>
-        quiz.id === quizId
-          ? {
-              ...quiz,
-              questions: quiz.questions.map((q) =>
-                q.id === questionId
-                  ? {
-                      ...q,
-                      answers: q.answers.map((a) =>
-                        a.id === answerId ? { ...a, is_correct: checked } : a
-                      ),
-                    }
-                  : q
-              ),
-            }
-          : quiz
-      )
-    );
-  };
-
   const handleStudentClick = useCallback(
-    (studentEmail) => {
-      const studentData = clickedDataPoint.underperforming.find(
-        (s) => s.email === studentEmail
-      );
-      setSelectedStudent(studentData);
-      setStudentPerformance(studentData.grades || []);
+    async (studentEmail, studentId) => {
+      if (!clickedDataPoint) return;
+      setSelectedStudent({ email: studentEmail });
+
+      try {
+        const perfRes = await axios.get(
+          `http://127.0.0.1:8000/quizzes/attempts/user-performance/${studentId}/`
+        );
+        const data = perfRes.data.map((p) => ({
+          quiz: p.quiz_title,
+          grade: p.percentage,
+        }));
+        setStudentPerformance(data);
+      } catch (err) {
+        console.error("Failed to fetch student performance:", err);
+      }
     },
     [clickedDataPoint]
   );
 
+  // Tooltip just shows info
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      setClickedDataPoint(data);
       return (
         <div className="custom-tooltip">
           <h4>{data.quiz}</h4>
           <p>Average Grade: {data.avg}%</p>
           <p>Underperforming: {data.underperforming?.length || 0}</p>
-          <p>See details below</p>
+          <p>Click a point for details</p>
         </div>
       );
     }
@@ -314,9 +279,9 @@ export default function Quizzes() {
   return (
     <div className="quizzes">
       <h2>Quizzes</h2>
-
       {messages.create && <p className="message">{messages.create}</p>}
 
+      {/* Create Quiz Section */}
       {user?.role === "lecturer" && (
         <div className="create-quiz">
           <h3>Create New Quiz</h3>
@@ -414,6 +379,7 @@ export default function Quizzes() {
         </div>
       )}
 
+      {/* Quizzes Section */}
       {quizzes.map((quiz) => (
         <div key={quiz.id} className="quiz-card">
           <div className="quiz-header" onClick={() => toggleExpand(quiz.id)}>
@@ -422,121 +388,18 @@ export default function Quizzes() {
               Time Limit: {quiz.timer > 0 ? `${quiz.timer} minutes` : "No limit"}
             </p>
             <p>Attempts: {quiz.attempts === 0 ? "Unlimited" : quiz.attempts}</p>
-            {user?.role === "lecturer" && (
-              <div className="quiz-settings">
-                <label>
-                  Visible:{" "}
-                  <input
-                    type="checkbox"
-                    checked={quiz.is_visible}
-                    onChange={() => toggleVisibility(quiz)}
-                  />
-                </label>
-                <label>
-                  Update Timer:{" "}
-                  <input
-                    className="quiz-input"
-                    type="number"
-                    min="0"
-                    defaultValue={quiz.timer}
-                    onBlur={(e) =>
-                      updateTimer(quiz, parseInt(e.target.value))
-                    }
-                  />
-                </label>
-                <label>
-                  Attempts:
-                  <select
-                    className="quiz-select"
-                    value={quiz.attempts ?? 0}
-                    onChange={(e) =>
-                      updateAttempts(quiz, parseInt(e.target.value))
-                    }
-                  >
-                    <option value={0}>Unlimited</option>
-                    {[...Array(10)].map((_, i) => (
-                      <option key={i + 1} value={i + 1}>
-                        {i + 1}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <small className="note">
-                  Change attempts then click "Save Changes"
-                </small>
-              </div>
-            )}
           </div>
-
-          {expandedQuiz === quiz.id &&
-            quiz.questions.map((q, idx) => (
-              <div key={q.id} className="quiz-question">
-                <p>
-                  <strong>Question {idx + 1}:</strong> {q.text}
-                </p>
-                <ul>
-                  {q.answers.map((a) => (
-                    <li key={a.id}>
-                      <label>
-                        {user?.role === "lecturer" ? (
-                          <input
-                            type="checkbox"
-                            checked={!!a.is_correct}
-                            onChange={(e) =>
-                              toggleCorrectAnswer(
-                                quiz.id,
-                                q.id,
-                                a.id,
-                                e.target.checked
-                              )
-                            }
-                          />
-                        ) : (
-                          <input
-                            type="radio"
-                            name={`q-${q.id}`}
-                            checked={answers[q.id] === a.id}
-                            onChange={() => handleAnswerChange(q.id, a.id)}
-                          />
-                        )}
-                        {a.text}
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-                {user?.role !== "lecturer" && (
-                  <button
-                    className="btn"
-                    onClick={() => handleSubmit(quiz.id, quiz.questions)}
-                    disabled={submitted[quiz.id]}
-                  >
-                    Submit
-                  </button>
-                )}
-              </div>
-            ))}
-
-          {user?.role === "lecturer" && (
-            <button
-              className="btn save-btn"
-              onClick={() => handleSaveQuizChanges(quiz)}
-            >
-              Save Changes
-            </button>
-          )}
-
-          {messages[quiz.id] && <p className="message">{messages[quiz.id]}</p>}
         </div>
       ))}
 
-      {/* New Graph Section */}
+      {/* Performance Graph */}
       {quizPerformance.length > 0 && (
         <div className="quiz-performance-section">
           <h3>Quiz Performance Overview</h3>
           <ResponsiveContainer width="100%" height={400}>
             <LineChart
               data={quizPerformance}
-              margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+              margin={{ top: 20, right: 30, left: 30, bottom: 60 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="quiz" />
@@ -546,11 +409,13 @@ export default function Quizzes() {
               <Line
                 type="monotone"
                 dataKey="avg"
-                // stroke="#82ca9d"
                 stroke="#8884d8"
                 strokeWidth={2}
                 dot={{ r: 4 }}
-                activeDot={{ r: 6, onClick: (e) => setClickedDataPoint(e.payload) }}
+                activeDot={{
+                  r: 6,
+                  onClick: (e) => setClickedDataPoint(e.payload),
+                }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -559,19 +424,33 @@ export default function Quizzes() {
             <div className="underperforming-section">
               <h4>Underperforming Students in {clickedDataPoint.quiz}</h4>
               {clickedDataPoint.underperforming.length > 0 ? (
-                <ul>
-                  {clickedDataPoint.underperforming.map((student, i) => (
-                    <li key={i}>
-                      <span
-                        className="student-name"
-                        onClick={() => handleStudentClick(student.email)}
-                      >
-                        {student.name}
-                      </span>{" "}
-                      <a href={`mailto:${student.email}`}>{student.email}</a>
-                    </li>
-                  ))}
-                </ul>
+                <table className="student-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {clickedDataPoint.underperforming.map((student, i) => (
+                      <tr key={i}>
+                        <td>
+                          <span
+                            className="student-name"
+                            onClick={() =>
+                              handleStudentClick(student.email, student.studentId)
+                            }
+                          >
+                            {student.name}
+                          </span>
+                        </td>
+                        <td>
+                          <a href={`mailto:${student.email}`}>{student.email}</a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               ) : (
                 <p>None</p>
               )}
@@ -580,7 +459,7 @@ export default function Quizzes() {
 
           {selectedStudent && studentPerformance.length > 0 && (
             <div className="student-performance-section">
-              <h4>{selectedStudent.name}'s Quiz Grades</h4>
+              <h4>{selectedStudent.email}'s Quiz Grades</h4>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={studentPerformance}>
                   <XAxis dataKey="quiz" />
