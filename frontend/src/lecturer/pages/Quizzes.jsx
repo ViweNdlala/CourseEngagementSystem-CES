@@ -132,7 +132,7 @@ export default function Quizzes() {
       }
 
       // Aggregate data for the chart
-      const aggregated = Object.values(allPerformances).map((q) => {
+      const aggregated = Object.values(allPerformances).map((q, index) => {
         const grades = q.scores.map((s) => s.grade);
         const avg =
           grades.length > 0
@@ -141,6 +141,7 @@ export default function Quizzes() {
         const underperforming = q.scores.filter((s) => s.grade < 50);
         return {
           quiz: q.quiz,
+          quizShort: `Quiz ${index + 1}`,
           avg,
           underperforming: underperforming.map((s) => ({
             name: s.name,
@@ -280,28 +281,32 @@ export default function Quizzes() {
           `http://127.0.0.1:8000/quizzes/attempts/user-performance/${studentId}/`
         );
         
-        // Sort quizzes in the order they appear in the main graph
-        const sortedData = perfRes.data
-          .map((p) => ({
-            quiz: p.quiz_title,
-            grade: p.percentage,
-          }))
-          .sort((a, b) => {
-            // Get the index of each quiz in the main performance data
-            const aIndex = quizPerformance.findIndex(q => q.quiz === a.quiz);
-            const bIndex = quizPerformance.findIndex(q => q.quiz === b.quiz);
-            return aIndex - bIndex; // Sort in the same order as main graph
-          });
-          
-        setStudentPerformance(sortedData);
+        // Create a complete performance record with 0% for quizzes not attempted
+        const completePerformance = quizPerformance.map((quiz, index) => {
+          const attemptedQuiz = perfRes.data.find(p => p.quiz_title === quiz.quiz);
+          return {
+            quiz: quiz.quiz,
+            quizShort: `Quiz ${index + 1}`,
+            grade: attemptedQuiz ? attemptedQuiz.percentage : 0,
+          };
+        });
+        
+        setStudentPerformance(completePerformance);
       } catch (err) {
         console.error("Failed to fetch student performance:", err);
+        // If there's an error, still show all quizzes with 0%
+        const completePerformance = quizPerformance.map((quiz, index) => ({
+          quiz: quiz.quiz,
+          quizShort: `Quiz ${index + 1}`,
+          grade: 0,
+        }));
+        setStudentPerformance(completePerformance);
       }
     },
     [quizPerformance]
   );
 
-  const CustomTooltip = ({ active, payload }) => {
+  const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -310,6 +315,19 @@ export default function Quizzes() {
           <p>Average Grade: {data.avg}%</p>
           <p>Underperforming: {data.underperforming?.length || 0}</p>
           <p>Click the point for details</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const StudentPerformanceTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="custom-tooltip">
+          <h4>{data.quiz}</h4>
+          <p>Grade: {data.grade}%</p>
         </div>
       );
     }
@@ -641,10 +659,8 @@ export default function Quizzes() {
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
-                dataKey="quiz"
-                angle={-45}
-                textAnchor="end"
-                height={80}
+                dataKey="quizShort"
+                height={60}
                 interval={0}
               />
               <YAxis domain={[0, 100]} label={{ value: "Grade %", angle: -90, position: "insideLeft"}} />
@@ -708,9 +724,9 @@ export default function Quizzes() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={studentPerformance}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="quiz" angle={-45} textAnchor="end" height={80} />
+                  <XAxis dataKey="quizShort" height={60} interval={0} />
                   <YAxis domain={[0, 100]} />
-                  <Tooltip />
+                  <Tooltip content={<StudentPerformanceTooltip />} />
                   <Line 
                     type="monotone" 
                     dataKey="grade" 
