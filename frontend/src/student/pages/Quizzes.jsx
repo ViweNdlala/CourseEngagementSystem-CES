@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
+import { useUser } from "../../contexts/UserContext";  // ✅ use logged-in user
 import "../styles/Quizzes.css";
 import {
   LineChart,
@@ -15,6 +16,7 @@ import {
 
 export default function Quizzes() {
   const { currentCourse, activeSession, withinGeofence, locationChecked } = useCourse();
+  const { user } = useUser();  // ✅ logged in student
 
   const [quizzes, setQuizzes] = useState([]);
   const [expandedQuiz, setExpandedQuiz] = useState(null);
@@ -25,23 +27,14 @@ export default function Quizzes() {
   const [loading, setLoading] = useState(true);
   const [timers, setTimers] = useState({});
   const intervalRefs = useRef({});
-  const [studentId, setStudentId] = useState(null);
-
   const [quizPerformance, setQuizPerformance] = useState([]);
 
   const canAccessQuizzes = activeSession && withinGeofence && locationChecked;
 
-  // Fetch student ID and quizzes
+  // Fetch quizzes
   useEffect(() => {
     if (!currentCourse) return;
     setLoading(true);
-
-    axios
-      .get(`http://127.0.0.1:8000/enrollments/?course=${currentCourse.id}`)
-      .then((res) => {
-        if (res.data.length > 0) setStudentId(res.data[0].student);
-      })
-      .catch((err) => console.error(err));
 
     axios
       .get(`http://127.0.0.1:8000/quizzes/quizzes/?course=${currentCourse.id}`)
@@ -57,19 +50,17 @@ export default function Quizzes() {
       .finally(() => setLoading(false));
   }, [currentCourse]);
 
-  // Fetch performance for graph from backend (highest attempt per quiz)
+  // Fetch performance for this logged-in student
   const fetchPerformance = () => {
-    if (!studentId) return;
-
+    if (!user?.id) return;  // ✅ ensure logged-in student
     axios
-      .get(`http://127.0.0.1:8000/quizzes/attempts/user-performance/${studentId}/`)
+      .get(`http://127.0.0.1:8000/quizzes/attempts/user-performance/${user.id}/`)
       .then((res) => {
-        // Map all quizzes, showing 0% for non-attempted ones
         const performanceData = quizzes.map((q) => {
           const perf = res.data.find((p) => p.quiz === q.id);
           return {
             quiz: q.title,
-            grade: perf ? perf.percentage : 0, // Show 0 instead of null for non-attempted
+            grade: perf ? perf.percentage : 0,
           };
         });
         setQuizPerformance(performanceData);
@@ -79,7 +70,7 @@ export default function Quizzes() {
 
   useEffect(() => {
     fetchPerformance();
-  }, [studentId, quizzes]);
+  }, [user?.id, quizzes]);
 
   const toggleExpand = (quiz) => {
     if (expandedQuiz === quiz.id) {
@@ -111,7 +102,7 @@ export default function Quizzes() {
   };
 
   const handleSubmit = async (quiz) => {
-    if (!studentId || submitted[quiz.id]) return;
+    if (!user?.id || submitted[quiz.id]) return;
 
     let correctCount = 0;
     quiz.questions.forEach((q) => {
@@ -132,13 +123,12 @@ export default function Quizzes() {
     try {
       await axios.post("http://127.0.0.1:8000/quizzes/attempts/", {
         quiz_id: quiz.id,
-        user_id: studentId,
+        user_id: user.id,  // ✅ correct user
         score: correctCount,
         max_score: quiz.questions.length,
       });
 
-      // Refresh backend data for graph (highest score now)
-      fetchPerformance();
+      fetchPerformance(); // ✅ refresh graph after submit
     } catch (err) {
       console.error(err);
     }
@@ -276,19 +266,17 @@ export default function Quizzes() {
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={quizPerformance} margin={{ top: 20, right: 30, left: 30, bottom: 60 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="quiz" 
-                // angle={-45}
+              <XAxis
+                dataKey="quiz"
                 angle={-55}
                 textAnchor="end"
                 height={100}
                 interval={0}
-                label={{ value: '', position: 'insideBottom', offset: -10 }}
               />
-              <YAxis 
-                domain={[0, 100]} 
+              <YAxis
+                domain={[0, 100]}
                 ticks={[0, 25, 50, 75, 100]}
-                label={{ value: 'Grade', angle: -90, position: 'insideLeft' }}
+                label={{ value: "Grade", angle: -90, position: "insideLeft" }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
