@@ -268,10 +268,10 @@ export default function Quizzes() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="quiz"
-                angle={-55}
-                textAnchor="end"
-                height={100}
+                // angle={-25}
+                // textAnchor="end"
                 interval={0}
+                tickFormatter={(label) => label.split(":")[0]}
               />
               <YAxis
                 domain={[0, 100]}
@@ -279,7 +279,6 @@ export default function Quizzes() {
                 label={{ value: "Grade", angle: -90, position: "insideLeft" }}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
               <Line type="monotone" dataKey="grade" stroke="#8884d8" connectNulls />
             </LineChart>
           </ResponsiveContainer>

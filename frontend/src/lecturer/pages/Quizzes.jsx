@@ -136,27 +136,27 @@ export default function Quizzes() {
     setMessages({});
   };
 
-  const handleAnswerChange = (questionId, answerId) => {
-    setAnswers({ ...answers, [questionId]: answerId });
-  };
+  // const handleAnswerChange = (questionId, answerId) => {
+  //   setAnswers({ ...answers, [questionId]: answerId });
+  // };
 
-  const handleSubmit = (quizId, questions) => {
-    if (submitted[quizId]) return;
-    let correctCount = 0;
-    questions.forEach((q) => {
-      const chosenAnswer = q.answers.find((a) => a.id === answers[q.id]);
-      const correctAnswer = q.answers.find((a) => a.is_correct);
-      if (chosenAnswer?.id === correctAnswer?.id) correctCount++;
-    });
+  // const handleSubmit = (quizId, questions) => {
+  //   if (submitted[quizId]) return;
+  //   let correctCount = 0;
+  //   questions.forEach((q) => {
+  //     const chosenAnswer = q.answers.find((a) => a.id === answers[q.id]);
+  //     const correctAnswer = q.answers.find((a) => a.is_correct);
+  //     if (chosenAnswer?.id === correctAnswer?.id) correctCount++;
+  //   });
 
-    const grade = {
-      total: questions.length,
-      correct: correctCount,
-      percentage: Math.round((correctCount / questions.length) * 100),
-    };
-    setGrades({ ...grades, [quizId]: grade });
-    setSubmitted({ ...submitted, [quizId]: true });
-  };
+  //   const grade = {
+  //     total: questions.length,
+  //     correct: correctCount,
+  //     percentage: Math.round((correctCount / questions.length) * 100),
+  //   };
+  //   setGrades({ ...grades, [quizId]: grade });
+  //   setSubmitted({ ...submitted, [quizId]: true });
+  // };
 
   // --- Quiz Creation ---
   const addQuestion = () => {
@@ -581,14 +581,13 @@ export default function Quizzes() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="quiz"
-                angle={-55}
-                textAnchor="end"
-                height={100}
+                // angle={-25}
+                // textAnchor="end"
                 interval={0}
+                tickFormatter={(label) => label.split(":")[0]}
               />
               <YAxis domain={[0, 100]} label={{ value: "Grade %", angle: -90, position: "insideLeft"}} />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
               <Line
                 type="monotone"
                 dataKey="avg"
