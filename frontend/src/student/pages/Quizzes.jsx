@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
-import { useUser } from "../../contexts/UserContext";  // ✅ use logged-in user
+import { useUser } from "../../contexts/UserContext";  // use logged-in user
 import "../styles/Quizzes.css";
 import {
   LineChart,
@@ -16,7 +16,7 @@ import {
 
 export default function Quizzes() {
   const { currentCourse, activeSession, withinGeofence, locationChecked } = useCourse();
-  const { user } = useUser();  // ✅ logged in student
+  const { user } = useUser();  // logged in student
 
   const [quizzes, setQuizzes] = useState([]);
   const [expandedQuiz, setExpandedQuiz] = useState(null);
@@ -52,7 +52,7 @@ export default function Quizzes() {
 
   // Fetch performance for this logged-in student
   const fetchPerformance = () => {
-    if (!user?.id) return;  // ✅ ensure logged-in student
+    if (!user?.id) return;  //  ensure logged-in student
     axios
       .get(`http://127.0.0.1:8000/quizzes/attempts/user-performance/${user.id}/`)
       .then((res) => {
@@ -123,12 +123,12 @@ export default function Quizzes() {
     try {
       await axios.post("http://127.0.0.1:8000/quizzes/attempts/", {
         quiz_id: quiz.id,
-        user_id: user.id,  // ✅ correct user
+        user_id: user.id,  // correct user
         score: correctCount,
         max_score: quiz.questions.length,
       });
 
-      fetchPerformance(); // ✅ refresh graph after submit
+      fetchPerformance(); // refresh graph after submit
     } catch (err) {
       console.error(err);
     }

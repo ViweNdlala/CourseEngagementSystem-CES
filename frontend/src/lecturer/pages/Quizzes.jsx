@@ -312,9 +312,119 @@ export default function Quizzes() {
       {user?.role === "lecturer" && (
         <div className="create-quiz">
           <h3>Create New Quiz</h3>
-          {/* ... same as before ... */}
+
+          <input
+            className="quiz-input"
+            type="text"
+            placeholder="Quiz Title"
+            value={newQuiz.title}
+            onChange={(e) => handleQuizChange("title", e.target.value)}
+          />
+
+          <div>
+            <label>
+              Time Limit (minutes):{" "}
+              <input
+                className="quiz-input"
+                type="number"
+                min="0"
+                value={newQuiz.timer}
+                onChange={(e) =>
+                  handleQuizChange("timer", parseInt(e.target.value))
+                }
+              />
+            </label>
+          </div>
+
+          <div>
+            <label>
+              Attempts:
+              <select
+                className="quiz-select"
+                value={newQuiz.attempts}
+                onChange={(e) =>
+                  handleQuizChange("attempts", parseInt(e.target.value))
+                }
+              >
+                <option value={0}>Unlimited</option>
+                {[...Array(10)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <small className="note">Note: 0 = Unlimited</small>
+          </div>
+
+          <div>
+            <label>
+              Visible:
+              <input
+                type="checkbox"
+                checked={newQuiz.is_visible || false}
+                onChange={(e) => handleQuizChange("is_visible", e.target.checked)}
+              />
+            </label>
+          </div>
+
+          {newQuiz.questions.map((q, qIndex) => (
+            <div key={qIndex} className="question">
+              <input
+                className="quiz-input"
+                type="text"
+                placeholder={`Question ${qIndex + 1}`}
+                value={q.text}
+                onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
+              />
+
+              {q.answers.map((a, aIndex) => (
+                <div key={aIndex} className="answer">
+                  <input
+                    className="quiz-input"
+                    type="text"
+                    placeholder={`Answer ${aIndex + 1}`}
+                    value={a.text}
+                    onChange={(e) =>
+                      handleNewAnswerChange(qIndex, aIndex, "text", e.target.value)
+                    }
+                  />
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={a.is_correct}
+                      onChange={(e) =>
+                        handleNewAnswerChange(
+                          qIndex,
+                          aIndex,
+                          "is_correct",
+                          e.target.checked
+                        )
+                      }
+                    />
+                    Correct
+                  </label>
+                </div>
+              ))}
+
+              <button className="btn" onClick={() => addAnswer(qIndex)}>
+                + Add Answer
+              </button>
+            </div>
+          ))}
+
+          <button className="btn" onClick={addQuestion}>
+            + Add Question
+          </button>
+
+          <button className="btn" onClick={handleCreateQuiz} disabled={creating}>
+            {creating ? "Creating..." : "Create Quiz"}
+          </button>
+
+          {messages.create && <p className="message">{messages.create}</p>}
         </div>
       )}
+
 
       {/* Quizzes Section */}
       {quizzes.map((quiz) => (
