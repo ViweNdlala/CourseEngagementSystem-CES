@@ -29,7 +29,8 @@ export default function Quizzes() {
     questions: [{ text: "", answers: [{ text: "", is_correct: false }] }],
   });
   const [creating, setCreating] = useState(false);
-  const [messages, setMessages] = useState({});
+  const [alertMessage, setAlertMessage] = useState(null);
+  const [alertPosition, setAlertPosition] = useState({ top: 0, left: 0 });
 
   // Graph states
   const [quizPerformance, setQuizPerformance] = useState([]);
@@ -37,6 +38,22 @@ export default function Quizzes() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentPerformance, setStudentPerformance] = useState([]);
   const [enrolledStudents, setEnrolledStudents] = useState([]);
+
+  // Show temporary alert message near the action element
+  const showAlert = (message, type = "success", element = null) => {
+    if (element) {
+      const rect = element.getBoundingClientRect();
+      setAlertPosition({
+        top: rect.bottom + window.scrollY + 10,
+        left: rect.left + window.scrollX
+      });
+    }
+    
+    setAlertMessage({ message, type });
+    setTimeout(() => {
+      setAlertMessage(null);
+    }, 3000); // Hide after 3 seconds
+  };
 
   // Fetch quizzes
   useEffect(() => {
@@ -160,7 +177,6 @@ export default function Quizzes() {
 
   const toggleExpand = (quizId) => {
     setExpandedQuiz(expandedQuiz === quizId ? null : quizId);
-    setMessages({});
   };
 
   // Quiz Creation 
@@ -193,7 +209,7 @@ export default function Quizzes() {
     setNewQuiz({ ...newQuiz, questions: updated });
   };
 
-  const handleCreateQuiz = async () => {
+  const handleCreateQuiz = async (e) => {
     try {
       setCreating(true);
       const validQuestions = newQuiz.questions
@@ -229,17 +245,17 @@ export default function Quizzes() {
         is_visible: false,
         questions: [{ text: "", answers: [{ text: "", is_correct: false }] }],
       });
-      setMessages({ ...messages, create: " Quiz created successfully!" });
+      showAlert("Quiz created successfully!", "success", e.target);
     } catch (err) {
       console.error("Failed to create quiz:", err.response?.data || err.message);
-      setMessages({ ...messages, create: " Failed to create quiz." });
+      showAlert("Failed to create quiz.", "error", e.target);
     } finally {
       setCreating(false);
     }
   };
 
   // Quiz Update
-  const handleQuizUpdate = async (quiz) => {
+  const handleQuizUpdate = async (quiz, e) => {
     const payload = {
       title: quiz.title,
       timer: quiz.timer,
@@ -261,10 +277,10 @@ export default function Quizzes() {
         payload
       );
       setQuizzes(quizzes.map((q) => (q.id === quiz.id ? res.data : q)));
-      setMessages({ ...messages, update: "Quiz updated successfully!" });
+      showAlert("Quiz updated successfully!", "success", e.target);
     } catch (err) {
       console.error("Failed to update quiz:", err.response?.data || err.message);
-      setMessages({ ...messages, update: "Failed to update quiz." });
+      showAlert("Failed to update quiz.", "error", e.target);
     }
   };
 
@@ -375,15 +391,27 @@ export default function Quizzes() {
   };
 
   if (loading) return <p>Loading quizzes...</p>;
-  if (!loading && quizzes.length === 0) return <p>No quizzes found.</p>;
 
   return (
     <div className="quizzes">
       <h2>Quizzes</h2>
-      {messages.create && <p className="message">{messages.create}</p>}
-      {messages.update && <p className="message">{messages.update}</p>}
+      
+      {/* Alert Message Popup */}
+      {alertMessage && (
+        <div 
+          className={`alert-popup ${alertMessage.type}`}
+          style={{
+            position: 'absolute',
+            top: `${alertPosition.top}px`,
+            left: `${alertPosition.left}px`,
+            zIndex: 1000
+          }}
+        >
+          {alertMessage.message}
+        </div>
+      )}
 
-      {/* Create Quiz Section */}
+      {/* Create Quiz Section - Always show for lecturers */}
       {user?.role === "lecturer" && (
         <div className="create-quiz">
           <h3>Create New Quiz</h3>
@@ -495,156 +523,158 @@ export default function Quizzes() {
           <button className="btn" onClick={handleCreateQuiz} disabled={creating}>
             {creating ? "Creating..." : "Create Quiz"}
           </button>
-
-          {messages.create && <p className="message">{messages.create}</p>}
         </div>
       )}
 
       {/* Quizzes Section */}
-      {quizzes.map((quiz) => (
-        <div key={quiz.id} className="quiz-card">
-          <div className="quiz-header" onClick={() => toggleExpand(quiz.id)}>
-            <h3>{quiz.title}</h3>
-            <p>
-              Time Limit: {quiz.timer > 0 ? `${quiz.timer} minutes` : "No limit"}
-            </p>
-            <p>Attempts: {quiz.attempts === 0 ? "Unlimited" : quiz.attempts}</p>
-          </div>
+      {quizzes.length === 0 ? (
+        <p>No quizzes found.</p>
+      ) : (
+        quizzes.map((quiz) => (
+          <div key={quiz.id} className="quiz-card">
+            <div className="quiz-header" onClick={() => toggleExpand(quiz.id)}>
+              <h3>{quiz.title}</h3>
+              <p>
+                Time Limit: {quiz.timer > 0 ? `${quiz.timer} minutes` : "No limit"}
+              </p>
+              <p>Attempts: {quiz.attempts === 0 ? "Unlimited" : quiz.attempts}</p>
+            </div>
 
-          {expandedQuiz === quiz.id && (
-            <div className="quiz-expanded">
-              <label>
-                Title:{" "}
-                <input
-                  className="quiz-input"
-                  value={quiz.title}
-                  onChange={(e) =>
-                    setQuizzes(
-                      quizzes.map((q) =>
-                        q.id === quiz.id ? { ...q, title: e.target.value } : q
-                      )
-                    )
-                  }
-                />
-              </label>
-              <label>
-                Time Limit (minutes):{" "}
-                <input
-                  type="number"
-                  min="0"
-                  value={quiz.timer}
-                  onChange={(e) =>
-                    setQuizzes(
-                      quizzes.map((q) =>
-                        q.id === quiz.id
-                          ? { ...q, timer: parseInt(e.target.value) }
-                          : q
-                      )
-                    )
-                  }
-                />
-              </label>
-              <label>
-                Attempts:{" "}
-                <select
-                  value={quiz.attempts}
-                  onChange={(e) =>
-                    setQuizzes(
-                      quizzes.map((q) =>
-                        q.id === quiz.id
-                          ? { ...q, attempts: parseInt(e.target.value) }
-                          : q
-                      )
-                    )
-                  }
-                >
-                  <option value={0}>Unlimited</option>
-                  {[...Array(10)].map((_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {i + 1}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Visible:{" "}
-                <input
-                  type="checkbox"
-                  checked={quiz.is_visible}
-                  onChange={(e) =>
-                    setQuizzes(
-                      quizzes.map((q) =>
-                        q.id === quiz.id ? { ...q, is_visible: e.target.checked } : q
-                      )
-                    )
-                  }
-                />
-              </label>
-
-              <h4>Questions</h4>
-              {quiz.questions.map((q, qIndex) => (
-                <div key={q.id} className="question-update">
+            {expandedQuiz === quiz.id && (
+              <div className="quiz-expanded">
+                <label>
+                  Title:{" "}
                   <input
                     className="quiz-input"
-                    value={q.text}
-                    onChange={(e) => {
-                      const updatedQuestions = [...quiz.questions];
-                      updatedQuestions[qIndex].text = e.target.value;
+                    value={quiz.title}
+                    onChange={(e) =>
                       setQuizzes(
-                        quizzes.map((qu) =>
-                          qu.id === quiz.id ? { ...qu, questions: updatedQuestions } : qu
+                        quizzes.map((q) =>
+                          q.id === quiz.id ? { ...q, title: e.target.value } : q
                         )
-                      );
-                    }}
+                      )
+                    }
                   />
-                  {q.answers.map((a, aIndex) => (
-                    <div key={a.id} className="answer-update">
-                      <input
-                        className="quiz-input"
-                        value={a.text}
-                        onChange={(e) => {
-                          const updatedAnswers = [...q.answers];
-                          updatedAnswers[aIndex].text = e.target.value;
-                          const updatedQuestions = [...quiz.questions];
-                          updatedQuestions[qIndex].answers = updatedAnswers;
-                          setQuizzes(
-                            quizzes.map((qu) =>
-                              qu.id === quiz.id ? { ...qu, questions: updatedQuestions } : qu
-                            )
-                          );
-                        }}
-                      />
-                      <label>
-                        Correct:{" "}
+                </label>
+                <label>
+                  Time Limit (minutes):{" "}
+                  <input
+                    type="number"
+                    min="0"
+                    value={quiz.timer}
+                    onChange={(e) =>
+                      setQuizzes(
+                        quizzes.map((q) =>
+                          q.id === quiz.id
+                            ? { ...q, timer: parseInt(e.target.value) }
+                            : q
+                        )
+                      )
+                    }
+                  />
+                </label>
+                <label>
+                  Attempts:{" "}
+                  <select
+                    value={quiz.attempts}
+                    onChange={(e) =>
+                      setQuizzes(
+                        quizzes.map((q) =>
+                          q.id === quiz.id
+                            ? { ...q, attempts: parseInt(e.target.value) }
+                            : q
+                        )
+                      )
+                    }
+                  >
+                    <option value={0}>Unlimited</option>
+                    {[...Array(10)].map((_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {i + 1}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Visible:{" "}
+                  <input
+                    type="checkbox"
+                    checked={quiz.is_visible}
+                    onChange={(e) =>
+                      setQuizzes(
+                        quizzes.map((q) =>
+                          q.id === quiz.id ? { ...q, is_visible: e.target.checked } : q
+                        )
+                      )
+                    }
+                  />
+                </label>
+
+                <h4>Questions</h4>
+                {quiz.questions.map((q, qIndex) => (
+                  <div key={q.id} className="question-update">
+                    <input
+                      className="quiz-input"
+                      value={q.text}
+                      onChange={(e) => {
+                        const updatedQuestions = [...quiz.questions];
+                        updatedQuestions[qIndex].text = e.target.value;
+                        setQuizzes(
+                          quizzes.map((qu) =>
+                            qu.id === quiz.id ? { ...qu, questions: updatedQuestions } : qu
+                          )
+                        );
+                      }}
+                    />
+                    {q.answers.map((a, aIndex) => (
+                      <div key={a.id} className="answer-update">
                         <input
-                          type="checkbox"
-                          checked={a.is_correct}
+                          className="quiz-input"
+                          value={a.text}
                           onChange={(e) => {
                             const updatedAnswers = [...q.answers];
-                            updatedAnswers[aIndex].is_correct = e.target.checked;
+                            updatedAnswers[aIndex].text = e.target.value;
                             const updatedQuestions = [...quiz.questions];
                             updatedQuestions[qIndex].answers = updatedAnswers;
                             setQuizzes(
                               quizzes.map((qu) =>
-                                qu.id === quiz.id
-                                  ? { ...qu, questions: updatedQuestions }
-                                  : qu
+                                qu.id === quiz.id ? { ...qu, questions: updatedQuestions } : qu
                               )
                             );
                           }}
                         />
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              ))}
-              <button className="btn" onClick={() => handleQuizUpdate(quiz)}>
-                Update Quiz
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
+                        <label>
+                          Correct:{" "}
+                          <input
+                            type="checkbox"
+                            checked={a.is_correct}
+                            onChange={(e) => {
+                              const updatedAnswers = [...q.answers];
+                              updatedAnswers[aIndex].is_correct = e.target.checked;
+                              const updatedQuestions = [...quiz.questions];
+                              updatedQuestions[qIndex].answers = updatedAnswers;
+                              setQuizzes(
+                                quizzes.map((qu) =>
+                                  qu.id === quiz.id
+                                    ? { ...qu, questions: updatedQuestions }
+                                    : qu
+                                )
+                              );
+                            }}
+                          />
+                        </label>
+                        </div>
+                    ))}
+                  </div>
+                ))}
+                <button className="btn" onClick={(e) => handleQuizUpdate(quiz, e)}>
+                  Update Quiz
+                </button>
+              </div>
+            )}
+          </div>
+        ))
+      )}
 
       {/* Performance Graph */}
       {quizPerformance.length > 0 && (
