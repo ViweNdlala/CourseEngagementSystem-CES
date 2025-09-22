@@ -60,7 +60,7 @@ class Attempt(models.Model):
     @classmethod
     def latest_or_highest_per_quiz(cls, user):
         """
-        Returns a dict with quiz_id → highest percentage for each quiz the user attempted.
+        Returns a dict with quiz_id highest percentage for each quiz the user attempted.
         """
         results = {}
         user_attempts = cls.objects.filter(user=user)

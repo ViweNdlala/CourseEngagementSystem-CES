@@ -31,7 +31,7 @@ export default function Quizzes() {
   const [creating, setCreating] = useState(false);
   const [messages, setMessages] = useState({});
 
-  // --- Graph states ---
+  // Graph states
   const [quizPerformance, setQuizPerformance] = useState([]);
   const [clickedDataPoint, setClickedDataPoint] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -163,7 +163,7 @@ export default function Quizzes() {
     setMessages({});
   };
 
-  // --- Quiz Creation ---
+  // Quiz Creation 
   const addQuestion = () => {
     setNewQuiz({
       ...newQuiz,
@@ -238,7 +238,7 @@ export default function Quizzes() {
     }
   };
 
-  // --- Quiz Update ---
+  // Quiz Update
   const handleQuizUpdate = async (quiz) => {
     const payload = {
       title: quiz.title,
@@ -516,6 +516,7 @@ export default function Quizzes() {
               <label>
                 Title:{" "}
                 <input
+                  className="quiz-input"
                   value={quiz.title}
                   onChange={(e) =>
                     setQuizzes(
@@ -584,6 +585,7 @@ export default function Quizzes() {
               {quiz.questions.map((q, qIndex) => (
                 <div key={q.id} className="question-update">
                   <input
+                    className="quiz-input"
                     value={q.text}
                     onChange={(e) => {
                       const updatedQuestions = [...quiz.questions];
@@ -598,6 +600,7 @@ export default function Quizzes() {
                   {q.answers.map((a, aIndex) => (
                     <div key={a.id} className="answer-update">
                       <input
+                        className="quiz-input"
                         value={a.text}
                         onChange={(e) => {
                           const updatedAnswers = [...q.answers];
