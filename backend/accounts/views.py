@@ -30,7 +30,7 @@ class UserView(APIView):
         
     def post(self, request):
         # Input validation
-        email = request.data.get('email', '').strip().lower()
+        email = request.data.get('email', '').strip()
         password = request.data.get('password', '')
         
         if not email or not password:
@@ -53,7 +53,7 @@ class UserView(APIView):
 class LoginView(APIView):
     def post(self, request):
         # Login with plain text password from frontend
-        email = request.data.get('email', '').strip().lower()
+        email = request.data.get('email', '').strip()
         password = request.data.get('password', '')  # Plain text from frontend
         
         if not email or not password:

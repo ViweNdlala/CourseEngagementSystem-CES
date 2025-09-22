@@ -38,7 +38,7 @@ function Login(){
         try {
             // Send plain text password - backend will hash and compare
             const response = await axios.post("http://localhost:8000/accounts/login/", {
-                email: email.toLowerCase().trim(),
+                email: email.trim(),
                 password: password // Send plain text - backend handles hashing
             }, {
                 headers: {
