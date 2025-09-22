@@ -16,7 +16,7 @@ import {
 
 export default function Quizzes() {
   const { currentCourse, activeSession, withinGeofence, locationChecked } = useCourse();
-  const { user } = useUser();  // logged in student
+  const { user } = useUser();  // Store logged in student
 
   const [quizzes, setQuizzes] = useState([]);
   const [expandedQuiz, setExpandedQuiz] = useState(null);
