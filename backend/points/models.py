@@ -19,7 +19,8 @@ class PointRequest(models.Model):
     declined = models.BooleanField(default=False)
     declined_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    description = models.CharField(blank=True, null=True,max_length=250)
+    session_id = models.PositiveIntegerField(null=True, blank=True)
     # Notification fields:
     is_notified = models.BooleanField(default=False)        # whether a notification was ever sent
     notification_pending = models.BooleanField(default=False)  # whether notification is active (UI should show it)

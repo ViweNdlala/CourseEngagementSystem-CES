@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
 import axios from "axios";
-
+import "../styles/Course.css"
 function LecturerCourseHome() {
   const { id } = useParams(); // course id
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -73,19 +73,19 @@ function LecturerCourseHome() {
   if (!course) return <p>Loading course...</p>;
 
   return (
-    <div className="p-6">
+    <div className="course-container">
       <h2>Lecturer Course Home: {course.title}</h2>
       <p>{course.description}</p>
 
-      <div className="mt-4">
+      <div className="duration-wrapper">
         <label>Duration (minutes): </label>
         <input type="number" value={duration} onChange={e => setDuration(e.target.value)} />
       </div>
 
-      <button onClick={startSession}>Start Geofence Session</button>
+      <button className="primary-btn" onClick={startSession}>Start Geofence Session</button>
 
       {activeSession && (
-        <div>
+        <div className="session-details">  
           <p> Active session ID {activeSession.id}</p>
           <p>Started at: {new Date(activeSession.start_time).toLocaleTimeString()}</p>
           <p>Duration: {activeSession.duration_minutes} minutes</p>

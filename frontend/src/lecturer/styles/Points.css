@@ -3,46 +3,62 @@
   font-family: Arial, sans-serif;
 }
 
+/* General headings */
 .lecturer-container h2 {
   margin-bottom: 12px;
   color: #333;
 }
 
-.lecturer-container ul {
+/* Leaderboard styles */
+.leaderboard-card {
+  margin-top: 24px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  padding: 20px;
+}
+
+.leaderboard-card h2 {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #295474;
+  margin-bottom: 16px;
+}
+
+/* Leaderboard list */
+.leaderboard-card ul {
   list-style: none;
   padding-left: 0;
+  margin: 0;
 }
 
-.lecturer-container li {
-  margin-bottom: 8px;
+.leaderboard-card li {
   display: flex;
-  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  font-size: 15px;
 }
 
-.lecturer-container li button {
-  margin-left: 8px;
-  padding: 5px 10px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
+.leaderboard-card li:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+.leaderboard-card li:last-child {
+  border-bottom: none;
+}
+
+/* Rank badge */
+.rank-badge {
+  background: #295474;
+  color: #fff;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-right: 10px;
   font-size: 13px;
-}
-
-.approve-btn {
-  background-color: #4caf50;
-  color: white;
-  margin-left: 12px;
-}
-
-.decline-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.dismiss-btn {
-  background-color: #888;
-  color: white;
-  margin-right: 8px;
 }
 
 /* Floating notification */
@@ -83,4 +99,79 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
+}
+
+/* Section wrapper */
+.students-without-points-section {
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* Section heading (no underline now) */
+.students-without-points-card h2 {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #295474;
+  margin-bottom: 16px;
+}
+
+/* Toggle button */
+.toggle-btn {
+  padding: 10px 18px;
+  background-color: #295474;   /* theme color */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background-color 0.25s ease, transform 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background-color: #1f4059;   /* darker shade */
+  transform: translateY(-2px); /* subtle lift */
+}
+
+.toggle-btn:active {
+  transform: translateY(0);
+}
+
+/* Card for students */
+.students-without-points-card {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  background: #fafafa;
+  text-align: left;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.students-without-points-card ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.students-without-points-card li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.students-without-points-card li:last-child {
+  border-bottom: none;
+}
+
+.student-name {
+  font-weight: 500;
+  color: #222;
+}
+
+.student-email {
+  color: #555;
+  font-size: 13px;
 }

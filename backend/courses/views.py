@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from .models import Course, Enrollment,GeofenceSession,GeofenceAccessLog,haversine_distance_m
 from .serializer import CourseSerializer, EnrollmentSerializer,GeofenceSessionSerializer,GeofenceAccessLogSerializer,GeofenceAccessCheckSerializer
 from accounts.models import User
-from .permissions import IsWithinGeofencePermission
+
 
 # Course view
 class CourseView(APIView):

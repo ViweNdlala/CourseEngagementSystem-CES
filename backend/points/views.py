@@ -8,6 +8,7 @@ from django.db import transaction
 from .models import PointRequest, Leaderboard
 from .serializer import PointRequestSerializer, LeaderboardSerializer
 from accounts.models import User
+from courses.models import Enrollment, Course
 
 # List + Create . Browsable API shows the form automatically.
 class PointRequestListCreateView(generics.ListCreateAPIView):
@@ -30,7 +31,14 @@ class PointRequestListCreateView(generics.ListCreateAPIView):
             qs = qs.filter(course_id=course_id)
         return qs
 
-    # create uses serializer.create() -> model.save() -> points auto-calculated
+    def perform_create(self, serializer):
+        # Assign the authenticated user as the student (safer than trusting client data)
+        user = self.request.user
+        if user and user.is_authenticated:
+            serializer.save(student=user)
+        else:
+            # fallback (shouldn't normally happen since students must be logged in)
+            serializer.save()
 
 # Approve (atomic leaderboard update)
 class PointRequestApproveView(APIView):
@@ -110,6 +118,50 @@ class PointRequestDismissNotificationView(APIView):
         pr.is_notified = True
         pr.save()
         return Response({"dismissed": pk}, status=status.HTTP_200_OK)
+    
+class StudentsWithoutPointsView(APIView):
+    """
+    Returns students enrolled in a course but never appeared on the leaderboard.
+    """
+    def get(self, request):
+        lecturer_id = request.query_params.get("lecturer_id")
+        course_id = request.query_params.get("course_id")
+
+        if not lecturer_id or not course_id:
+            return Response(
+                {"error": "lecturer_id and course_id required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            course = Course.objects.get(id=course_id, lecturer_id=lecturer_id)
+        except Course.DoesNotExist:
+            return Response(
+                {"error": "Course not found for this lecturer"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # All students enrolled in this course
+        enrolled_students = User.objects.filter(
+            id__in=Enrollment.objects.filter(course=course).values_list("student_id", flat=True)
+        )
+
+        # Students already on leaderboard
+        leaderboard_students = User.objects.filter(
+            id__in=Leaderboard.objects.all().values_list("student_id", flat=True)
+        )
+
+        # Subtract → enrolled but never on leaderboard
+        without_points = enrolled_students.exclude(id__in=leaderboard_students)
+
+        data = [
+            {"id": s.id, "name": s.name, "email": s.email}
+            for s in without_points
+        ]
+
+        return Response({"students_without_points": data}, status=status.HTTP_200_OK)
+
+
 
 # Leaderboard view
 class LeaderboardView(generics.ListAPIView):
