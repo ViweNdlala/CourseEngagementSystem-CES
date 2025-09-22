@@ -12,7 +12,6 @@ import StudentCourseHome from "./student/pages/Course";
 import StudentPreparation from "./student/pages/Preparation";
 import StudentAttendance from "./student/pages/Attendance";
 import StudentQuizzes from "./student/pages/Quizzes";
-import StudentPolls from "./student/pages/Polls";
 import StudentPoints from "./student/pages/Points";
 
 // Lecturer pages
@@ -21,7 +20,6 @@ import LecturerCourseHome from "./lecturer/pages/Course";
 import LecturerPreparation from "./lecturer/pages/Preparation";
 import LecturerAttendance from "./lecturer/pages/Attendance";
 import LecturerQuizzes from "./lecturer/pages/Quizzes";
-import LecturerPolls from "./lecturer/pages/Polls";
 import LecturerPoints from "./lecturer/pages/Points";
 
 function App() {
@@ -41,7 +39,6 @@ function App() {
               <Route path="/student/courses/:id/coursehome" element={<StudentCourseHome />}/>
               <Route path="/student/courses/:id/attendance" element={<StudentAttendance />}/>
               <Route path="/student/courses/:id/quizzes" element={<StudentQuizzes />}/>
-              <Route path="/student/courses/:id/polls" element={<StudentPolls />}/>
               <Route path="/student/courses/:id/points" element={<StudentPoints />}/>
               <Route path="/student/courses/:id/preparation" element={<StudentPreparation />}/>
 
@@ -50,7 +47,6 @@ function App() {
               <Route path="/lecturer/courses/:id/preparation" element={<LecturerPreparation />}/>
               <Route path="/lecturer/courses/:id/attendance" element={<LecturerAttendance />}/>
               <Route path="/lecturer/courses/:id/quizzes" element={<LecturerQuizzes />}/>
-              <Route path="/lecturer/courses/:id/polls" element={<LecturerPolls />}/>
               <Route path="/lecturer/courses/:id/points" element={<LecturerPoints />}/>
             </Route>
           </Routes>

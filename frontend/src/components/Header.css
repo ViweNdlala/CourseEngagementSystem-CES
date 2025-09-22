@@ -21,6 +21,71 @@
   z-index: 1;
 }
 
+.navbar-toggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  display: none;
+}
+
+.navbar-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Show navbar toggle on mobile */
+@media (max-width: 768px) {
+  .navbar-toggle {
+    display: block;
+  }
+
+  .header {
+    padding: 0 1rem;
+    column-gap: 1rem;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .center {
+    font-size: 1.2rem;
+  }
+
+  .header-right {
+    gap: 1rem;
+  }
+}
+
+/* Very small screens - hide course title, show user icon in center */
+@media (max-width: 477px) {
+  .header {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .center {
+    display: none;
+  }
+
+  .header-right {
+    justify-self: center;
+    gap: 0.5rem;
+  }
+
+  .user-menu {
+    padding: 0.5rem;
+  }
+
+  .notification {
+    display: none;
+  }
+}
+
 .logo {
   padding: 1rem 2rem;
   text-decoration: none;
@@ -45,7 +110,6 @@
   position: relative;
   z-index: 1;
 }
-
 
 .header-right .bx:hover {
   background: rgba(255, 255, 255, 0.2);
@@ -119,7 +183,7 @@
   text-align: left;
 }
 
-.notification{
+.notification {
   background: none;
   border: none;
   cursor: pointer;
