@@ -1,6 +1,5 @@
 .app-shell {
   min-height: 100vh;
-  
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -13,5 +12,6 @@
   flex: 1;
   padding: 2rem;
   text-align: center;
+  margin-left: 200px;
 }
 
