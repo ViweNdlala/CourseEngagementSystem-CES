@@ -4,41 +4,61 @@ import { useCourse } from "../../contexts/CourseContext";
 import axios from "axios";
 import "../styles/Preparation.css";
 
+/**
+ * Lecturer Preparation Component
+ * Allows lecturers to create and manage course preparation content
+ * Enables week creation and resource management
+ */
 export default function Preparation() {
+  // Extract course ID from URL parameters
   const { id } = useParams();
+
+  // Access course context for current course state
   const { currentCourse, selectCourse } = useCourse();
-  const [course, setCourse] = useState(currentCourse);
-  const [loading, setLoading] = useState(!currentCourse);
-  const [weeks, setWeeks] = useState([]);
-  const [showCreateWeek, setShowCreateWeek] = useState(false);
+
+  // Component state management
+  const [course, setCourse] = useState(currentCourse); // Current course data
+  const [loading, setLoading] = useState(!currentCourse); // Loading state for initial data
+  const [weeks, setWeeks] = useState([]); // Array of preparation weeks
+
+  // UI state for forms and modals
+  const [showCreateWeek, setShowCreateWeek] = useState(false); // Create week form visibility
   const [newWeek, setNewWeek] = useState({
+    // New week form data
     week_number: "",
     welcome_message: "",
   });
 
-  const [showResourceForm, setShowResourceForm] = useState(null);
-  const [editingResource, setEditingResource] = useState(null);
-  const [resourceData, setResourceData] = useState({ title: "", url: "" });
+  // Resource management state
+  const [showResourceForm, setShowResourceForm] = useState(null); // Which week to show resource form for
+  const [editingResource, setEditingResource] = useState(null); // Resource being edited
+  const [resourceData, setResourceData] = useState({ title: "", url: "" }); // Resource form data
 
+  // Effect: Load course data if not available in context
   useEffect(() => {
     if (!currentCourse && id) {
       axios
         .get(`http://localhost:8000/courses/${id}/`)
         .then((res) => {
           setCourse(res.data);
-          selectCourse(res.data);
+          selectCourse(res.data); // Update global course context
         })
         .catch((err) => console.error("Failed to fetch course:", err))
         .finally(() => setLoading(false));
     }
   }, [id, currentCourse, selectCourse]);
 
+  // Effect: Load preparation weeks when course is available
   useEffect(() => {
     if (course) {
       fetchWeeks();
     }
   }, [course]);
 
+  /**
+   * Fetches all preparation weeks for the current course
+   * Displays error message if fetch fails
+   */
   const fetchWeeks = async () => {
     try {
       const response = await axios.get(
@@ -51,6 +71,10 @@ export default function Preparation() {
     }
   };
 
+  /**
+   * Creates a new preparation week with lecturer-provided content
+   * Resets form and refreshes data on success
+   */
   const createWeek = async () => {
     try {
       await axios.post(
@@ -59,38 +83,54 @@ export default function Preparation() {
       );
       setNewWeek({ week_number: "", welcome_message: "" });
       setShowCreateWeek(false);
-      fetchWeeks();
+      fetchWeeks(); // Refresh data after successful creation
     } catch (error) {
       console.error("Failed to create week: ", error);
       alert("Failed to create week.");
     }
   };
 
+  /**
+   * Adds a new resource to a specific preparation week
+   * @param {number} weekId - ID of the week to add resource to
+   * @param {Object} resourceData - Resource data (title, url)
+   */
   const addResource = async (weekId, resourceData) => {
     try {
       await axios.post(
         `http://localhost:8000/courses/${id}/preparation/weeks/${weekId}/resources/`,
         resourceData
       );
-      fetchWeeks();
+      fetchWeeks(); // Refresh data after successful addition
     } catch (error) {
       console.error("Failed to add resource:", error);
     }
   };
 
+  /**
+   * Updates an existing resource within a preparation week
+   * @param {number} weekId - ID of the week containing the resource
+   * @param {number} resourceId - ID of the resource to update
+   * @param {Object} resourceData - Updated resource data
+   */
   const updateResource = async (weekId, resourceId, resourceData) => {
     try {
       await axios.put(
         `http://localhost:8000/courses/${id}/preparation/weeks/${weekId}/resources/${resourceId}/`,
         resourceData
       );
-      fetchWeeks();
+      fetchWeeks(); // Refresh data after successful update
     } catch (error) {
       console.error("Failed to update resource:", error);
       alert("Error updating resource.");
     }
   };
 
+  /**
+   * Deletes a resource from a preparation week
+   * @param {number} weekId - ID of the week containing the resource
+   * @param {number} resourceId - ID of the resource to delete
+   */
   const deleteResource = async (weekId, resourceId) => {
     try {
       await axios.delete(
@@ -176,9 +216,10 @@ export default function Preparation() {
               />
             </div>
             <div className="form-actions">
-              <button 
-              className="form-button1" 
-              onClick={createWeek}> Create</button>
+              <button className="form-button1" onClick={createWeek}>
+                {" "}
+                Create
+              </button>
             </div>
           </div>
         </div>

@@ -15,19 +15,29 @@ import {
 } from "recharts";
 import "../styles/Attendance.css";
 
+/**
+ * Lecturer Attendance Component
+ * Manages attendance sessions, tracks student attendance, and displays analytics
+ * Features: session management, real-time tracking, detailed charts, student statistics
+ */
 export default function Attendance() {
+  // Extract course ID from URL parameters
   const { id } = useParams();
+
+  // Access contexts for course and user data
   const { currentCourse, selectCourse } = useCourse();
   const { user } = useUser();
-  const [course, setCourse] = useState(currentCourse);
-  const [loading, setLoading] = useState(!currentCourse);
-  const [dataLoading, setDataLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [enrolledStudents, setEnrolledStudents] = useState([]);
-  const [attendanceByDate, setAttendanceByDate] = useState({});
-  const [rawAttendanceData, setRawAttendanceData] = useState([]);
-  const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 });
-  const [clickedDataPoint, setClickedDataPoint] = useState(null);
+
+  // Component state management
+  const [course, setCourse] = useState(currentCourse); // Current course data
+  const [loading, setLoading] = useState(!currentCourse); // Initial course loading
+  const [dataLoading, setDataLoading] = useState(false); // Attendance data loading
+  const [error, setError] = useState(null); // Error state
+  const [enrolledStudents, setEnrolledStudents] = useState([]); // List of enrolled students
+  const [attendanceByDate, setAttendanceByDate] = useState({}); // Attendance records grouped by date
+  const [rawAttendanceData, setRawAttendanceData] = useState([]); // Raw attendance data from API
+  const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 }); // Overall statistics
+  const [clickedDataPoint, setClickedDataPoint] = useState(null); // Selected chart data point
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentAttendanceData, setStudentAttendanceData] = useState([]);
 
@@ -44,26 +54,34 @@ export default function Attendance() {
     }
   }, [id, currentCourse, selectCourse]);
 
+  // Effect: Load attendance data when course and user are available
   useEffect(() => {
     if (course && user) {
       setDataLoading(true);
       setError(null);
 
+      /**
+       * Fetches and processes attendance data for the lecturer's courses
+       * Groups data by date and calculates statistics
+       */
       axios
         .get(`http://localhost:8000/attendance/lecturer/?id=${user.id}`)
         .then((res) => {
           const attendanceRecords = res.data.attendance_records || [];
+          // Filter records for current course only
           const courseAttendance = attendanceRecords.filter(
             (record) => record.course_id === course?.id
           );
           setRawAttendanceData(courseAttendance);
+
+          // Process attendance data for visualization and statistics
           const groupedByDate = {};
           const uniqueStudents = new Set();
           let totalRecords = 0;
           let presentCount = 0;
 
           courseAttendance.forEach((record) => {
-            // Group by date
+            // Group attendance records by date for chart display
             const dateKey = String(record.date);
             if (!groupedByDate[dateKey]) {
               groupedByDate[dateKey] = [];

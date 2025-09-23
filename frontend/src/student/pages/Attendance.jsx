@@ -15,31 +15,49 @@ import {
 } from "recharts";
 import "../../lecturer/styles/Attendance.css";
 
+/**
+ * Student Attendance Component
+ * Displays a student's attendance records, statistics, and allows marking of attendance
+ * Enables real-time attendance marking and location verification
+ */
 export default function Attendance() {
+  // Extract course ID from URL parameters
   const { id } = useParams();
+
+  // Access course context for session and location data
   const {
     currentCourse,
     selectCourse,
-    activeSession,
-    withinGeofence,
-    locationChecked,
+    activeSession, // Current attendance session status
+    withinGeofence, // Whether student is within required location
+    locationChecked, // Whether location verification is complete
   } = useCourse();
+
+  // Access user context for student information
   const { user } = useUser();
+
+  // Component state management
   const [course, setCourse] = useState(currentCourse);
   const [loading, setLoading] = useState(!currentCourse);
-  const [attendanceRecords, setAttendanceRecords] = useState([]);
-  const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 });
-  const [enrollment, setEnrollment] = useState(null);
-  const [hasMarkedToday, setHasMarkedToday] = useState(false);
+  const [attendanceRecords, setAttendanceRecords] = useState([]); // Student's attendance history
+  const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 }); // Attendance statistics
+  const [enrollment, setEnrollment] = useState(null); // Student's course enrollment
+  const [hasMarkedToday, setHasMarkedToday] = useState(false); // Prevents duplicate attendance marking
+
+  // Determine if attendance button should be disabled
+  // Requires: active session + correct location + location verified + not yet marked today
   const isButtonDisabled =
     !activeSession || !withinGeofence || !locationChecked || hasMarkedToday;
 
-  // Function to fetch and update attendance data
+  /**
+   * Fetches and updates student attendance data
+   * Gets individual records + calculates statistics
+   */
   const fetchAttendanceData = async () => {
     if (!course || !user) return;
 
     try {
-      // Get student's individual attendance records
+      // Fetch student's individual attendance records
       const studentResponse = await axios.get(
         `http://localhost:8000/attendance/student/?id=${user.id}&course_id=${course.id}`
       );
@@ -47,13 +65,13 @@ export default function Attendance() {
       const records = studentResponse.data || [];
       setAttendanceRecords(records);
 
-      // Calculate number of times student marked present
+      // Count how many times student was present
       const studentPresent = records.filter(
         (record) => record.status === "present"
       ).length;
 
       try {
-        // Get course-wide stats using lecturer's view
+        // Fetch course-wide attendance data to get total attendance
         const lecturerResponse = await axios.get(
           `http://localhost:8000/attendance/lecturer/?id=${course.lecturer}`
         );
@@ -63,10 +81,11 @@ export default function Attendance() {
           (record) => record.course_id === course.id
         );
 
-        // Get unique dates to count total sessions
+        // Calculate total attendances from unique dates
         const uniqueDates = new Set(courseRecords.map((record) => record.date));
         const totalSessions = uniqueDates.size;
 
+        // Calculate attendance percentage
         let percentage;
         if (totalSessions > 0) {
           percentage = Math.round((studentPresent / totalSessions) * 100);
@@ -84,7 +103,7 @@ export default function Attendance() {
           "Lecturer data unavailable, using individual stats:",
           lecturerError
         );
-        // Fallback to individual stats if lecturer data unavailable
+        // Fallback: use individual records if course-wide data unavailable
         const individualTotal = records.length;
         let percentage;
         if (individualTotal > 0) {
@@ -220,7 +239,7 @@ export default function Attendance() {
   if (activeSession && locationChecked && !withinGeofence) {
     geofenceWarning = (
       <p style={{ color: "red", marginTop: "0.5rem" }}>
-         You must be within the geofence to mark attendance
+        You must be within the geofence to mark attendance
       </p>
     );
   }
@@ -262,9 +281,8 @@ export default function Attendance() {
                 left: 0,
                 bottom: 0,
               }}
-              
             >
-              <XAxis dataKey="date" fontSize={12} stroke="black"/>
+              <XAxis dataKey="date" fontSize={12} stroke="black" />
               <YAxis
                 domain={[0, 1]}
                 fontSize={12}
@@ -272,8 +290,11 @@ export default function Attendance() {
                 ticks={[0, 1]}
                 tickFormatter={(value) => (value === 1 ? "Present" : "Absent")}
               />
-              <Tooltip labelFormatter={(label) => `Date: ${label}`} trigger="click"
-                wrapperStyle={{ pointerEvents: "auto" }}/>
+              <Tooltip
+                labelFormatter={(label) => `Date: ${label}`}
+                trigger="click"
+                wrapperStyle={{ pointerEvents: "auto" }}
+              />
               <Line
                 type="monotone"
                 dataKey="attendance"
