@@ -9,14 +9,24 @@ from datetime import date
 from django.db import transaction
 
 class StudentAttendanceView(APIView):
-    # First student to mark attendance => create absent records for everyone
+    """
+    API view for student attendance operations.
+    
+    Handles attendance marking and retrieval for students,
+    with automatic absent record creation for all enrolled students.
+    """    
     def _create_absent_records_for_all_students(self, course, attendance_date):
-        
+        """
+        Initialize attendance records for all enrolled students as 'absent'.
+
+        Called when first student marks attendance for a course on a specific date.
+        Uses bulk_create for efficiency with large enrollments.
+        """
         enrollments = Enrollment.objects.filter(course=course)
         attendance_records = []
         
         for enrollment in enrollments:
-            # Only create if record doesn't already exist
+            # Skip if attendance record already exists
             if not Attendance.objects.filter(enrollment=enrollment, date=attendance_date).exists():
                 attendance_records.append(
                     Attendance(
@@ -30,6 +40,12 @@ class StudentAttendanceView(APIView):
             Attendance.objects.bulk_create(attendance_records)
 
     def get(self, request):
+        """
+        Retrieve student attendance records.
+        
+        Returns specific course attendance if course_id provided,
+        otherwise returns attendance summary across all courses.
+        """
         id = request.query_params.get('id')
         course_id = request.query_params.get('course_id')
         
@@ -63,13 +79,14 @@ class StudentAttendanceView(APIView):
             return Response(data)
         
         else:
+            # Return attendance summary across all enrolled courses
             course_summaries = {}
             
             for record in all_attendance_records:
                 course_title = record.enrollment.course.title
                 course_id = record.enrollment.course.id
                 
-                # Build course summaries
+                # Calculate attendance stats per course
                 if course_id not in course_summaries:
                     course_records = all_attendance_records.filter(enrollment__course__id=course_id)
                     total_attendances = course_records.count()
@@ -87,6 +104,12 @@ class StudentAttendanceView(APIView):
             })
     
     def post(self, request):
+        """
+        Mark student attendance for a specific date.
+        
+        Creates absent records for all students if this is the first
+        attendance marked for the course on a specific date.
+        """
         enrollment_id = request.data.get('enrollment')
         attendance_date_str = request.data.get('date')
         attendance_status = request.data.get('status', 'present')
@@ -97,7 +120,7 @@ class StudentAttendanceView(APIView):
             return Response({"error": "date field is required"}, status=status.HTTP_400_BAD_REQUEST)
             
         try:
-            # Parse date
+            # Parse date string to date object
             if isinstance(attendance_date_str, str):
                 attendance_date = date.fromisoformat(attendance_date_str)
             else:
@@ -109,7 +132,7 @@ class StudentAttendanceView(APIView):
             
         course = enrollment.course
         
-        # Handle attendance with automatic absent records for all students
+        # Use transaction to ensure data consistency
         with transaction.atomic():
             # Check if there are any attendance records for this course/date
             existing_records = Attendance.objects.filter(
@@ -143,9 +166,16 @@ class StudentAttendanceView(APIView):
 
 
 class LecturerAttendanceView(APIView):
+    """
+    API view for lecturer attendance operations.
+    
+    Provides read-only access to attendance data for courses
+    taught by the lecturer. Lecturers cannot mark attendance.
+    """
     serializer_class = LecturerAttendanceSerializer
 
     def get(self, request):
+        """Retrieve attendance statistics and records for lecturer's courses."""
         id = request.query_params.get('id')
         if not id:
             return Response({"error": "id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -159,10 +189,12 @@ class LecturerAttendanceView(APIView):
             enrollment__course__lecturer__id=id
         ).order_by('-date', 'enrollment__student__name')
 
+        # Calculate overall attendance statistics
         total = attendance_records.count()
         present_count = attendance_records.filter(status='present').count()
         attendance_percentage = round((present_count / total * 100)) if total > 0 else 0
 
+        # Format attendance data for response
         attendance_data = [
             {
                 "date": record.date,
