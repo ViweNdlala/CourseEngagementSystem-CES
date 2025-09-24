@@ -54,16 +54,18 @@
 
 /* Primary button */
 .primary-btn {
-  margin-top: 1.5rem;
+  margin: 1rem auto 0 auto; 
+  padding: 0.75rem 1.5rem;
   background-color: #295474;
-  color: #ffffff;
-  font-size: 1.1rem;
+  color: #fff;
+  font-size: 1rem;
   font-weight: 600;
-  padding: 0.9rem 1.8rem;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.25s ease, transform 0.2s ease;
+  width: 400px;
+  display: block;
 }
 
 .primary-btn:hover {
@@ -74,6 +76,7 @@
 .primary-btn:active {
   transform: translateY(0);
 }
+
 
 /* Active session details (green box like student) */
 .session-details {

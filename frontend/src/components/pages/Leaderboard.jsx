@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/Leaderboard.css";
-import { useUser } from "../../contexts/UserContext"; // add this
+import { useUser } from "../../contexts/UserContext"; 
 
 axios.defaults.baseURL = "http://127.0.0.1:8000";
 
-function Leaderboard() {
-  const { user } = useUser(); // get current user
+function Leaderboard({ courseId }) {
+  const { user } = useUser();
   const [leaders, setLeaders] = useState([]);
 
   useEffect(() => {
     const fetchLeaders = async () => {
       try {
-        const res = await axios.get("/points/leaderboard/");
+        const params = courseId ? { course: courseId } : {};
+        const res = await axios.get("/points/leaderboard/", { params });
         let data = res.data;
 
-        // If lecturer, reverse order (lowest first)
         if (user?.role === "lecturer") {
           data = data.slice().sort((a, b) => a.total_points - b.total_points);
         }
@@ -29,7 +29,7 @@ function Leaderboard() {
     fetchLeaders();
     const interval = setInterval(fetchLeaders, 8000);
     return () => clearInterval(interval);
-  }, [user]); // re-fetch if user changes
+  }, [user, courseId]);
 
   return (
     <div className="leaderboard-container">
@@ -51,6 +51,7 @@ function Leaderboard() {
 }
 
 export default Leaderboard;
+
 
 
 

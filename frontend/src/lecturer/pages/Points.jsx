@@ -7,9 +7,19 @@ import "../styles/Points.css";
 
 axios.defaults.baseURL = "http://127.0.0.1:8000";
 
+/*
+ This page allows lecturers to manage point requests from students. Features include:
+ - Viewing and approving/declining pending requests
+ - Receiving browser notifications for new requests
+ - Dismissing notifications without taking action
+ - Viewing a leaderboard for the course
+ - Viewing students who have never earned points
+ */
+
 function LecturerPoints() {
   const { user } = useUser();
   const { id: courseId } = useParams();
+  // State for pending requests + real-time queue notifications
   const [pending, setPending] = useState([]);
   const [queue, setQueue] = useState([]);
   const pollRef = useRef(null);
@@ -20,6 +30,13 @@ function LecturerPoints() {
   const [studentsWithoutPoints, setStudentsWithoutPoints] = useState([]);
   const [showStudentsWithoutPoints, setShowStudentsWithoutPoints] = useState(false);
 
+
+  /*
+   -Fetch all pending point requests for the lecturer’s course.
+   - Updates pending list for display
+   - Manages local queue for notifications
+   - Marks unseen requests as "notified" in backend
+   */
   const fetchPending = async () => {
     if (!user?.id) return;
     try {
@@ -29,12 +46,14 @@ function LecturerPoints() {
       const items = res.data;
       setPending(items);
 
+      // Add new pending notifications to queue
       const serverPendingNotifications = items.filter(i => i.notification_pending);
       setQueue(prev => {
         const existingIds = new Set(prev.map(x => x.id));
         return prev.concat(serverPendingNotifications.filter(i => !existingIds.has(i.id)));
       });
 
+      // Mark unseen requests as notified to avoid repeat alerts
       const newUnnotified = items.filter(i => !i.is_notified && !i.notification_pending);
       if (newUnnotified.length > 0) {
         const ids = newUnnotified.map(i => i.id);
@@ -50,6 +69,11 @@ function LecturerPoints() {
     }
   };
 
+
+  /*
+   -Fetch list of students who are enrolled but have no leaderboard entry.
+   -Helps lecturers identify disengaged students.
+   */
   const fetchStudentsWithoutPoints = async () => {
     if (!user?.id || !courseId) return;
     try {
@@ -61,7 +85,7 @@ function LecturerPoints() {
       console.error("Error fetching students without points:", err.response?.data || err.message);
     }
   };
-
+  // Request permission for browser notifications on first load
   useEffect(() => {
     if ("Notification" in window && Notification.permission !== "granted") 
       Notification.requestPermission().catch(() => {});
@@ -77,6 +101,7 @@ function LecturerPoints() {
     return () => clearInterval(pollRef.current);
   }, [user, courseId]);
 
+  // Show a browser notification when new requests arrive
   useEffect(() => {
     const prev = prevQueueLengthRef.current;
     const cur = queue.length;
@@ -91,6 +116,7 @@ function LecturerPoints() {
     prevQueueLengthRef.current = cur;
   }, [queue]);
 
+  // Approve a request , updates backend, removes from UI, refresh students list
   const handleApprove = async (id) => {
     setLoadingIds(ids => [...ids, id]);
     try {
@@ -103,6 +129,7 @@ function LecturerPoints() {
     }
   };
 
+   // Decline a request , updates backend, removes from UI
   const handleDecline = async (id) => {
     setLoadingIds(ids => [...ids, id]);
     try {
@@ -114,6 +141,7 @@ function LecturerPoints() {
     }
   };
 
+  // Dismiss a notification without approving/declining
   const handleDismiss = async (id) => {
     try {
       await axios.patch(`/points/requests/${id}/dismiss_notification/`);
@@ -128,20 +156,42 @@ function LecturerPoints() {
     <div className="lecturer-container">
       <h2>Pending Point Requests</h2>
       {pending.length === 0 ? <p>No pending requests</p> :
-        <ul>
-          {pending.map(r => (
-            <li key={r.id}>
-              <div>
-                <strong>{r.student_name || `Student ${r.student}`}</strong> requested {r.points} pts ({r.request_type})
-              </div>
-              {r.description && <div><em>{r.description}</em></div>}
-              <div style={{ marginTop: "0.4rem" }}>
-                <button className="approve-btn" onClick={() => handleApprove(r.id)} disabled={loadingIds.includes(r.id)}>Approve</button>
-                <button className="decline-btn" onClick={() => handleDecline(r.id)} disabled={loadingIds.includes(r.id)}>Decline</button>
-              </div>
-            </li>
-          ))}
-        </ul>
+          <ul>
+            {pending.map(r => (
+              <li key={r.id}>
+                <div className="request-info">
+                  <div className="request-header">
+                    <strong>{r.student_name || `Student ${r.student}`}</strong>
+                    <span className="request-text">requested {r.points} pts ({r.request_type})</span>
+                  </div>
+
+                  {r.description && (
+                    <div className="request-desc">
+                      <em>{r.description}</em>
+                    </div>
+                  )}
+                </div>
+
+                <div className="request-actions">
+                  <button
+                    className="approve-btn"
+                    onClick={() => handleApprove(r.id)}
+                    disabled={loadingIds.includes(r.id)}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className="decline-btn"
+                    onClick={() => handleDecline(r.id)}
+                    disabled={loadingIds.includes(r.id)}
+                  >
+                    Decline
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
       }
 
       {queue.length > 0 && (
@@ -165,7 +215,7 @@ function LecturerPoints() {
       )}
 
       {/* Leaderboard */}
-      <Leaderboard />
+      <Leaderboard courseId={courseId}/>
 
       {/* Students Without Points */}
       <div className="students-without-points-section">
@@ -180,7 +230,7 @@ function LecturerPoints() {
           <div className="students-without-points-card">
             <h2>Students Without Points</h2>
             {studentsWithoutPoints.length === 0 ? (
-              <p>✅ All enrolled students have points</p>
+              <p> All enrolled students have points</p>
             ) : (
               <ul>
                 {studentsWithoutPoints.map(s => (

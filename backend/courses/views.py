@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import Course, Enrollment,GeofenceSession,GeofenceAccessLog,haversine_distance_m
 from .serializer import CourseSerializer, EnrollmentSerializer,GeofenceSessionSerializer,GeofenceAccessLogSerializer,GeofenceAccessCheckSerializer
@@ -11,13 +11,12 @@ from accounts.models import User
 
 
 # Course view
+# GET: List all courses
+# POST: Create course (lecturer-only)
 class CourseView(APIView):
     serializer_class = CourseSerializer
 
     def get(self, request):
-        #GET /courses/
-        #Returns all courses with lecturer id
-
         courses = Course.objects.all()
         data = [
             {
@@ -31,7 +30,6 @@ class CourseView(APIView):
         return Response(data)
 
     def post(self, request):
-        #POST /courses/
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             lecturer = serializer.validated_data['lecturer']
@@ -41,14 +39,12 @@ class CourseView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 # Enrollment view
+# GET: list enrollments
+# POST: enroll student (checks role and prevents duplicates)
 class EnrollmentView(APIView):
     serializer_class = EnrollmentSerializer
 
     def get(self, request):
-
-        #GET /enrollments/
-        #Returns all enrollments
-        
         enrollments = Enrollment.objects.all()
         data = [
             {
@@ -61,10 +57,6 @@ class EnrollmentView(APIView):
         return Response(data)
 
     def post(self, request):
-
-        #POST /enrollments/
-        #Enroll a student in a course
-
         serializer = EnrollmentSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             student = serializer.validated_data['student']
@@ -79,8 +71,8 @@ class EnrollmentView(APIView):
 
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-
+      
+# Read-only detail view for a specific course
 class CourseDetailView(RetrieveAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
@@ -88,6 +80,8 @@ class CourseDetailView(RetrieveAPIView):
 
 
 # GeofenceSessionCreateView
+# Create and list geofence sessions.
+# Ensures only the lecturer of the course can start a session.
 class GeofenceSessionCreateView(APIView):
     serializer_class = GeofenceSessionSerializer
 
@@ -118,7 +112,7 @@ class GeofenceSessionCreateView(APIView):
 
         return Response(GeofenceSessionSerializer(session).data, status=status.HTTP_201_CREATED)
 
-
+# Checks if a course has an active geofence session
 class GeofenceActiveView(APIView):
     def get(self, request):
         course_id = request.query_params.get("course_id")
@@ -134,7 +128,9 @@ class GeofenceActiveView(APIView):
         return Response({"active": True, "session": GeofenceSessionSerializer(session).data})
 
 
-# GeofenceCheckAccessView (student checks location; accept student id from payload)
+
+# Validates if a student is within the geofence radius of an active session
+# Logs every attempt and returns distance + allowed flag
 class GeofenceCheckAccessView(APIView):
     serializer_class = GeofenceAccessCheckSerializer
     
@@ -148,7 +144,6 @@ class GeofenceCheckAccessView(APIView):
         lon = serializer.validated_data['longitude']
         student = serializer.validated_data.get('student', None)
 
-        # if student not supplied and user is logged in and has role student, use that
         if student is None:
             if getattr(request, "user", None) and getattr(request.user, "role", None) == "student":
                 student = request.user

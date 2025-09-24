@@ -1,10 +1,10 @@
-// src/student/pages/Course.jsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
 import "../styles/Course.css";
 
+//allows student to view course and join active geofence session
 function StudentCourseHome() {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
@@ -34,6 +34,7 @@ function StudentCourseHome() {
     fetchActiveSession(id);
   }, [id]);
 
+  // Fetch active geofence session
   const fetchActiveSession = async (courseId) => {
     try {
       const resp = await axios.get(
@@ -46,9 +47,10 @@ function StudentCourseHome() {
     }
   };
 
+   // Check student location to see if within geofence using geolocation API
   const checkLocation = () => {
     if (!navigator.geolocation) return alert("Geolocation not supported");
-    if (!student) return alert("⚠️ No logged-in student found");
+    if (!student) return alert("No logged-in student found");
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -88,12 +90,12 @@ function StudentCourseHome() {
 
       {activeSession ? (
         <div className="session-info">
-          <p> Active session running (ID {activeSession.id})</p>
+          <p> Active session </p>
           <p>Started at: {new Date(activeSession.start_time).toLocaleTimeString()}</p>
           <p>Duration: {activeSession.duration_minutes} minutes</p>
 
           <button onClick={checkLocation} className="check-location-btn">
-            Check My Location
+            Join Session
           </button>
 
           {locationChecked &&  (

@@ -43,15 +43,14 @@
   flex: 1;
   min-width: 140px;
   padding: 1rem;
-  border: 2px solid #ccc;
+  border: 2px solid transparent;
   border-radius: 12px;
   text-align: center;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #444;
   cursor: pointer;
-  transition: all 0.25s ease;
-  background: #fff;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 /* Hide native radio */
@@ -59,21 +58,51 @@
   display: none;
 }
 
-/* Selected option */
-.request-type input:checked + span {
-  color: #fff;
-  background-color: #295474;
-  border-color: #295474;
+/* Question styling (Mint Green theme) */
+.request-type label:first-of-type {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 2px solid #dcfce7;
 }
 
-/* Hover effect */
-.request-type label:hover {
-  border-color: #295474;
+.request-type label:first-of-type:hover {
+  background: #dcfce7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
+}
+
+/* Answer styling (Warm Coral theme) */
+.request-type label:last-of-type {
+  background: #fef7f0;
+  color: #ea580c;
+  border: 2px solid #fed7aa;
+}
+
+.request-type label:last-of-type:hover {
+  background: #fed7aa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15);
+}
+
+/* Both selected states use your specified color */
+.request-type input:checked + span {
+  background: #295474 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 15px rgba(41, 84, 116, 0.3);
+}
+
+/* Better targeting for checked states */
+.request-type input[type="radio"]:checked + span {
+  transform: scale(1.02);
+  font-weight: 700;
 }
 
 /* Inner span for styling */
 .request-type span {
   display: block;
+  border-radius: 10px;
+  padding: 0.5rem;
+  transition: all 0.3s ease;
 }
 
 /* ===============================

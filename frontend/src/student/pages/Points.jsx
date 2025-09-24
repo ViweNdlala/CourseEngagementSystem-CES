@@ -9,11 +9,20 @@ import "../styles/Points.css";
 
 axios.defaults.baseURL = "http://127.0.0.1:8000";
 
+/*
+ * This page allows students to:
+  - Submit point requests (questions/answers)
+  - Provide a description for each request
+  - View the status of their latest request
+  - See how many requests they have made this session
+  - Check the leaderboard for their course
+ */
 function StudentPoints() {
   const { user } = useUser();
   const { activeSession, withinGeofence, locationChecked } = useCourse();
   const { id: courseId } = useParams();
 
+  // State for request form + latest request status
   const [requestType, setRequestType] = useState("question");
   const [latestRequest, setLatestRequest] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -21,13 +30,19 @@ function StudentPoints() {
   const [description, setDescription] = useState("");
   const pollRef = useRef(null);
 
-  // client-side count for requests this session
+  // Track how many requests student has made in current session
   const [requestsThisSession, setRequestsThisSession] = useState(0);
 
+
+  /*
+    Fetch all requests made by this student.
+   -Determines latest request status
+   -Updates session request count (max 2 per session)
+   */
   const fetchRequests = async () => {
-    if (!user?.id) return;
+    if (!user?.id || !courseId) return;
     try {
-      const res = await axios.get("/points/requests/", { params: { student: user.id } });
+      const res = await axios.get("/points/requests/", { params: { student: user.id ,course: courseId} });
       const all = res.data;
       if (!all || all.length === 0) {
         setLatestRequest(null);
@@ -38,7 +53,7 @@ function StudentPoints() {
       const sorted = all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       setLatestRequest(sorted[0]);
 
-      // count requests matching the current session id
+       // Count how many requests belong to the current active session
       const sessId = activeSession?.id;
       if (sessId) {
         const count = all.filter(r => r.session_id && (r.session_id === sessId)).length;
@@ -57,6 +72,13 @@ function StudentPoints() {
     return () => clearInterval(pollRef.current);
   }, [user, activeSession]);
 
+
+  /*
+    Submit a new point request
+    - Validates inputs (session, geofence, description, limit of 2 per session)
+    - Sends request to backend
+    - Updates latest request + session count
+   */
   const handleSubmit = async () => {
     if (!user?.id || !courseId) {
       setMessage("Missing user or course");
@@ -70,7 +92,7 @@ function StudentPoints() {
       setMessage("Please provide a short description of your question/answer.");
       return;
     }
-    // Also prevent client-side if already reached 2
+    // prevent if already reached 2
     if (requestsThisSession >= 2) {
       setMessage("You have already used your 2 requests for this session.");
       return;
@@ -80,7 +102,7 @@ function StudentPoints() {
     setMessage("");
     try {
       const payload = {
-        student: user.id,            // server will override student with authenticated user
+        student: user.id, // server will override student with authenticated user for security
         course: courseId,
         request_type: requestType,
         description: description.trim(),
@@ -107,6 +129,7 @@ function StudentPoints() {
     return " Pending";
   };
 
+  // Disable submit button if invalid state (no session, geofence, limit reached, etc.)
   const isButtonDisabled = loading || !activeSession || !withinGeofence || !locationChecked || requestsThisSession >= 2;
 
   return (
@@ -185,7 +208,7 @@ function StudentPoints() {
         )}
       </div>
 
-      <Leaderboard />
+      <Leaderboard courseId={courseId}/>
     </div>
   );
 }
