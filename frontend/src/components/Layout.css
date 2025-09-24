@@ -1,17 +1,44 @@
 .app-shell {
   min-height: 100vh;
-  
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .app-body {
   display: flex;
   min-height: calc(100vh - 150px);
+  /* position: relative; */
 }
 
 .main-content {
   flex: 1;
   padding: 2rem;
   text-align: center;
+  transition: margin-left 0.3s ease;
 }
 
+/* Desktop styles - navbar always visible */
+@media (min-width: 769px) {
+  .main-content {
+    margin-left: 200px;
+  }
+
+  .navbar-toggle {
+    display: none;
+  }
+}
+
+/* Tablet and mobile styles - navbar toggleable */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .main-content.navbar-open {
+    margin-left: 0;
+  }
+
+  .app-body {
+    flex-direction: column;
+  }
+}

@@ -4,6 +4,7 @@ from django.utils import timezone
 import math 
 
 # Course model
+# Represents a course. Each course is linked to a lecturer (User) and has a title/description.
 class Course(models.Model):
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255)
@@ -19,6 +20,7 @@ class Course(models.Model):
         return self.title
 
 # Enrollment model
+# Represents a student enrolled in a specific course. Ensures uniqueness of (student, course) pairs.
 class Enrollment(models.Model):
     id = models.AutoField(primary_key=True)
     student = models.ForeignKey(
@@ -40,21 +42,11 @@ class Enrollment(models.Model):
         return f"{self.student.name} enrolled in {self.course.title}"
     
 
-
-
+# GeofenceSession model
+# Represents a geofencing session for a course, started by a lecturer.
+# Tracks active periods, geofence location, and radius.
 class GeofenceSession(models.Model):
-    """
-    A geofence session represents that a lecturer has 'started' geofencing for a course.
-    A single course may have many sessions over time; only some may be active.
-    Fields:
-      - course: which course the session is for
-      - lecturer: who started it (for auditing and authorization)
-      - latitude/longitude: center of the geofence (stored as Decimal degrees)
-      - radius_meters: radius in meters
-      - start_time + duration_minutes: time window in which this session is valid
-      - is_active: quick flag for whether this session should be considered
-      - created_at: for auditing
-    """
+   
     id = models.AutoField(primary_key=True)
     course = models.ForeignKey(
         Course,
@@ -82,25 +74,25 @@ class GeofenceSession(models.Model):
         return self.start_time + timezone.timedelta(minutes=self.duration_minutes)
 
     def is_expired(self):
-        """Return True if now is after the session's end time."""
+        """Return True if the session has expired."""
         return timezone.now() > self.end_time()
 
     def save(self, *args, **kwargs):
         """
-        Override save: if session claims to be active but is already expired, store as inactive.
-        This allows the DB flag to stay in sync automatically when the object is saved.
+        Override save: automatically deactivate expired sessions.
+        Keeps database 'is_active' flag in sync with actual session state.
         """
         if self.is_active and self.is_expired():
             self.is_active = False
         super().save(*args, **kwargs)
 
 
+
+# GeofenceAccessLog model
+# Logs every student attempt to access a geofence session.
+# Includes coordinates, distance from center, and access status.
 class GeofenceAccessLog(models.Model):
-    """
-    Audit log of student attempts to access protected content.
-    Records the session (if any), student, provided coordinates, computed
-    distance in meters, whether access was allowed, and a note.
-    """
+   
     id = models.AutoField(primary_key=True)
     session = models.ForeignKey(
         GeofenceSession,
@@ -125,15 +117,12 @@ class GeofenceAccessLog(models.Model):
 # approximate mean Earth radius in meters
 EARTH_RADIUS_METERS = 6371000.0  
 
+# Computes distance between two lat/lon coordinates (in meters).
+# Used to determine if student is inside geofence radius.
 def haversine_distance_m(lat1, lon1, lat2, lon2):
-    
-    #Haversine formula: returns distance in meters between two latitude or longitude points.
-    #Input: lat/lon in decimal degrees (floats or Decimal-convertible).
    
-    # Ensure floats
     lat1, lon1, lat2, lon2 = map(float, (lat1, lon1, lat2, lon2))
 
-    # Convert degrees to radians
     phi1 = math.radians(lat1)
     phi2 = math.radians(lat2)
     dphi = math.radians(lat2 - lat1)

@@ -4,7 +4,7 @@ import { useUser } from "../contexts/UserContext";
 import { useCourse } from "../contexts/CourseContext";
 import "./Header.css";
 
-function Header() {
+function Header({ toggleNavbar }) {
   const { getRoleBasedRoute, user, logout } = useUser();
   const { currentCourse } = useCourse();
   const navigate = useNavigate();
@@ -16,9 +16,14 @@ function Header() {
 
   return (
     <header className="header">
-      <Link className="logo" to={getRoleBasedRoute("home")}>
-        Mavix
-      </Link>
+      <div className="header-left">
+        <button className="navbar-toggle" onClick={toggleNavbar}>
+          <i className="bx bx-menu"></i>
+        </button>
+        <Link className="logo" to={getRoleBasedRoute("home")}>
+          Mavix
+        </Link>
+      </div>
 
       <div className="center">
         {currentCourse ? currentCourse.title : "Course"}

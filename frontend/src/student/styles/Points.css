@@ -1,50 +1,195 @@
+/* ===============================
+   Student Points Page Styling
+   =============================== */
+
 .student-container {
-  padding: 20px;
-  font-family: Arial, sans-serif;
-}
-
-.request-type {
-  margin-top: 12px;
+  padding: 2rem;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
   display: flex;
-  gap: 16px; /* space between radio buttons */
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
+/* Headings */
+.student-container h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #295474;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.student-container h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #295474;
+  margin-bottom: 0.75rem;
+}
+
+/* ===============================
+   Request Type (Question/Answer choices)
+   =============================== */
+.request-type {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.request-type label {
+  flex: 1;
+  min-width: 140px;
+  padding: 1rem;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Hide native radio */
+.request-type input {
+  display: none;
+}
+
+/* Question styling (Mint Green theme) */
+.request-type label:first-of-type {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 2px solid #dcfce7;
+}
+
+.request-type label:first-of-type:hover {
+  background: #dcfce7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
+}
+
+/* Answer styling (Warm Coral theme) */
+.request-type label:last-of-type {
+  background: #fef7f0;
+  color: #ea580c;
+  border: 2px solid #fed7aa;
+}
+
+.request-type label:last-of-type:hover {
+  background: #fed7aa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15);
+}
+
+/* Both selected states use your specified color */
+.request-type input:checked + span {
+  background: #295474 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 15px rgba(41, 84, 116, 0.3);
+}
+
+/* Better targeting for checked states */
+.request-type input[type="radio"]:checked + span {
+  transform: scale(1.02);
+  font-weight: 700;
+}
+
+/* Inner span for styling */
+.request-type span {
+  display: block;
+  border-radius: 10px;
+  padding: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+/* ===============================
+   Description textarea
+   =============================== */
+.student-container textarea {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  font-size: 0.95rem;
+  border: 1.5px solid #ccc;
+  border-radius: 10px;
+  resize: vertical;
+  min-height: 70px;   /* smaller height */
+  max-height: 120px;
+  transition: border-color 0.25s ease;
+}
+
+.student-container textarea:focus {
+  border-color: #295474;
+  outline: none;
+  box-shadow: 0 0 4px rgba(41, 84, 116, 0.3);
+}
+
+/* ===============================
+   Submit Button
+   =============================== */
 .submit-container {
-  margin-top: 12px; /* spacing above the submit button */
+  margin-top: 1.5rem;
 }
 
 .submit-btn {
-  padding: 8px 16px;
-  background-color: #1890ff;
+  padding: 1rem 2rem;
+  background-color: #295474;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: background-color 0.25s ease, transform 0.2s ease;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: #1f4059;
+  transform: translateY(-2px);
 }
 
 .submit-btn:disabled {
-  background-color: #a0cfff;
+  background-color: #9eb5c7;
   cursor: not-allowed;
 }
 
+/* ===============================
+   Messages
+   =============================== */
 .success-message {
-  color: green;
-  margin-top: 8px;
-  margin-bottom: 16px; /* spacing between message and latest request */
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
   font-weight: 500;
+  font-size: 0.95rem;
+  background-color: #e6f4ea;
+  color: #256029;
+  border: 1px solid #c6e7c8;
 }
 
+.error-message {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #b71c1c;
+}
+
+/* ===============================
+   Latest Request Section
+   =============================== */
 .latest-request {
-  margin-top: 20px;
-}
-
-.latest-request h3 {
-  margin-bottom: 8px;
+  margin-top: 2rem;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  padding: 1.5rem;
 }
 
 .latest-request p {
-  margin: 0;
-  font-size: 14px;
-  color: #333;
+  margin: 0.4rem 0;
+  font-size: 1rem;
+  color: #444;
 }
 
