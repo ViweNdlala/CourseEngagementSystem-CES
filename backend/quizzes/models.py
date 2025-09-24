@@ -2,12 +2,23 @@ from django.db import models
 from accounts.models import User
 from courses.models import Course
 
-
 class Quiz(models.Model):
+    """
+    Model representing a quiz created by a lecturer.
+    
+    Fields:
+    - title: The name of the quiz.
+    - author: The user who created the quiz.
+    - course: The course this quiz belongs to.
+    - timer: Time limit in minutes (0 means no limit).
+    - attempts: Maximum allowed attempts (0 means unlimited).
+    - is_visible: Whether the quiz is visible to students.
+    - created_at: Timestamp when the quiz was created.
+    """
     title = models.CharField(max_length=255)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="quizzes")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="quizzes")
-    timer = models.IntegerField(default=0)  # in minutes, 0 means no time limit
+    timer = models.IntegerField(default=0)  # 0 means no time limit
     attempts = models.IntegerField(
         default=0,
         help_text="0 means unlimited attempts, any positive number restricts attempts",
@@ -20,6 +31,13 @@ class Quiz(models.Model):
 
 
 class Question(models.Model):
+    """
+    Model representing a question within a quiz.
+    
+    Fields:
+    - quiz: The quiz this question belongs to.
+    - text: The text of the question.
+    """
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="questions")
     text = models.CharField(max_length=500)
 
@@ -28,6 +46,14 @@ class Question(models.Model):
 
 
 class Answer(models.Model):
+    """
+    Model representing an answer to a question.
+    
+    Fields:
+    - question: The question this answer belongs to.
+    - text: The answer text.
+    - is_correct: Whether this answer is correct.
+    """
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answers")
     text = models.CharField(max_length=255)
     is_correct = models.BooleanField(default=False)
@@ -37,6 +63,27 @@ class Answer(models.Model):
 
 
 class Attempt(models.Model):
+    """
+    Model representing a user's attempt at a quiz.
+    
+    Fields:
+    - quiz: The quiz attempted.
+    - user: The student attempting the quiz.
+    - attempt_number: The attempt number for this quiz and user.
+    - score: The score achieved.
+    - max_score: Maximum possible score.
+    - created_at: Timestamp of the attempt.
+    
+    Meta:
+    - unique_together: Prevent duplicate attempt numbers for the same user and quiz.
+    - ordering: Most recent attempts first.
+    
+    Properties:
+    - percentage: Returns the percentage score for the attempt.
+    
+    Class Methods:
+    - latest_or_highest_per_quiz: Returns the highest percentage per quiz for a given user.
+    """
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="attempts_made")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="quiz_attempts")
     attempt_number = models.PositiveIntegerField()
@@ -53,6 +100,10 @@ class Attempt(models.Model):
 
     @property
     def percentage(self):
+        """
+        Returns the score percentage for this attempt.
+        Returns 0 if max_score is 0 to avoid division by zero.
+        """
         if self.max_score == 0:
             return 0
         return round((self.score / self.max_score) * 100, 2)
@@ -60,7 +111,8 @@ class Attempt(models.Model):
     @classmethod
     def latest_or_highest_per_quiz(cls, user):
         """
-        Returns a dict with quiz_id highest percentage for each quiz the user attempted.
+        Returns a dictionary mapping quiz_id to the highest percentage
+        achieved by the given user for each quiz they attempted.
         """
         results = {}
         user_attempts = cls.objects.filter(user=user)
@@ -71,4 +123,3 @@ class Attempt(models.Model):
                 results[attempt.quiz_id] = attempt.percentage
 
         return results
-

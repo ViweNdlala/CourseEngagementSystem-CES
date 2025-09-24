@@ -1,34 +1,60 @@
-import {Link, useNavigate} from 'react-router-dom';
-import {useState, useEffect} from 'react';
-import axios from 'axios';
-import '../styles/Login.css';
-import { useUser } from '../../contexts/UserContext';
+/**
+ * Login.jsx
+ * 
+ * Component: Login
+ * Purpose: Provides a login form where users can authenticate using email and password. 
+ * Handles CSRF token setup, form submission, and navigation after login. 
+ */
 
-// Configure axios to include CSRF token
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import "../styles/Login.css";
+import { useUser } from "../../contexts/UserContext";
+
+// Configure axios to always send credentials (cookies)
 axios.defaults.withCredentials = true;
 
-function Login(){
+function Login() {
+    // Component state for form inputs
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const navigate = useNavigate();
-    const {login} = useUser();
+
+    // CSRF token state
     const [csrfToken, setCsrfToken] = useState("");
 
-    // Get CSRF token on component mount
+    // Navigation hook
+    const navigate = useNavigate();
+
+    // Access login function from UserContext
+    const { login } = useUser();
+
+    /**
+     * useEffect: Fetch CSRF token on component mount
+     */
     useEffect(() => {
         const getCsrfToken = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/accounts/csrf/');
+                const response = await axios.get("http://localhost:8000/accounts/csrf/");
                 setCsrfToken(response.data.csrfToken);
-                axios.defaults.headers.common['X-CSRFToken'] = response.data.csrfToken;
+
+                // Attach CSRF token to axios default headers
+                axios.defaults.headers.common["X-CSRFToken"] = response.data.csrfToken;
             } catch (error) {
-                console.error('Error fetching CSRF token:', error);
+                console.error("Error fetching CSRF token:", error);
             }
         };
+
         getCsrfToken();
     }, []);
 
-    // Function to handle the user login
+    /**
+     * handleLogin: Sends login request to backend
+     * - Validates form inputs
+     * - Submits login data
+     * - Stores user info in context and localStorage
+     * - Navigates user based on role
+     */
     async function handleLogin() {
         if (!email || !password) {
             alert("Please enter both email and password");
@@ -36,51 +62,67 @@ function Login(){
         }
 
         try {
-            // Send plain text password - backend will hash and compare
-            const response = await axios.post("http://localhost:8000/accounts/login/", {
-                email: email.trim(),
-                password: password // Send plain text - backend handles hashing
-            }, {
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'Content-Type': 'application/json'
+            const response = await axios.post(
+                "http://localhost:8000/accounts/login/",
+                {
+                    email: email.trim(),
+                    password: password, // Plain text; backend handles hashing
+                },
+                {
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/json",
+                    },
                 }
-            });
+            );
 
             const foundUser = response.data;
-            
-            if(foundUser && !foundUser.error){
+
+            if (foundUser && !foundUser.error) {
+                // Save user in context and localStorage
                 login(foundUser);
                 localStorage.setItem("loggedInUser", JSON.stringify(foundUser));
-                
-                if(foundUser.role === "lecturer"){
+
+                // Navigate based on role
+                if (foundUser.role === "lecturer") {
                     navigate("/lecturer/home");
-                }else{
+                } else {
                     navigate("/student/home");
                 }
-                
+
+                // Clear inputs
                 setEmail("");
                 setPassword("");
             }
         } catch (error) {
+            // Handle specific errors
             if (error.response && error.response.status === 401) {
                 alert("Invalid email or password!");
             } else {
                 alert("Login failed. Please try again.");
-                console.error('Login error:', error);
+                console.error("Login error:", error);
             }
+
+            // Reset form
             setEmail("");
             setPassword("");
         }
     }
 
+    /**
+     * handleSubmit: Prevents default form submit and triggers handleLogin
+     */
     const handleSubmit = (e) => {
         e.preventDefault();
         handleLogin();
     };
 
+    /**
+     * Component JSX
+     */
     return (
         <div className="login-page">
+            {/* Header */}
             <div className="login-header">
                 <h1>
                     <Link className="head-text" to="/">
@@ -89,13 +131,16 @@ function Login(){
                 </h1>
             </div>
 
+            {/* Login form container */}
             <div className="login-form-container">
                 <div className="login-welcome">
                     <h1>Welcome to Mavix</h1>
                     <h2>Where Every Lesson Comes Alive</h2>
                 </div>
 
+                {/* Login form */}
                 <form onSubmit={handleSubmit} className="form-inputs">
+                    {/* Email input */}
                     <div className="label-form">
                         <label className="email-label">Email</label>
                         <input
@@ -107,6 +152,8 @@ function Login(){
                             required
                         />
                     </div>
+
+                    {/* Password input */}
                     <div className="label-form">
                         <label className="password-label">Password</label>
                         <input
@@ -119,6 +166,7 @@ function Login(){
                         />
                     </div>
 
+                    {/* Submit button */}
                     <button type="submit" className="login-button">
                         Login
                     </button>

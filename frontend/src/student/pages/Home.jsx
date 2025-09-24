@@ -41,6 +41,7 @@ function Header() {
   );
 }
 
+//displays courses the logged-in student is enrolled in
 function StudentHome() {
   const [student, setStudent] = useState(null);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -48,6 +49,7 @@ function StudentHome() {
   const [loading, setLoading] = useState(true); 
   const navigate = useNavigate();
 
+  // Load student info and all courses
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (loggedInUser && loggedInUser.role === "student") {
@@ -60,6 +62,7 @@ function StudentHome() {
       .catch((err) => console.log(err));
   }, []);
 
+  // Filter courses based on student's enrollments
   useEffect(() => {
     if (student) {
       setLoading(true); 
@@ -81,7 +84,7 @@ function StudentHome() {
     }
   }, [student, allCourses]);
 
-  if (!student) return <p>No student logged in</p>;
+  if (!student) return <p>No student logged in</p>; // handle no student scenario
 
   return (
     <>

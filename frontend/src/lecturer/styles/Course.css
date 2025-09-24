@@ -1,0 +1,93 @@
+.course-container {
+  padding: 2rem;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Heading */
+.course-container h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #295474;
+  margin-bottom: 0.5rem;
+}
+
+.course-container p {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #555;
+}
+
+/* Duration input wrapper */
+.duration-wrapper {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.duration-wrapper label {
+  font-weight: 600;
+  color: #295474;
+  font-size: 1rem;
+}
+
+.duration-wrapper input {
+  width: 100px;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  transition: border 0.2s ease;
+}
+
+.duration-wrapper input:focus {
+  border-color: #295474;
+  box-shadow: 0 0 4px rgba(41, 84, 116, 0.3);
+}
+
+/* Primary button */
+.primary-btn {
+  margin: 1rem auto 0 auto; 
+  padding: 0.75rem 1.5rem;
+  background-color: #295474;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.25s ease, transform 0.2s ease;
+  width: 400px;
+  display: block;
+}
+
+.primary-btn:hover {
+  background-color: #1f4059;
+  transform: translateY(-2px);
+}
+
+.primary-btn:active {
+  transform: translateY(0);
+}
+
+
+/* Active session details (green box like student) */
+.session-details {
+  margin-top: 2rem;
+  background: #e6ffed; /* green highlight */
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.session-details p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: #444;
+}

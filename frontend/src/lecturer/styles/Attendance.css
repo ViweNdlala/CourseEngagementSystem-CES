@@ -28,29 +28,84 @@
   font-size: 1.2rem;
   margin: 10px 0;
 }
-
 .attendance-button:disabled {
   background-color: #b9bbbd;
   cursor: not-allowed;
 }
-
 .attendance-history h3 {
-  margin-bottom: 20px;
-  color: #333;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
 }
-
 .chart-container {
   background: #fff;
   padding: 20px;
   border-radius: 8px;
   border: 1px solid #e9ecef;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 0;
 }
-
 .custom-tooltip {
   background: #ffffff;
   border: 1px solid black;
   padding: 16px;
   width: fit-content;
   text-align: left;
+}
+.absent-students-section {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  width: fit-content;
+  padding: 10px;
+  justify-self: center;
+  padding: 20px;
+}
+.absent-students-list {
+  list-style: none;
+  padding-left: 20px;
+  justify-items: left;
+}
+.absent-student-email {
+  margin: 5px 0;
+}
+.absent-student-email a {
+  text-decoration: none;
+  color: black;
+}
+.absent-student-email a:hover {
+  text-decoration: underline;
+}
+.student-name {
+  color: #295574;
+  cursor: pointer;
+  margin: 0 8px;
+}
+.student-name:hover {
+  text-decoration: underline;
+}
+.email-link {
+  margin-left: 8px;
+  color: #666;
+  text-decoration: none;
+  font-size: 0.9em;
+}
+.email-link:hover {
+  color: #295574;
+}
+.student-chart-section {
+  padding: 20px;
+  margin-top: 20px;
+}
+.student-chart-section h4 {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 12px;
+  margin: 20px 0;
+  text-align: center;
 }

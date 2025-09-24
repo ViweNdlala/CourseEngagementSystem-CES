@@ -1,14 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.generics import DestroyAPIView
 from .models import Attendance
-from .serializers import StudentAttendanceSerializer, LecturerAttendanceSerializer
-from courses.models import Enrollment, Course
+from .serializers import LecturerAttendanceSerializer
+from courses.models import Enrollment
 from accounts.models import User
 from datetime import date
 from django.db import transaction
-
 
 class StudentAttendanceView(APIView):
     # First student to mark attendance => create absent records for everyone
@@ -169,6 +167,7 @@ class LecturerAttendanceView(APIView):
             {
                 "date": record.date,
                 "student_email": record.enrollment.student.email,
+                "student_name": record.enrollment.student.name,
                 "status": record.status,
                 "course_title": record.enrollment.course.title,
                 "course_id": record.enrollment.course.id,
@@ -185,20 +184,3 @@ class LecturerAttendanceView(APIView):
     
     def post(self, request):
         return Response({"error": "Lecturers cannot mark attendance."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-
-class AttendanceDeleteView(DestroyAPIView):
-    """
-    API view to delete attendance records.
-    """
-    queryset = Attendance.objects.all()
-    serializer_class = StudentAttendanceSerializer
-    
-    def delete(self, request, *args, **kwargs):
-        try:
-            return super().delete(request, *args, **kwargs)
-        except Exception as e:
-            return Response(
-                {"error": f"Failed to delete attendance record: {str(e)}"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
