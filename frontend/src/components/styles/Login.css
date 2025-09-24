@@ -1,26 +1,30 @@
-/* CSS Styles for Login page */
+/* ============================================================
+   Login.css
+   Purpose: Styles for the Login page (layout, form, responsiveness)
+   ============================================================ */
 
-/* Base styles */
-.login-page{
+/* ---------- Base Layout ---------- */
+.login-page {
     height: 100vh;
     background-color: #295574;
     display: flex;
     flex-direction: column;
 }
 
-
-.login-header{
+/* ---------- Header ---------- */
+.login-header {
     color: white;
     padding: 20px;
     outline: none;
 }
 
-.login-header h1 .head-text{
+.login-header h1 .head-text {
     color: white;
     text-decoration: none;
     outline: none;
 }
 
+/* ---------- Login Form Container ---------- */
 .login-form-container {
     background-color: white;
     width: 80%;
@@ -33,6 +37,7 @@
     align-items: center;
 }
 
+/* ---------- Welcome Text ---------- */
 .login-welcome {
     text-align: center;
     margin-bottom: 1.5rem;
@@ -50,6 +55,7 @@
     font-weight: 500;
 }
 
+/* ---------- Form Inputs ---------- */
 .form-inputs {
     display: flex;
     flex-direction: column;
@@ -75,11 +81,12 @@
     transition: all 0.3s ease;
 }
 
-.label-form .login-input:focus{
+.label-form .login-input:focus {
     border: 1px solid #295574;
     outline: none;
 }
 
+/* ---------- Login Button ---------- */
 .login-button {
     background-color: #295574;
     color: white;
@@ -90,18 +97,16 @@
     cursor: pointer;
 }
 
-
-
-/* Responsive design */
+/* ---------- Responsive Design ---------- */
 
 /* Small screens */
 @media (max-width: 600px) {
-    .login-form-container{
+    .login-form-container {
         height: 25rem;
     }
 }
 
 /* Medium screens */
 @media (max-width: 1024px) {
-
+    /* Reserved for adjustments if needed */
 }

@@ -1,3 +1,15 @@
+/**
+ * Quizzes.css
+ *
+ * Purpose:
+ * Styles for the Quizzes feature UI.
+ * - Covers layout, typography, quiz cards, question/answer formatting,
+ *   buttons, feedback messages, performance graph, and responsive adjustments.
+ */
+
+/* ==============================
+   General Quiz Container
+   ============================== */
 .quizzes {
   max-width: 1000px;
   margin: 2rem auto;
@@ -31,7 +43,9 @@
   font-weight: bold;
 }
 
-/* Create Quiz Section */
+/* ==============================
+   Create Quiz Section
+   ============================== */
 .create-quiz {
   border: 1px solid #a0c6e8;
   border-radius: 8px;
@@ -53,7 +67,9 @@
   font-weight: 500;
 }
 
-/* Quiz Cards */
+/* ==============================
+   Quiz Card
+   ============================== */
 .quiz-card {
   border: 1px solid #a0c6e8;
   border-radius: 8px;
@@ -63,7 +79,7 @@
   box-shadow: 0 1px 3px rgba(41, 84, 116, 0.1);
 }
 
-/* Quiz Header */
+/* Quiz Card Header */
 .quiz-header {
   cursor: pointer;
   padding-bottom: 0.5rem;
@@ -90,7 +106,9 @@
   font-size: 0.9rem;
 }
 
-/* Expanded Quiz Section */
+/* ==============================
+   Expanded Quiz Section
+   ============================== */
 .quiz-expanded {
   margin-top: 1rem;
   padding: 1rem;
@@ -102,7 +120,7 @@
   font-weight: 500;
 }
 
-/* Updated: Title input in expanded quiz - same as quiz creation */
+/* Title input inside expanded quiz */
 .quiz-expanded input[type="text"] {
   margin-left: 0.5rem;
   padding: 0.6rem;
@@ -122,14 +140,16 @@
   border-radius: 4px;
 }
 
-/* Questions and Answers */
-.question, .question-update {
+/* ==============================
+   Questions & Answers
+   ============================== */
+.question,
+.question-update {
   margin: 1.2rem 0;
   padding: 1rem;
   background: #fff;
 }
 
-/* Updated: Question input in expanded quiz - same as quiz creation */
 .question-update input[type="text"] {
   padding: 0.6rem;
   border: 1px solid #a0c6e8;
@@ -140,7 +160,8 @@
   margin-bottom: 0.8rem;
 }
 
-.answer, .answer-update {
+.answer,
+.answer-update {
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -155,7 +176,9 @@
   flex: 1;
 }
 
-/* Inputs and Selects */
+/* ==============================
+   Inputs & Selects
+   ============================== */
 .quiz-input,
 .quiz-select {
   margin: 0.4rem 0;
@@ -174,7 +197,9 @@
   box-shadow: 0 0 0 2px rgba(41, 84, 116, 0.2);
 }
 
-/* Buttons */
+/* ==============================
+   Buttons
+   ============================== */
 .btn {
   margin-top: 0.6rem;
   margin-right: 0.5rem;
@@ -198,7 +223,9 @@
   cursor: not-allowed;
 }
 
-/* Notes */
+/* ==============================
+   Notes & Messages
+   ============================== */
 .note {
   font-size: 0.8rem;
   color: #666;
@@ -206,7 +233,6 @@
   font-style: italic;
 }
 
-/* Messages */
 .message {
   margin-top: 0.6rem;
   font-size: 0.9rem;
@@ -217,7 +243,9 @@
   font-weight: 500;
 }
 
-/* Performance Graph Section */
+/* ==============================
+   Performance Graph & Reports
+   ============================== */
 .quiz-performance-section {
   margin-top: 3rem;
   padding: 1.5rem;
@@ -233,7 +261,9 @@
   background: #fff;
 }
 
-/* Student Table */
+/* ==============================
+   Student Table
+   ============================== */
 .student-table {
   width: 100%;
   border-collapse: collapse;
@@ -251,7 +281,7 @@
   font-weight: bold;
 }
 
-/* Student Name Link */
+/* Links inside student table */
 .student-name-link {
   background: none;
   border: none;
@@ -267,7 +297,6 @@
   color: #2980b9;
 }
 
-/* Email Link */
 .email-link {
   color: #295474;
   text-decoration: none;
@@ -278,7 +307,9 @@
   text-decoration: underline;
 }
 
-/* Custom Tooltip */
+/* ==============================
+   Custom Tooltip (Graph)
+   ============================== */
 .custom-tooltip {
   background: #fff;
   border: 1px solid #a0c6e8;
@@ -298,7 +329,9 @@
   font-size: 0.9rem;
 }
 
-/* Responsive adjustments */
+/* ==============================
+   Responsive Adjustments
+   ============================== */
 @media (max-width: 768px) {
   .quiz-header {
     flex-direction: column;
@@ -306,7 +339,8 @@
     gap: 0.5rem;
   }
   
-  .answer, .answer-update {
+  .answer,
+  .answer-update {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
@@ -322,13 +356,15 @@
   }
 }
 
-/* Checkbox styling */
+/* ==============================
+   Misc Styling
+   ============================== */
 input[type="checkbox"] {
   width: auto;
   margin-right: 0.5rem;
 }
 
-/* Chart container adjustments */
+/* Center charts */
 .recharts-wrapper {
   margin: 0 auto;
 }

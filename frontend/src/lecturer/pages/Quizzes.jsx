@@ -1,3 +1,15 @@
+/**
+ * Quizzes.jsx
+ * Purpose: Manage quizzes for a course. Provides functionality for:
+ * - Fetching and displaying quizzes
+ * - Creating new quizzes (lecturer only)
+ * - Updating existing quizzes
+ * - Visualizing quiz performance with charts
+ * - Viewing underperforming students and individual student performance
+ */
+
+
+
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
@@ -14,14 +26,18 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+
 export default function Quizzes() {
+  // Context hooks for course and user data
   const { currentCourse } = useCourse();
   const { user } = useUser();
 
+  // State for quizzes data and UI
   const [quizzes, setQuizzes] = useState([]);
   const [expandedQuiz, setExpandedQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // State for new quiz creation
   const [newQuiz, setNewQuiz] = useState({
     title: "",
     timer: 0,
@@ -29,17 +45,24 @@ export default function Quizzes() {
     questions: [{ text: "", answers: [{ text: "", is_correct: false }] }],
   });
   const [creating, setCreating] = useState(false);
+  
+  // Alert system state
   const [alertMessage, setAlertMessage] = useState(null);
   const [alertPosition, setAlertPosition] = useState({ top: 0, left: 0 });
 
-  // Graph states
+  // Graph and performance tracking states
   const [quizPerformance, setQuizPerformance] = useState([]);
   const [clickedDataPoint, setClickedDataPoint] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentPerformance, setStudentPerformance] = useState([]);
   const [enrolledStudents, setEnrolledStudents] = useState([]);
 
-  // Show temporary alert message near the action element
+  /**
+   * Displays a temporary alert message near the action element
+   * @param {string} message - The alert message to display
+   * @param {string} type - Alert type: "success" or "error"
+   * @param {HTMLElement} element - The DOM element to position the alert near
+   */
   const showAlert = (message, type = "success", element = null) => {
     if (element) {
       const rect = element.getBoundingClientRect();
@@ -55,7 +78,7 @@ export default function Quizzes() {
     }, 3000); // Hide after 3 seconds
   };
 
-  // Fetch quizzes
+  // Fetch quizzes for the current course
   useEffect(() => {
     if (!currentCourse) return;
     setLoading(true);
@@ -66,7 +89,7 @@ export default function Quizzes() {
       .finally(() => setLoading(false));
   }, [currentCourse]);
 
-  // Fetch enrolled students
+  // Fetch enrolled students for the current course
   useEffect(() => {
     if (!currentCourse) return;
     
@@ -103,14 +126,14 @@ export default function Quizzes() {
       .catch((err) => console.error("Failed to fetch enrollments:", err));
   }, [currentCourse]);
 
-  // Fetch performances for graph
+  // Fetch performance data for analytics graph
   useEffect(() => {
     if (!currentCourse || quizzes.length === 0 || enrolledStudents.length === 0) return;
 
     const fetchPerformanceData = async () => {
       const allPerformances = {};
       
-      // Initialize performance data structure
+      // Initialize performance data structure for all quizzes
       for (const quiz of quizzes) {
         allPerformances[quiz.id] = {
           quiz: quiz.title,
@@ -148,7 +171,7 @@ export default function Quizzes() {
         }
       }
 
-      // Aggregate data for the chart
+      // Aggregate data for the chart display
       const aggregated = Object.values(allPerformances).map((q, index) => {
         const grades = q.scores.map((s) => s.grade);
         const avg =
@@ -175,11 +198,19 @@ export default function Quizzes() {
     fetchPerformanceData();
   }, [currentCourse, quizzes, enrolledStudents]);
 
+  /**
+   * Toggles the expanded view for a specific quiz
+   * @param {number} quizId - The ID of the quiz to expand/collapse
+   */
   const toggleExpand = (quizId) => {
     setExpandedQuiz(expandedQuiz === quizId ? null : quizId);
   };
 
-  // Quiz Creation 
+  // Quiz Creation Methods
+  
+  /**
+   * Adds a new question to the quiz being created
+   */
   const addQuestion = () => {
     setNewQuiz({
       ...newQuiz,
@@ -190,25 +221,36 @@ export default function Quizzes() {
     });
   };
 
+  /**
+   * Adds a new answer option to a specific question
+   * @param {number} qIndex - The index of the question to add the answer to
+   */
   const addAnswer = (qIndex) => {
     const updated = [...newQuiz.questions];
     updated[qIndex].answers.push({ text: "", is_correct: false });
     setNewQuiz({ ...newQuiz, questions: updated });
   };
 
+  // Handler methods for quiz form changes
   const handleQuizChange = (field, value) =>
     setNewQuiz({ ...newQuiz, [field]: value });
+  
   const handleQuestionChange = (qIndex, value) => {
     const updated = [...newQuiz.questions];
     updated[qIndex].text = value;
     setNewQuiz({ ...newQuiz, questions: updated });
   };
+  
   const handleNewAnswerChange = (qIndex, aIndex, field, value) => {
     const updated = [...newQuiz.questions];
     updated[qIndex].answers[aIndex][field] = value;
     setNewQuiz({ ...newQuiz, questions: updated });
   };
 
+  /**
+   * Handles quiz creation by sending data to the server
+   * @param {Event} e - The form submission event
+   */
   const handleCreateQuiz = async (e) => {
     try {
       setCreating(true);
@@ -254,7 +296,13 @@ export default function Quizzes() {
     }
   };
 
-  // Quiz Update
+  // Quiz Update Methods
+
+  /**
+   * Handles quiz updates by sending modified data to the server
+   * @param {Object} quiz - The quiz object to update
+   * @param {Event} e - The form submission event
+   */
   const handleQuizUpdate = async (quiz, e) => {
     const payload = {
       title: quiz.title,
@@ -284,6 +332,12 @@ export default function Quizzes() {
     }
   };
 
+  /**
+   * Handles student click to display individual performance data
+   * @param {number} studentId - The ID of the selected student
+   * @param {string} studentName - The name of the selected student
+   * @param {string} studentEmail - The email of the selected student
+   */
   const handleStudentClick = useCallback(
     async (studentId, studentName, studentEmail) => {
       setSelectedStudent({ 
@@ -322,6 +376,11 @@ export default function Quizzes() {
     [quizPerformance]
   );
 
+  // Custom Tooltip Components for Charts
+
+  /**
+   * Custom tooltip for the main performance chart
+   */
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -337,6 +396,9 @@ export default function Quizzes() {
     return null;
   };
 
+  /**
+   * Custom tooltip for individual student performance chart
+   */
   const StudentPerformanceTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -350,7 +412,11 @@ export default function Quizzes() {
     return null;
   };
 
-  // Custom dot component for better click handling
+  // Custom Chart Dot Components
+
+  /**
+   * Custom dot component for interactive chart points
+   */
   const CustomDot = (props) => {
     const { cx, cy, payload, ...rest } = props;
     
@@ -370,7 +436,9 @@ export default function Quizzes() {
     );
   };
 
-  // Custom active dot component for better click handling
+  /**
+   * Custom active dot component for interactive chart points
+   */
   const CustomActiveDot = (props) => {
     const { cx, cy, payload, ...rest } = props;
     
@@ -390,6 +458,7 @@ export default function Quizzes() {
     );
   };
 
+  // Loading state
   if (loading) return <p>Loading quizzes...</p>;
 
   return (
@@ -411,7 +480,7 @@ export default function Quizzes() {
         </div>
       )}
 
-      {/* Create Quiz Section - Always show for lecturers */}
+      {/* Create Quiz Section - Visible only to lecturers */}
       {user?.role === "lecturer" && (
         <div className="create-quiz">
           <h3>Create New Quiz</h3>
@@ -471,6 +540,7 @@ export default function Quizzes() {
             </label>
           </div>
 
+          {/* Questions and Answers Input */}
           {newQuiz.questions.map((q, qIndex) => (
             <div key={qIndex} className="question">
               <input
@@ -526,7 +596,7 @@ export default function Quizzes() {
         </div>
       )}
 
-      {/* Quizzes Section */}
+      {/* Quizzes List Section */}
       {quizzes.length === 0 ? (
         <p>No quizzes found.</p>
       ) : (
@@ -540,6 +610,7 @@ export default function Quizzes() {
               <p>Attempts: {quiz.attempts === 0 ? "Unlimited" : quiz.attempts}</p>
             </div>
 
+            {/* Expanded Quiz Editing View */}
             {expandedQuiz === quiz.id && (
               <div className="quiz-expanded">
                 <label>
@@ -676,7 +747,7 @@ export default function Quizzes() {
         ))
       )}
 
-      {/* Performance Graph */}
+      {/* Performance Analytics Section */}
       {quizPerformance.length > 0 && (
         <div className="quiz-performance-section">
           <h3>Quiz Performance Overview</h3>
@@ -709,6 +780,7 @@ export default function Quizzes() {
             </LineChart>
           </ResponsiveContainer>
 
+          {/* Underperforming Students Details */}
           {clickedDataPoint && (
             <div className="underperforming-section">
               <h4>Underperforming Students in {clickedDataPoint.quiz}</h4>
@@ -751,6 +823,7 @@ export default function Quizzes() {
             </div>
           )}
 
+          {/* Individual Student Performance Chart */}
           {selectedStudent && studentPerformance.length > 0 && (
             <div className="student-performance-section">
               <h4>{selectedStudent.name}'s Quiz Grades</h4>
