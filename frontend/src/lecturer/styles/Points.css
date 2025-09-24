@@ -3,46 +3,176 @@
   font-family: Arial, sans-serif;
 }
 
+/* General headings */
 .lecturer-container h2 {
   margin-bottom: 12px;
   color: #333;
 }
 
+/* Pending requests list */
 .lecturer-container ul {
-  list-style: none;
+  list-style: none;   /* removes the dots */
   padding-left: 0;
+  margin: 0;
 }
 
+/* Each list item: left = message column, right = actions column */
 .lecturer-container li {
-  margin-bottom: 8px;
+  display: flex;                   /* left column (info) + right column (actions) */
+  justify-content: space-between;  /* actions stay to the far right */
+  align-items: flex-start;         /* top-align actions with the header */
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eee;
+  font-size: 15px;
+}
+
+.lecturer-container li:last-child {
+  border-bottom: none;
+}
+
+/* Info column takes remaining width */
+.request-info {
+  flex: 1;
+  min-width: 0; /* prevents overflow when long text */
+}
+
+/* Header row inside the info column: student name + request text inline */
+.request-header {
   display: flex;
   align-items: center;
+  gap: 8px;           /* space between name and "requested..." */
+  white-space: normal;
 }
 
-.lecturer-container li button {
-  margin-left: 8px;
-  padding: 5px 10px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
+.request-header strong {
+  font-weight: 600;
+  color: #222;
+  /* keep name from wrapping in weird places if long */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40%; /* prevents name completely taking up line — tweak to taste */
+}
+
+/* Request text sits right after name with a gap (not stuck to it) */
+.request-text {
+  color: #222;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* Description: smaller and as a "note" under the header, left-aligned inside the info column */
+.request-desc {
   font-size: 13px;
+  color: #555;
+  margin-top: 6px;
+  padding-left: 12px;   /* slight indent to show it's a note */
+  border-left: 2px solid #eee;
+  margin-bottom: 2px;
 }
 
-.approve-btn {
-  background-color: #4caf50;
-  color: white;
-  margin-left: 12px;
+/* Actions column (Approve / Decline) stays at the right */
+.request-actions {
+  display: flex;
+  gap: 8px;             /* buttons appear side-by-side */
+  align-items: flex-start;  /* align with the top of the message header */
 }
 
-.decline-btn {
-  background-color: #f44336;
-  color: white;
-}
-
+/* Buttons (Approve, Decline, Dismiss) */
+.approve-btn,
+.decline-btn,
 .dismiss-btn {
-  background-color: #888;
-  color: white;
-  margin-right: 8px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.25s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+/* Approve = green */
+.approve-btn {
+  background-color: #4CAF50;
+  color: #fff;
+}
+.approve-btn:hover {
+  background-color: #3d8b40;
+  transform: translateY(-1px);
+}
+
+/* Decline = red */
+.decline-btn {
+  background-color: #ff4d4f;
+  color: #fff;
+}
+.decline-btn:hover {
+  background-color: #d9363e;
+  transform: translateY(-1px);
+}
+
+/* Dismiss / neutral */
+.dismiss-btn {
+  background-color: #999;
+  color: #fff;
+}
+.dismiss-btn:hover {
+  background-color: #777;
+  transform: translateY(-1px);
+}
+
+/* Leaderboard styles */
+.leaderboard-card {
+  margin-top: 24px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  padding: 20px;
+}
+
+.leaderboard-card h2 {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #295474;
+  margin-bottom: 16px;
+}
+
+/* Leaderboard list */
+.leaderboard-card ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.leaderboard-card li {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  font-size: 15px;
+}
+
+.leaderboard-card li:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+.leaderboard-card li:last-child {
+  border-bottom: none;
+}
+
+/* Rank badge */
+.rank-badge {
+  background: #295474;
+  color: #fff;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-right: 10px;
+  font-size: 13px;
 }
 
 /* Floating notification */
@@ -83,4 +213,100 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
+}
+
+/* Section wrapper */
+.students-without-points-section {
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* Section heading */
+.students-without-points-card h2 {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #295474;
+  margin-bottom: 16px;
+}
+
+/* Toggle button */
+.toggle-btn {
+  padding: 10px 18px;
+  background-color: #295474;   /* theme color */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background-color 0.25s ease, transform 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background-color: #1f4059;   /* darker shade */
+  transform: translateY(-2px); /* subtle lift */
+}
+
+.toggle-btn:active {
+  transform: translateY(0);
+}
+
+/* Card for students */
+.students-without-points-card {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  background: #fafafa;
+  text-align: left;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.students-without-points-card ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.students-without-points-card li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.students-without-points-card li:last-child {
+  border-bottom: none;
+}
+
+.student-name {
+  font-weight: 500;
+  color: #222;
+}
+
+.student-email {
+  color: #555;
+  font-size: 13px;
+}
+
+/* Info and description block */
+.request-info {
+  flex: 1;
+  margin-right: 12px;
+}
+
+/* Student + request text */
+.request-info strong {
+  font-weight: 600;
+  color: #222;
+}
+
+/* Description bigger */
+.request-desc {
+  font-size: 16px;       /* bigger font */
+  color: #444;
+  margin-top: 6px;
+  line-height: 1.4;
+  font-style: italic;
 }

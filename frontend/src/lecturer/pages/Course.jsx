@@ -2,15 +2,18 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
 import axios from "axios";
+import "../styles/Course.css"
 
+//handles a lecturer managing a specific course
 function LecturerCourseHome() {
   const { id } = useParams(); // course id
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [course, setCourse] = useState(null);
-  const [activeSession, setActiveSession] = useState(null);
+  const [activeSession, setActiveSession] = useState(null); // current geofence session
   const [duration, setDuration] = useState(60); // default duration
   const { selectCourse } = useCourse();
 
+  // Load lecturer, course info, and active session
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("loggedInUser"));
     setLoggedInUser(user);
@@ -27,6 +30,7 @@ function LecturerCourseHome() {
     fetchActiveSession(id);
   }, [id]);
 
+  // Fetch current active geofence session
   const fetchActiveSession = async (courseId) => {
     try {
       const resp = await axios.get(`http://127.0.0.1:8000/geofence/sessions/active/?course_id=${courseId}`);
@@ -35,6 +39,7 @@ function LecturerCourseHome() {
     } catch (err) { console.error(err); }
   };
 
+  // Start a new geofence session
   const startSession = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
@@ -73,20 +78,20 @@ function LecturerCourseHome() {
   if (!course) return <p>Loading course...</p>;
 
   return (
-    <div className="p-6">
+    <div className="course-container">
       <h2>Lecturer Course Home: {course.title}</h2>
       <p>{course.description}</p>
 
-      <div className="mt-4">
+      <div className="duration-wrapper">
         <label>Duration (minutes): </label>
         <input type="number" value={duration} onChange={e => setDuration(e.target.value)} />
       </div>
 
-      <button onClick={startSession}>Start Geofence Session</button>
+      <button className="primary-btn" onClick={startSession}>Start Session</button>
 
       {activeSession && (
-        <div>
-          <p> Active session ID {activeSession.id}</p>
+        <div className="session-details">  
+          <p> Active session </p>
           <p>Started at: {new Date(activeSession.start_time).toLocaleTimeString()}</p>
           <p>Duration: {activeSession.duration_minutes} minutes</p>
         </div>

@@ -41,12 +41,14 @@ function Header() {
   );
 }
 
+//displays all courses taught by the logged-in lecturer
 function LecturerHome() {
   const [lecturer, setLecturer] = useState(null);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Load lecturer info 
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (loggedInUser && loggedInUser.role === "lecturer") {
@@ -54,6 +56,7 @@ function LecturerHome() {
     }
   }, []);
 
+  // Fetch courses taught by lecturer whenever lecturer changes
   useEffect(() => {
     if (!lecturer) return;
 
@@ -69,7 +72,7 @@ function LecturerHome() {
       .finally(() => setLoading(false));
   }, [lecturer]);
 
-  if (!lecturer) return <p>No lecturer logged in</p>;
+  if (!lecturer) return <p>No lecturer logged in</p>; // handle no lecturer scenario
 
   return (
     <>
