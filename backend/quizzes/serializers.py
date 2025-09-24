@@ -5,12 +5,20 @@ from accounts.models import User
 
 
 class AnswerSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Answer model.
+    Handles serialization of individual answers to questions.
+    """
     class Meta:
         model = Answer
         fields = ["id", "text", "is_correct"]
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Question model.
+    Includes nested answers using AnswerSerializer.
+    """
     answers = AnswerSerializer(many=True)
 
     class Meta:
@@ -18,12 +26,14 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = ["id", "text", "answers"]
 
 
-# -------------------
-# Quiz Serializer
-# -------------------
 class QuizSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Quiz model.
+    Handles nested serialization for questions and answers.
+    Provides custom create and update logic for nested relationships.
+    """
     questions = QuestionSerializer(many=True)
-    author = serializers.ReadOnlyField(source="author.id")  # author is always read-only
+    author = serializers.ReadOnlyField(source="author.id")  # Author is read-only
     course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
 
     class Meta:
@@ -34,34 +44,34 @@ class QuizSerializer(serializers.ModelSerializer):
             "author",
             "course",
             "timer",
-            "attempts",     #  Added attempts
+            "attempts",
             "is_visible",
             "questions",
             "created_at",
         ]
 
-    # -------------------
-    # CREATE
-    # -------------------
     def create(self, validated_data):
+        """
+        Create a quiz along with nested questions and answers.
+        Automatically assigns an author if not provided.
+        """
         request = self.context.get("request")
 
-        #  Author assignment logic
+        # Determine the author
         if request is None or not hasattr(request, "user") or request.user is None:
-            lecturer_user = User.objects.filter(role="lecturer").first()
-            if not lecturer_user:
+            author = User.objects.filter(role="lecturer").first()
+            if not author:
                 raise serializers.ValidationError("No lecturer user found to assign as author")
-            author = lecturer_user
         elif getattr(request.user, "is_anonymous", False):
             author = User.objects.filter(role="lecturer").first()
         else:
             author = request.user
 
-        #  Pop nested questions
+        # Extract nested questions
         questions_data = validated_data.pop("questions", [])
         quiz = Quiz.objects.create(author=author, **validated_data)
 
-        #  Create questions + answers
+        # Create questions and answers
         for q_data in questions_data:
             answers_data = q_data.pop("answers", [])
             question = Question.objects.create(quiz=quiz, text=q_data["text"])
@@ -70,48 +80,44 @@ class QuizSerializer(serializers.ModelSerializer):
 
         return quiz
 
-    # -------------------
-    # UPDATE
-    # -------------------
     def update(self, instance, validated_data):
-        #  Update quiz-level fields
+        """
+        Update a quiz and its nested questions and answers.
+        Handles creation, update, and deletion of nested objects.
+        """
+        # Update quiz fields
         instance.title = validated_data.get("title", instance.title)
         instance.timer = validated_data.get("timer", instance.timer)
         instance.is_visible = validated_data.get("is_visible", instance.is_visible)
         instance.attempts = validated_data.get("attempts", instance.attempts)
         instance.save()
 
-        #  Handle questions
         questions_data = validated_data.get("questions", [])
         existing_question_ids = []
 
         for q_data in questions_data:
             q_id = q_data.get("id")
             if q_id:
-                # Update existing question
                 question = instance.questions.filter(id=q_id).first()
                 if question:
                     question.text = q_data.get("text", question.text)
                     question.save()
             else:
-                # Create new question
                 question = Question.objects.create(quiz=instance, text=q_data.get("text", ""))
             existing_question_ids.append(question.id)
 
-            #  Handle answers
+            # Update answers
             answers_data = q_data.get("answers", [])
             existing_answer_ids = []
             for a_data in answers_data:
                 a_id = a_data.get("id")
                 if a_id:
-                    # Update existing answer
                     answer = question.answers.filter(id=a_id).first()
                     if answer:
                         answer.text = a_data.get("text", answer.text)
                         answer.is_correct = a_data.get("is_correct", answer.is_correct)
                         answer.save()
                 else:
-                    # Create new answer
                     answer = Answer.objects.create(
                         question=question,
                         text=a_data.get("text", ""),
@@ -119,15 +125,20 @@ class QuizSerializer(serializers.ModelSerializer):
                     )
                 existing_answer_ids.append(answer.id)
 
-            #  Remove deleted answers
+            # Delete removed answers
             question.answers.exclude(id__in=existing_answer_ids).delete()
 
-        #  Remove deleted questions
+        # Delete removed questions
         instance.questions.exclude(id__in=existing_question_ids).delete()
 
         return instance
 
+
 class AttemptSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Attempt model.
+    Includes user and quiz relationships, attempt number, and computed percentage.
+    """
     quiz_id = serializers.IntegerField(write_only=True)
     user_id = serializers.IntegerField(write_only=True)
     attempt_number = serializers.IntegerField(read_only=True)
@@ -149,12 +160,18 @@ class AttemptSerializer(serializers.ModelSerializer):
         ]
 
     def get_percentage(self, obj):
+        """Return the percentage score for the attempt."""
         return obj.percentage
 
     def create(self, validated_data):
+        """
+        Create a new attempt.
+        Automatically calculates the next attempt number for the user.
+        """
         quiz_id = validated_data.pop("quiz_id")
         user_id = validated_data.pop("user_id")
 
+        # Retrieve related objects
         try:
             quiz = Quiz.objects.get(id=quiz_id)
         except Quiz.DoesNotExist:
@@ -178,9 +195,9 @@ class AttemptSerializer(serializers.ModelSerializer):
 
 class PerformanceSerializer(serializers.ModelSerializer):
     """
-    Serializer for plotting graph data.
-    It uses Attempt model's percentage property.
-    Only the best/latest attempt per quiz per user should be fed here.
+    Serializer for performance data used in graphs.
+    Uses the Attempt model's percentage property.
+    Only the best/latest attempt per quiz per user is included.
     """
     quiz_title = serializers.CharField(source="quiz.title", read_only=True)
     percentage = serializers.SerializerMethodField()
@@ -190,13 +207,14 @@ class PerformanceSerializer(serializers.ModelSerializer):
         fields = ["quiz", "quiz_title", "percentage"]
 
     def get_percentage(self, obj):
+        """Return the percentage score for this attempt."""
         return obj.percentage
 
     @staticmethod
     def build_from_user(user):
         """
-        Helper method: returns serialized performance data for all quizzes attempted by a user.
-        Uses Attempt.latest_or_highest_per_quiz().
+        Build serialized performance data for all quizzes attempted by a user.
+        Uses Attempt.latest_or_highest_per_quiz() to get best scores.
         """
         best_scores = Attempt.latest_or_highest_per_quiz(user)
         attempts = Attempt.objects.filter(user=user, quiz_id__in=best_scores.keys())
