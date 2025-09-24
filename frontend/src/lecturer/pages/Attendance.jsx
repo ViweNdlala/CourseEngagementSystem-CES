@@ -8,39 +8,36 @@ import {
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 import "../styles/Attendance.css";
-
 /**
- * Lecturer Attendance Component
- * Manages attendance sessions, tracks student attendance, and displays analytics
- * Features: session management, real-time tracking, detailed charts, student statistics
+ * This component is designed for the following lecturer functionality:
+ * Viewing overall course attendance statistics
+ * Tracking student attendance records in real time, allowing drill-downs
+ * for specific student attendance records
+ * Contacting absent students via email
  */
 export default function Attendance() {
-  // Extract course ID from URL parameters
-  const { id } = useParams();
+  // Resource state management
 
-  // Access contexts for course and user data
-  const { currentCourse, selectCourse } = useCourse();
-  const { user } = useUser();
-
-  // Component state management
+  const { id } = useParams(); // Extract course ID from URL parameters
+  const { currentCourse, selectCourse } = useCourse(); // Access course context to get current course data
+  const { user } = useUser(); // Access user context to get user data
   const [course, setCourse] = useState(currentCourse); // Current course data
-  const [loading, setLoading] = useState(!currentCourse); // Initial course loading
+  const [loading, setLoading] = useState(!currentCourse); // Loading state for initial data
   const [dataLoading, setDataLoading] = useState(false); // Attendance data loading
   const [error, setError] = useState(null); // Error state
   const [enrolledStudents, setEnrolledStudents] = useState([]); // List of enrolled students
-  const [attendanceByDate, setAttendanceByDate] = useState({}); // Attendance records grouped by date
   const [rawAttendanceData, setRawAttendanceData] = useState([]); // Raw attendance data from API
+  const [attendanceByDate, setAttendanceByDate] = useState({}); // Attendance records grouped by date
   const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 }); // Overall statistics
   const [clickedDataPoint, setClickedDataPoint] = useState(null); // Selected chart data point
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [studentAttendanceData, setStudentAttendanceData] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null); // Selected student for detailed view
+  const [studentAttendanceData, setStudentAttendanceData] = useState([]); // Attendance data for selected student
 
+  // Load course data if not available in context
   useEffect(() => {
     if (!currentCourse && id) {
       axios
@@ -114,17 +111,23 @@ export default function Attendance() {
     }
   }, [course?.id, user?.id]);
 
-  // Memoized to avoid recalculation
+  /**
+   * Memoized computation of chart data for individual student attendance
+   * Processes student's attendance records and formats them for chart visualisation
+   * @returns {Array} Array of chart data points
+   */
   const studentChartData = useMemo(() => {
     if (!selectedStudent || !rawAttendanceData.length) {
       return [];
     }
+    // Filter records for the selected student and current course
     const studentRecords = rawAttendanceData.filter(
       (record) =>
         record.student_email === selectedStudent.email &&
         record.course_id === course?.id
     );
 
+    // Group records by date to handle multiple records per day
     const chartData = studentRecords.reduce((acc, record) => {
       const date = record.date;
       if (!acc[date]) {
@@ -134,6 +137,7 @@ export default function Attendance() {
       return acc;
     }, {});
 
+    // Transform grouped data into chart format
     return Object.entries(chartData)
       .map(([date, records]) => {
         const isPresent = records.some((record) => record.status === "present");
@@ -142,30 +146,35 @@ export default function Attendance() {
             month: "short",
             day: "numeric",
           }),
-          status: isPresent ? 1 : 0,
+          status: isPresent ? 1 : 0, // Binary for chart visualisation (tick formatter)
           statusText: isPresent ? "Present" : "Absent",
           rawDate: date,
         };
       })
-      .sort((a, b) => new Date(a.rawDate) - new Date(b.rawDate));
+      .sort((a, b) => new Date(a.rawDate) - new Date(b.rawDate)); // Sort chronologically
   }, [selectedStudent, rawAttendanceData, course?.id]);
 
   // Update student attendance data when chart data changes
   useEffect(() => {
     setStudentAttendanceData(studentChartData);
   }, [studentChartData]);
-
+  /**
+   * Memoized computation of course-wide attendance chart data
+   * Processes attendance records by date and calculates daily statistics
+   * @returns {Array} Array of daily attendance data with percentages and absent student details
+   */
   const chartData = useMemo(() => {
     if (!attendanceByDate || Object.keys(attendanceByDate).length === 0) {
       return [];
     }
 
     return Object.entries(attendanceByDate)
-      .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
+      .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB)) // Sort chronologically
       .map(([date, dayRecords]) => {
         let presentCount = 0;
         const absentStudents = [];
 
+        // Process each record for the day
         dayRecords.forEach((record) => {
           if (record.status === "present") {
             presentCount++;
@@ -176,7 +185,7 @@ export default function Attendance() {
             });
           }
         });
-
+        // Calculate daily attendance statistics
         const totalCount = dayRecords.length;
         const attendancePercentage =
           totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
@@ -194,9 +203,14 @@ export default function Attendance() {
         };
       });
   }, [attendanceByDate]);
-
+  /**
+   * Handles clicking on a student from the absent students list
+   * Sets the selected student to display their individual attendance chart
+   * @param {string} studentEmail - Email of the student to select
+   */
   const handleStudentClick = useCallback(
     (studentEmail) => {
+      // Find student data from the clicked chart data point
       const studentData = clickedDataPoint.absentStudents.find(
         (s) => s.email === studentEmail
       );
@@ -204,7 +218,11 @@ export default function Attendance() {
     },
     [clickedDataPoint]
   );
-
+  /**
+   * Custom tooltip component for the attendance chart
+   * Displays attendance percentage and absent student count when hovering over chart points
+   * Also sets the clicked data point for displaying absent student details
+   */
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -220,7 +238,7 @@ export default function Attendance() {
     }
     return null;
   };
-
+  // Loading and error states
   if (loading) return <p>Loading attendance data...</p>;
   if (!course) return <p>Course not found.</p>;
   if (error) return <p className="error-message">{error}</p>;

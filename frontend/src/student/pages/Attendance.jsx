@@ -16,13 +16,12 @@ import {
 import "../../lecturer/styles/Attendance.css";
 
 /**
- * Student Attendance Component
- * Displays a student's attendance records, statistics, and allows marking of attendance
- * Enables real-time attendance marking and location verification
+ * This component is designed for the following student functionality:
+ * Displaying their attendance records, statistics
+ * Marking of attendance for the current day - location verification included
  */
 export default function Attendance() {
-  // Extract course ID from URL parameters
-  const { id } = useParams();
+  const { id } = useParams(); // Extract course ID from URL parameters
 
   // Access course context for session and location data
   const {
@@ -33,13 +32,10 @@ export default function Attendance() {
     locationChecked, // Whether location verification is complete
   } = useCourse();
 
-  // Access user context for student information
-  const { user } = useUser();
-
-  // Component state management
-  const [course, setCourse] = useState(currentCourse);
-  const [loading, setLoading] = useState(!currentCourse);
-  const [attendanceRecords, setAttendanceRecords] = useState([]); // Student's attendance history
+  const { user } = useUser(); // Access user context for student data
+  const [course, setCourse] = useState(currentCourse); // Current course data
+  const [loading, setLoading] = useState(!currentCourse); // Loading state for initial data fetch
+  const [attendanceRecords, setAttendanceRecords] = useState([]); // Attendance records (history)
   const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 }); // Attendance statistics
   const [enrollment, setEnrollment] = useState(null); // Student's course enrollment
   const [hasMarkedToday, setHasMarkedToday] = useState(false); // Prevents duplicate attendance marking
@@ -84,15 +80,12 @@ export default function Attendance() {
         // Calculate total attendances from unique dates
         const uniqueDates = new Set(courseRecords.map((record) => record.date));
         const totalSessions = uniqueDates.size;
-
-        // Calculate attendance percentage
         let percentage;
         if (totalSessions > 0) {
           percentage = Math.round((studentPresent / totalSessions) * 100);
         } else {
           percentage = 0;
         }
-
         setStats({
           total: totalSessions,
           present: studentPresent,
@@ -111,7 +104,6 @@ export default function Attendance() {
         } else {
           percentage = 0;
         }
-
         setStats({
           total: individualTotal,
           present: studentPresent,
@@ -127,7 +119,7 @@ export default function Attendance() {
       console.error("Failed to fetch attendance data:", error);
     }
   };
-
+  // Load course data if not available in context
   useEffect(() => {
     if (!currentCourse && id) {
       axios
@@ -141,8 +133,10 @@ export default function Attendance() {
     }
   }, [id, currentCourse, selectCourse]);
 
+  // Fetch enrollment and initial attendance data when course and user are available
   useEffect(() => {
     if (course && user) {
+      // First, get the student's enrollment record for this course (required for marking attendance)
       axios
         .get("http://localhost:8000/enrollments/")
         .then((res) => {
@@ -154,7 +148,7 @@ export default function Attendance() {
         })
         .catch((error) => console.error("Failed to fetch enrollment:", error));
 
-      // Initial fetch
+      // Initial fetch of attendance data
       fetchAttendanceData();
     }
   }, [course, user]);
@@ -183,17 +177,23 @@ export default function Attendance() {
       };
     }
   }, [course, user]);
-
+  /**
+   * Marks student attendance for the current date.
+   * Sends a POST request to create a "present" attendance record
+   * Shows success/error messages and refreshes data after marking
+   */
   async function markAttendance() {
     try {
+      // Get today's date in ISO format (YYYY-MM-DD)
       const today = new Date().toISOString().split("T")[0];
 
+      // Prepare attendance data payload for API
       const attendanceData = {
         enrollment: enrollment.id,
         date: today,
         status: "present",
       };
-
+      // Submit attendance record to API
       const response = await axios.post(
         "http://localhost:8000/attendance/student/",
         attendanceData
@@ -202,7 +202,7 @@ export default function Attendance() {
       if (response.status === 201) {
         alert("Attendance marked successfully!");
 
-        // Refresh the attendance data to show updated records
+        // Refresh the attendance data to show updated records and statistics
         fetchAttendanceData();
       }
     } catch (error) {
@@ -210,21 +210,24 @@ export default function Attendance() {
       alert("Failed to mark attendance. Please try again.");
     }
   }
-
-  // Memoized chart data to prevent unnecessary recalculations
+  /**
+   * Memoized computation of chart data for student attendance visualisation
+   * Transforms attendance records into format suitable for chart visualisation
+   * @returns {Array} Array of chart data points
+   */
   const chartData = useMemo(() => {
     return attendanceRecords
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .sort((a, b) => new Date(a.date) - new Date(b.date)) // Sort chronologically
       .map((record) => ({
         date: new Date(record.date).toLocaleDateString("en-GB", {
           month: "short",
           day: "numeric",
         }),
-        attendance: record.status === "present" ? 1 : 0,
+        attendance: record.status === "present" ? 1 : 0, // Binary for chart visualisation (tick formatter)
         status: record.status,
       }));
   }, [attendanceRecords]);
-
+  // Loading and error states
   if (loading) return <p>Loading attendance...</p>;
   if (!course) return <p>Course not found.</p>;
 
