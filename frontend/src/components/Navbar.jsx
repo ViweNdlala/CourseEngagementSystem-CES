@@ -37,11 +37,6 @@ function Navbar() {
           </NavLink>
         </li>
         <li>
-          <NavLink to={getCourseRoute("polls", currentCourse.id)}>
-            Polls
-          </NavLink>
-        </li>
-        <li>
           <NavLink to={getCourseRoute("points", currentCourse.id)}>
             Points
           </NavLink>
