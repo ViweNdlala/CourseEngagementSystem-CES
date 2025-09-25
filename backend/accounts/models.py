@@ -1,7 +1,6 @@
 from django.db import models
 import bcrypt
 
-
 """
  Class: User
  Purpose: Represents a system user with authentication 
