@@ -4,9 +4,18 @@ import Navbar from "./Navbar.jsx";
 import { Outlet } from "react-router-dom";
 import "./Layout.css";
 
+/**
+ * Layout component for providing the main application shell structure.
+ * 
+ * Responsive sidebar navigation with mobile toggle
+ */
 function Layout() {
   const [isNavbarOpen, setIsNavbarOpen] = useState(false);
 
+  /**
+   * Toggles the sidebar navigation visibility.
+   * Used by both header toggle button and mobile overlay.
+   */
   const toggleNavbar = () => {
     setIsNavbarOpen(!isNavbarOpen);
   };

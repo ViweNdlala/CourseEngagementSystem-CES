@@ -1,8 +1,14 @@
 from django.db import models
 from courses.models import Enrollment
 
-# Create your models here.
 class Attendance(models.Model):
+    """
+    Model to track student attendance for courses.
+    
+    Maintains attendance records for students in specific courses
+    with duplicate prevention.
+    """
+    
     id = models.AutoField(primary_key=True)
     enrollment = models.ForeignKey(
         Enrollment,
@@ -15,11 +21,13 @@ class Attendance(models.Model):
         choices=[('present', 'Present'), ('absent', 'Absent')],
         default='present'
     )
-    marked_at = models.DateTimeField(auto_now_add=True)  # Automatically set when created
+    marked_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        unique_together = ('enrollment', 'date')  # prevents duplicate attendance on same day
+        """prevents duplicate attendance and orders by date (most recent first)"""
+        unique_together = ('enrollment', 'date')
         ordering = ['-date']
     
     def __str__(self):
+        """Return human-readable attendance record representation."""
         return f"{self.enrollment.student.name} - {self.enrollment.course.title} - {self.date} ({self.status})"

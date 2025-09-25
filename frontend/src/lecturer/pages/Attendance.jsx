@@ -22,20 +22,20 @@ import "../styles/Attendance.css";
 export default function Attendance() {
   // Resource state management
 
-  const { id } = useParams(); // Extract course ID from URL parameters
-  const { currentCourse, selectCourse } = useCourse(); // Access course context to get current course data
+  const { id } = useParams();
+  const { currentCourse, selectCourse } = useCourse();
   const { user } = useUser(); // Access user context to get user data
   const [course, setCourse] = useState(currentCourse); // Current course data
-  const [loading, setLoading] = useState(!currentCourse); // Loading state for initial data
-  const [dataLoading, setDataLoading] = useState(false); // Attendance data loading
-  const [error, setError] = useState(null); // Error state
-  const [enrolledStudents, setEnrolledStudents] = useState([]); // List of enrolled students
+  const [loading, setLoading] = useState(!currentCourse);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [rawAttendanceData, setRawAttendanceData] = useState([]); // Raw attendance data from API
   const [attendanceByDate, setAttendanceByDate] = useState({}); // Attendance records grouped by date
-  const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 }); // Overall statistics
-  const [clickedDataPoint, setClickedDataPoint] = useState(null); // Selected chart data point
-  const [selectedStudent, setSelectedStudent] = useState(null); // Selected student for detailed view
-  const [studentAttendanceData, setStudentAttendanceData] = useState([]); // Attendance data for selected student
+  const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 });
+  const [clickedDataPoint, setClickedDataPoint] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null); 
+  const [studentAttendanceData, setStudentAttendanceData] = useState([]);
 
   // Load course data if not available in context
   useEffect(() => {

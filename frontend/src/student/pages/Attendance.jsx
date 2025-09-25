@@ -18,30 +18,31 @@ import "../../lecturer/styles/Attendance.css";
 /**
  * This component is designed for the following student functionality:
  * Displaying their attendance records, statistics
- * Marking of attendance for the current day - location verification included
+ * Marking of attendance for the current day - location verification included.
  */
 export default function Attendance() {
-  const { id } = useParams(); // Extract course ID from URL parameters
+  // Resource state management
+  const { id } = useParams();
 
   // Access course context for session and location data
   const {
     currentCourse,
     selectCourse,
-    activeSession, // Current attendance session status
-    withinGeofence, // Whether student is within required location
-    locationChecked, // Whether location verification is complete
+    activeSession,
+    withinGeofence,
+    locationChecked,
   } = useCourse();
+  const { user } = useUser();
+  const [course, setCourse] = useState(currentCourse);
+  const [loading, setLoading] = useState(!currentCourse);
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 });
+  const [enrollment, setEnrollment] = useState(null);
+  const [hasMarkedToday, setHasMarkedToday] = useState(false);
 
-  const { user } = useUser(); // Access user context for student data
-  const [course, setCourse] = useState(currentCourse); // Current course data
-  const [loading, setLoading] = useState(!currentCourse); // Loading state for initial data fetch
-  const [attendanceRecords, setAttendanceRecords] = useState([]); // Attendance records (history)
-  const [stats, setStats] = useState({ total: 0, present: 0, percentage: 0 }); // Attendance statistics
-  const [enrollment, setEnrollment] = useState(null); // Student's course enrollment
-  const [hasMarkedToday, setHasMarkedToday] = useState(false); // Prevents duplicate attendance marking
-
-  // Determine if attendance button should be disabled
-  // Requires: active session + correct location + location verified + not yet marked today
+  /** Determine if attendance button should be disabled.
+   * Requires: active session + correct location + location verified + not yet marked today
+   */
   const isButtonDisabled =
     !activeSession || !withinGeofence || !locationChecked || hasMarkedToday;
 
