@@ -11,12 +11,12 @@ import "../styles/Preparation.css";
 export default function Preparation() {
   // Resource state management
 
-  const { id } = useParams(); // Extract course ID from URL parameters
-  const { currentCourse, selectCourse } = useCourse(); // Access course context for current course state
-  const [course, setCourse] = useState(currentCourse); // Current course data
-  const [loading, setLoading] = useState(!currentCourse); // Loading state for initial data
-  const [weeks, setWeeks] = useState([]); // Array of preparation weeks
-  const [showCreateWeek, setShowCreateWeek] = useState(false); // Create visibility for the week form
+  const { id } = useParams();
+  const { currentCourse, selectCourse } = useCourse();
+  const [course, setCourse] = useState(currentCourse);
+  const [loading, setLoading] = useState(!currentCourse);
+  const [weeks, setWeeks] = useState([]);
+  const [showCreateWeek, setShowCreateWeek] = useState(false);
   // Data for the new week form
   const [newWeek, setNewWeek] = useState({
     week_number: "",
@@ -24,7 +24,7 @@ export default function Preparation() {
   }); 
   const [showResourceForm, setShowResourceForm] = useState(null); // Which week to show resource form for
   const [editingResource, setEditingResource] = useState(null); // Resource being edited
-  const [resourceData, setResourceData] = useState({ title: "", url: "" }); // Data for the resource form
+  const [resourceData, setResourceData] = useState({ title: "", url: "" });
 
   //Load course data if not available in context
   useEffect(() => {

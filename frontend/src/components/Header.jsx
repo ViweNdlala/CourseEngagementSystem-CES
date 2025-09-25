@@ -4,6 +4,17 @@ import { useUser } from "../contexts/UserContext";
 import { useCourse } from "../contexts/CourseContext";
 import "./Header.css";
 
+/**
+ * Header component displaying the application navbar, logo, and user menu.
+ * 
+ * Features:
+ * - Responsive navbar toggle for mobile
+ * - User menu with logout functionality
+ * - Navigation integration with role-based routing
+ * 
+ * @param {Object} props Component props
+ * @param {Function} props.toggleNavbar Function to toggle sidebar navigation
+ */
 function Header({ toggleNavbar }) {
   const { getRoleBasedRoute, user, logout } = useUser();
   const { currentCourse } = useCourse();
@@ -40,9 +51,6 @@ function Header({ toggleNavbar }) {
             </button>
           </div>
         </div>
-        <button className="notification">
-          <i className="bx bxs-bell"></i>
-        </button>
       </div>
     </header>
   );

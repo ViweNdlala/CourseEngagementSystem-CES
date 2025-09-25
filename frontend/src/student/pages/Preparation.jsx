@@ -5,15 +5,16 @@ import axios from "axios";
 import "../../lecturer/styles/Preparation.css";
 
 /**
- * This component is designed for displaying course preparation resources:
+ * This component is designed for displaying weekly preparation resources
  */
 export default function Preparation() {
-  
-  const { id } = useParams(); // Extract course ID from URL parameters
-  const { currentCourse, selectCourse } = useCourse();   // Access course context for current course state
-  const [course, setCourse] = useState(currentCourse); // Current course data
-  const [weeks, setWeeks] = useState([]); // Array of preparation weeks
-  const [loading, setLoading] = useState(!currentCourse); // Loading state for initial data fetch
+  // Resource state management
+
+  const { id } = useParams();
+  const { currentCourse, selectCourse } = useCourse(); 
+  const [course, setCourse] = useState(currentCourse);
+  const [weeks, setWeeks] = useState([]);
+  const [loading, setLoading] = useState(!currentCourse);
 
   //Load course data if not already available in context
   useEffect(() => {
