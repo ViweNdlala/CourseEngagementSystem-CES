@@ -31,23 +31,23 @@ export const CourseProvider = ({ children }) => {
     if (storedGeofence) setWithinGeofence(JSON.parse(storedGeofence));
     if (storedChecked) setLocationChecked(JSON.parse(storedChecked));
   }, []);
-
+   // Persist current course to localStorage
   useEffect(() => {
     if (currentCourse) localStorage.setItem("currentCourse", JSON.stringify(currentCourse));
     else localStorage.removeItem("currentCourse");
   }, [currentCourse]);
-
+   // Persist active session to localStorage
   useEffect(() => {
     if (activeSession) localStorage.setItem("activeSession", JSON.stringify(activeSession));
     else localStorage.removeItem("activeSession");
   }, [activeSession]);
-
+  // Persist geofence state to localStorage
   useEffect(() => {
     if (withinGeofence !== null) localStorage.setItem("withinGeofence", JSON.stringify(withinGeofence));
     else localStorage.removeItem("withinGeofence");
   }, [withinGeofence]);
-
-   useEffect(() => {
+  // Persist location check flag
+  useEffect(() => {
     localStorage.setItem("locationChecked", JSON.stringify(locationChecked));
   }, [locationChecked]);
 
