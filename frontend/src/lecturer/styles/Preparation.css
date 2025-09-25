@@ -7,6 +7,7 @@
 .preparation-header{
   display: flex;
   flex-direction: column;
+  color: #295474;
 }
 .preparation-header h1 {
   padding-bottom: 50px;

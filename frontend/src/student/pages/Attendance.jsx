@@ -232,12 +232,7 @@ export default function Attendance() {
   if (loading) return <p>Loading attendance...</p>;
   if (!course) return <p>Course not found.</p>;
 
-  let sessionMessage;
-  if (activeSession) {
-    sessionMessage = <p> Active session ID {activeSession.id}</p>;
-  } else {
-    sessionMessage = <p style={{ color: "red" }}>No active session</p>;
-  }
+
 
   let geofenceWarning = null;
   if (activeSession && locationChecked && !withinGeofence) {
@@ -252,7 +247,6 @@ export default function Attendance() {
     <div className="attendance-container">
       <div className="attendance-header">
         <h1>My Attendance</h1>
-        {sessionMessage}
       </div>
 
       <div className="mark-attendance-container">

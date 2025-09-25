@@ -38,9 +38,6 @@ function Header() {
             </button>
           </div>
         </div>
-        <button className="notification">
-          <i className="bx bxs-bell"></i>
-        </button>
       </div>
     </header>
   );

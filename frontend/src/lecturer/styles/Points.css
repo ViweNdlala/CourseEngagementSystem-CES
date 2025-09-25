@@ -1,12 +1,11 @@
 .lecturer-container {
   padding: 20px;
-  font-family: Arial, sans-serif;
 }
 
 /* General headings */
 .lecturer-container h2 {
   margin-bottom: 12px;
-  color: #333;
+  color: #295474;
 }
 
 /* Pending requests list */

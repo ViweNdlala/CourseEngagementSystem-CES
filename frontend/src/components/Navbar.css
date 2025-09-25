@@ -1,16 +1,35 @@
 .navbar {
   width: 200px;
   padding: 2rem 1rem;
-  background: #295574;
+  background: linear-gradient(135deg, #295574 0%, #3a6b8a 50%, #4b7fa0 100%);
+  border-radius: 10px;
+  box-shadow: 
+    0 10px 30px rgba(41, 85, 116, 0.2),
+    0 4px 8px rgba(41, 85, 116, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   top: 150px;
   position: fixed;
   left: 0;
   height: calc(100vh - 150px);
   z-index: 100;
   transition: transform 0.3s ease;
+  overflow: hidden;
   overflow-y: auto;
 }
-
+.navbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.05) 50%, 
+    rgba(255, 255, 255, 0.02) 100%);
+  pointer-events: none;
+}
 .navbar-overlay {
   position: fixed;
   top: 0;
@@ -55,16 +74,44 @@
   flex-direction: column;
   gap: 0.5rem;
   font-size: 1.3rem;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
 }
-
+.nav-list li {
+  position: relative;
+}
 .nav-list a {
   display: block;
   text-decoration: none;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.9);
   padding: 1rem 1.5rem;
-  border-radius: 4px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
   border: 1px solid transparent;
 }
-.nav-list a:hover {
-  text-decoration: underline;
+
+.nav-list a::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.1), 
+    transparent);
+  transition: left 0.5s ease;
 }
+
+.nav-list a:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+

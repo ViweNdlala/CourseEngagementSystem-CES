@@ -3,6 +3,9 @@
   max-width: 1200px;
   margin: 0 auto;
 }
+.attendance-header{
+  color: #295574;
+}
 .mark-attendance-container {
   display: grid;
   grid-template-columns: 1fr auto;
