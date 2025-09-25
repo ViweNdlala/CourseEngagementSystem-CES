@@ -5,10 +5,23 @@ import { useUser } from "../../contexts/UserContext";
 
 axios.defaults.baseURL = "http://127.0.0.1:8000";
 
+/**
+ * Leaderboard component
+ * Displays student rankings for a course.
+ * - Fetches leaderboard data from backend .
+ * - Lecturers see a reverse-sorted leaderboard (lowest to highest).
+ * - Students see normal ordering (highest to lowest).
+ */
+
 function Leaderboard({ courseId }) {
   const { user } = useUser();
   const [leaders, setLeaders] = useState([]);
-
+  
+   /**
+     * Fetch leaderboard data from backend.
+     * If a courseId is passed, filter results by course.
+     * Sort order changes depending on whether the user is a student or lecturer.
+     */
   useEffect(() => {
     const fetchLeaders = async () => {
       try {

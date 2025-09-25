@@ -5,10 +5,19 @@ import { useUser } from "../../contexts/UserContext";
 import "../../components/Header.css"; 
 import axios from "axios";
 
+
+/**
+ * Header component
+ * - Displays the app logo, welcome message, and user menu.
+ * - Provides navigation to role-based home pages.
+ * - Handles user logout .
+ */
+
 function Header() {
   const { getRoleBasedRoute, user, logout } = useUser();
   const navigate = useNavigate();
 
+  // Logs user out and redirects to landing page
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -41,7 +50,12 @@ function Header() {
   );
 }
 
-//displays all courses taught by the logged-in lecturer
+/**
+ * LecturerHome component
+ * - Shows all courses taught by the currently logged-in lecturer.
+ * - Fetches courses from the backend and filters them by lecturer ID.
+ * - Handles cases where no lecturer is logged in or no courses are found.
+ */
 function LecturerHome() {
   const [lecturer, setLecturer] = useState(null);
   const [courses, setCourses] = useState([]);

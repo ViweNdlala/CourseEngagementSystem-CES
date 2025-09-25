@@ -5,6 +5,11 @@ import { useUser } from "../../contexts/UserContext";
 import "../../components/Header.css";
 import axios from "axios";
 
+/**
+ * Header component
+ * - Displays logo, welcome message, and user menu.
+ * - Handles logout and role-based navigation.
+ */
 function Header() {
   const { getRoleBasedRoute, user, logout } = useUser();
   const navigate = useNavigate();

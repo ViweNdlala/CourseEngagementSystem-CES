@@ -4,7 +4,9 @@ import { useCourse } from "../../contexts/CourseContext";
 import axios from "axios";
 import "../styles/Course.css"
 
-//handles a lecturer managing a specific course
+// this class Handles lecturer view of a single course:
+// Loads course details and active session
+// Lets lecturer start new geofence sessions
 function LecturerCourseHome() {
   const { id } = useParams(); // course id
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -40,6 +42,7 @@ function LecturerCourseHome() {
   };
 
   // Start a new geofence session
+  // Uses browser geolocation API to get lecturer's current position
   const startSession = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
@@ -71,6 +74,7 @@ function LecturerCourseHome() {
         console.error(err.response?.data || err);
         alert(" Failed to start session");
       }
+      // Handle location errors
     }, err => alert("Location error: " + err.message), 
     { enableHighAccuracy: true ,timeout: 10000, maximumAge: 0});
   };

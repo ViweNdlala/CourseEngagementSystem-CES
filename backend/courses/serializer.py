@@ -2,21 +2,37 @@ from rest_framework import serializers
 from .models import Course, Enrollment, GeofenceSession, GeofenceAccessLog
 from accounts.models import User  
 
-# Serializes Course model for API
+
 class CourseSerializer(serializers.ModelSerializer):
+    """ 
+    Serializer for the Course model.
+    Converts Course instances to JSON and vice versa.
+    Exposes course metadata such as title, description, and lecturer ownership.
+    """
+
     class Meta:
         model = Course
         fields = ['id', 'title', 'description', 'lecturer']
 
-# Serializes Enrollment model for API
+
 class EnrollmentSerializer(serializers.ModelSerializer):
+    """ 
+    Serializer for the Enrollment model.
+    Manages the relationship between students and courses,
+    ensuring that enrollment records can be created, read, or updated via API.
+    """
     class Meta:
         model = Enrollment
         fields = ['id', 'student', 'course']
 
-# Serializes GeofenceSession model for API
-# Converts Decimal latitude and longitude to float for JSON
+
 class GeofenceSessionSerializer(serializers.ModelSerializer):
+    """ 
+    Serializer for the GeofenceSession model.
+    Represents active or past geofenced sessions tied to a course.
+    Converts latitude and longitude to float for JSON compatibility,
+    and exposes details such as radius, start time, and session status.
+    """
     latitude = serializers.FloatField()
     longitude = serializers.FloatField()
 
@@ -29,8 +45,13 @@ class GeofenceSessionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'is_active', 'created_at']
 
-# Serializes GeofenceAccessLog for API
+
 class GeofenceAccessLogSerializer(serializers.ModelSerializer):
+    """ 
+    Serializer for the GeofenceAccessLog model.
+    Captures every attempt a student makes to join a geofenced session,
+    storing their location and timestamp for auditing and validation purposes.
+    """
     latitude = serializers.FloatField(allow_null=True)
     longitude = serializers.FloatField(allow_null=True)
 
@@ -41,6 +62,12 @@ class GeofenceAccessLogSerializer(serializers.ModelSerializer):
 
 # Serializer for checking geofence access by a student
 class GeofenceAccessCheckSerializer(serializers.Serializer):
+    """ 
+    Custom serializer for validating student access to a geofenced session.
+    Accepts course ID and student coordinates, then verifies
+    whether the student falls within the defined geofence.
+    Used before granting access to session-related features.
+    """
     course_id = serializers.IntegerField()
     latitude = serializers.FloatField()
     longitude = serializers.FloatField()

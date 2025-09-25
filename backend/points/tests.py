@@ -10,12 +10,17 @@ from .models import PointRequest, Leaderboard
 
 # Models tests
 class PointRequestModelTest(TestCase):
+    """
+    Tests for the PointRequest model.
+    Validates automatic point assignment, manual overrides,
+    and correct string representation.
+    """
     def setUp(self):
         self.student = User.objects.create(name="Student 1", email="stud1@test.com")
         self.course = Course.objects.create(title="Math", description="Basics", lecturer=self.student)
 
     def test_points_auto_set(self):
-        #Verify automatic points assignment works for both request types.
+        #Ensure default points are correctly assigned for questions and answers
         pr_question = PointRequest.objects.create(
             student=self.student, course=self.course, request_type="question", description="Q1", session_id=1
         )
@@ -34,6 +39,7 @@ class PointRequestModelTest(TestCase):
         self.assertEqual(pr.points, 50)
 
     def test_str_representation(self):
+        #Ensure the model’s string output is descriptive
         pr = PointRequest.objects.create(
             student=self.student, course=self.course, request_type="question", description="Q2", session_id=4
         )
@@ -43,6 +49,11 @@ class PointRequestModelTest(TestCase):
 
 # API test
 class PointRequestAPITest(TestCase):
+    """
+    Integration tests for PointRequest API endpoints.
+    Covers creation limits, lecturer approval/decline flows
+    and notification handling.
+    """
     def setUp(self):
         self.client = APIClient()
         self.lecturer = User.objects.create(name="Lecturer", email="lecturer@test.com")
@@ -63,24 +74,27 @@ class PointRequestAPITest(TestCase):
         return self.client.post(url, data, format="json")
 
     def test_create_point_request_success(self):
+        #Ensure students can create a valid point request
         response = self._create_point_request()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         pr = PointRequest.objects.get(student=self.student, course=self.course, session_id=1)
         self.assertEqual(pr.points, 10)
 
     def test_create_point_request_missing_description(self):
-        #Should fail if description is empty.
+        #Ensure request creation fails without description
         response = self._create_point_request(description="")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("description", response.json())
 
     def test_cannot_exceed_two_requests_per_session(self):
+        #Ensure students cannot submit more than two requests per session.
         self._create_point_request(session_id=99)
         self._create_point_request(session_id=99)
         response = self._create_point_request(session_id=99)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_approve_point_request_success(self):
+        #Ensure lecturer can approve a point request and update leaderboard
         pr = PointRequest.objects.create(
             student=self.student, course=self.course,
             request_type="answer", description="Answer", session_id=2
@@ -94,7 +108,7 @@ class PointRequestAPITest(TestCase):
         self.assertEqual(leaderboard.total_points, 20)
 
     def test_approve_point_request_wrong_lecturer_denied(self):
-        #Another lecturer cannot approve.
+        #Ensure only the correct lecturer can approve requests.
         other = User.objects.create(name="Other", email="other@test.com")
         pr = PointRequest.objects.create(
             student=self.student, course=self.course,
@@ -106,6 +120,7 @@ class PointRequestAPITest(TestCase):
         self.assertIn("error", response.json())
 
     def test_decline_point_request(self):
+        #Ensure lecturer can decline a request
         pr = PointRequest.objects.create(
             student=self.student, course=self.course,
             request_type="question", description="Decline", session_id=3
@@ -117,6 +132,7 @@ class PointRequestAPITest(TestCase):
         self.assertTrue(pr.declined)
 
     def test_mark_notified(self):
+        #Ensure requests can be marked as notified for the student
         pr = PointRequest.objects.create(
             student=self.student, course=self.course, request_type="question",
             description="Notify", session_id=4
@@ -129,6 +145,7 @@ class PointRequestAPITest(TestCase):
         self.assertTrue(pr.notification_pending)
 
     def test_dismiss_notification(self):
+        #Ensure notifications can be dismissed once read
         pr = PointRequest.objects.create(
             student=self.student, course=self.course, request_type="question",
             description="Dismiss", session_id=5, is_notified=True, notification_pending=True
@@ -141,8 +158,14 @@ class PointRequestAPITest(TestCase):
 
 
 
-# Students without points test
+
 class StudentsWithoutPointsViewTest(TestCase):
+    """
+    Tests for endpoint returning students with no leaderboard points.
+    Ensures only enrolled students are considered and invalid course lookups
+    return correct errors.
+    """
+
     def setUp(self):
         self.client = APIClient()
         self.lecturer = User.objects.create(name="Lecturer", email="lecturer@test.com")
@@ -151,6 +174,7 @@ class StudentsWithoutPointsViewTest(TestCase):
         Enrollment.objects.create(student=self.student, course=self.course)
 
     def test_students_without_points(self):
+        #Ensure students with zero points are returned in the response
         url = reverse("students-without-points")
         params = {"lecturer_id": self.lecturer.id, "course_id": self.course.id}
         response = self.client.get(url, params)
@@ -160,6 +184,7 @@ class StudentsWithoutPointsViewTest(TestCase):
         self.assertEqual(data[0]["id"], self.student.id)
 
     def test_students_without_points_invalid_course(self):
+        #Ensure invalid course requests return 404
         url = reverse("students-without-points")
         params = {"lecturer_id": self.lecturer.id, "course_id": 999}
         response = self.client.get(url, params)
@@ -168,6 +193,10 @@ class StudentsWithoutPointsViewTest(TestCase):
 
 # Leaderboard test
 class LeaderboardViewTest(TestCase):
+    """
+    Tests for the Leaderboard API.
+    Ensures correct ranking and points are returned for students in a course.
+    """
     def setUp(self):
         self.client = APIClient()
         self.lecturer = User.objects.create(name="Lecturer", email="lecturer@test.com")
@@ -176,6 +205,7 @@ class LeaderboardViewTest(TestCase):
         self.lb = Leaderboard.objects.create(student=self.student, course=self.course, total_points=30)
 
     def test_leaderboard_list(self):
+        #nsure leaderboard entries are retrieved correctly
         url = reverse("leaderboard")
         response = self.client.get(url, {"course": self.course.id})
         self.assertEqual(response.status_code, 200)
