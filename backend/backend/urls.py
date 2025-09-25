@@ -3,13 +3,14 @@ from django.contrib import admin
 from django.urls import path, include
 from accounts.views import UserView
 from courses.views import CourseView , EnrollmentView ,CourseDetailView,GeofenceSessionCreateView, GeofenceActiveView,GeofenceCheckAccessView
-from attendance.views import StudentAttendanceView, LecturerAttendanceView, AttendanceDeleteView
+from attendance.views import StudentAttendanceView, LecturerAttendanceView
 from preparation.views import PreparationWeekListView, PreparationWeekDetailView, PreparationResourceListView, PreparationResourceDetailView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', UserView.as_view(), name = "user"),
+    path('accounts/', include('accounts.urls')),
     path('enrollments/', EnrollmentView.as_view(), name='enroll-student'), 
     path('courses/', CourseView.as_view(), name='courses'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
@@ -23,7 +24,6 @@ urlpatterns = [
 
     path('attendance/student/', StudentAttendanceView.as_view(), name='student_attendance'),
     path('attendance/lecturer/', LecturerAttendanceView.as_view(), name='lecturer_attendance'),
-    path('attendance/<int:pk>/', AttendanceDeleteView.as_view(), name='attendance_delete'),
    
     path('geofence/sessions/', GeofenceSessionCreateView.as_view(), name='geofence-sessions'),
     path('geofence/sessions/active/', GeofenceActiveView.as_view(), name='geofence-active-session'),

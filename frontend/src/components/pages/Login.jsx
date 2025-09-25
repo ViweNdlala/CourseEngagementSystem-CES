@@ -1,107 +1,179 @@
-// Class to allow user login
+/**
+ * Login.jsx
+ * 
+ * Component: Login
+ * Purpose: Provides a login form where users can authenticate using email and password. 
+ * Handles CSRF token setup, form submission, and navigation after login. 
+ */
 
-import {Link, useNavigate} from 'react-router-dom';
-import {useState, useEffect} from 'react';
-import axios from 'axios';
-import '../styles/Login.css';
-import { useUser } from '../../contexts/UserContext';
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import "../styles/Login.css";
+import { useUser } from "../../contexts/UserContext";
 
-// Login function: welcome page with login
-function Login(){
+// Configure axios to always send credentials (cookies)
+axios.defaults.withCredentials = true;
 
-    // Variables
-    const [users, setUsers] = useState([]);
-
+function Login() {
+    // Component state for form inputs
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+
+    // CSRF token state
+    const [csrfToken, setCsrfToken] = useState("");
+
+    // Navigation hook
     const navigate = useNavigate();
-    const {login} = useUser();
 
+    // Access login function from UserContext
+    const { login } = useUser();
 
-    // Fetch user accounts from the backend
-    useEffect( () =>{
-        axios
-            .get("http://localhost:8000")
-            .then((res)=> setUsers(res.data))
-            .catch((err) => alert(err));
+    /**
+     * useEffect: Fetch CSRF token on component mount
+     */
+    useEffect(() => {
+        const getCsrfToken = async () => {
+            try {
+                const response = await axios.get("http://localhost:8000/accounts/csrf/");
+                setCsrfToken(response.data.csrfToken);
+
+                // Attach CSRF token to axios default headers
+                axios.defaults.headers.common["X-CSRFToken"] = response.data.csrfToken;
+            } catch (error) {
+                console.error("Error fetching CSRF token:", error);
+            }
+        };
+
+        getCsrfToken();
     }, []);
 
+    /**
+     * handleLogin: Sends login request to backend
+     * - Validates form inputs
+     * - Submits login data
+     * - Stores user info in context and localStorage
+     * - Navigates user based on role
+     */
+    async function handleLogin() {
+        if (!email || !password) {
+            alert("Please enter both email and password");
+            return;
+        }
 
-    // Function to hadle the user login
-    function handleLogin() {
+        try {
+            const response = await axios.post(
+                "http://localhost:8000/accounts/login/",
+                {
+                    email: email.trim(),
+                    password: password, // Plain text; backend handles hashing
+                },
+                {
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
 
-        // Look for user with entered email and password
-        const foundUser = users.find((user) => {
-            return user.email === email && user.password === password;
-        });
+            const foundUser = response.data;
 
-        if(foundUser){
-            login(foundUser);
-            localStorage.setItem("loggedInUser", JSON.stringify(foundUser));
-            // Direct user to home depending on role
-            if(foundUser.role == "lecturer"){
-                navigate("/lecturer/home");
+            if (foundUser && !foundUser.error) {
+                // Save user in context and localStorage
+                login(foundUser);
+                localStorage.setItem("loggedInUser", JSON.stringify(foundUser));
+
+                // Navigate based on role
+                if (foundUser.role === "lecturer") {
+                    navigate("/lecturer/home");
+                } else {
+                    navigate("/student/home");
+                }
+
+                // Clear inputs
                 setEmail("");
                 setPassword("");
-            }else{
-                setEmail("");
-                setPassword("");
-                navigate("/student/home");
             }
-        }else{
-            alert("Invalid email or passoword!");
+        } catch (error) {
+            // Handle specific errors
+            if (error.response && error.response.status === 401) {
+                alert("Invalid email or password!");
+            } else {
+                alert("Login failed. Please try again.");
+                console.error("Login error:", error);
+            }
+
+            // Reset form
             setEmail("");
             setPassword("");
         }
-
     }
-  
 
-  return (
-    <div className="login-page">
-      <div className="login-header">
-        <h1>
-          <Link className="head-text" to="/">
-            Mavix
-          </Link>
-        </h1>
-      </div>
+    /**
+     * handleSubmit: Prevents default form submit and triggers handleLogin
+     */
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        handleLogin();
+    };
 
-      <div className="login-form-container">
-        <div className="login-welcome">
-          <h1>Welcome to Mavix</h1>
-          <h2>Where Every Lesson Comes Alive</h2>
+    /**
+     * Component JSX
+     */
+    return (
+        <div className="login-page">
+            {/* Header */}
+            <div className="login-header">
+                <h1>
+                    <Link className="head-text" to="/">
+                        Mavix
+                    </Link>
+                </h1>
+            </div>
+
+            {/* Login form container */}
+            <div className="login-form-container">
+                <div className="login-welcome">
+                    <h1>Welcome to Mavix</h1>
+                    <h2>Where Every Lesson Comes Alive</h2>
+                </div>
+
+                {/* Login form */}
+                <form onSubmit={handleSubmit} className="form-inputs">
+                    {/* Email input */}
+                    <div className="label-form">
+                        <label className="email-label">Email</label>
+                        <input
+                            className="login-input"
+                            type="email"
+                            value={email}
+                            placeholder="Enter email"
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    {/* Password input */}
+                    <div className="label-form">
+                        <label className="password-label">Password</label>
+                        <input
+                            className="login-input"
+                            type="password"
+                            value={password}
+                            placeholder="Enter password"
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    {/* Submit button */}
+                    <button type="submit" className="login-button">
+                        Login
+                    </button>
+                </form>
+            </div>
         </div>
-
-        <div className="form-inputs">
-          <div className="label-form">
-            <label className="email-label">Email</label>
-            <input
-              className="login-input"
-              type="email"
-              value={email}
-              placeholder="Enter email"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="label-form">
-            <label className="password-label">Password</label>
-            <input
-              className="login-input"
-              type="password"
-              value={password}
-              placeholder="Enter password"
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <button className="login-button" onClick={handleLogin}>
-            Login
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default Login;

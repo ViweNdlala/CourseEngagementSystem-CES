@@ -1,4 +1,13 @@
-/* Container */
+/* ==========================================================
+   Quizzes Stylesheet
+   Purpose: Provides styling for the quizzes page, including
+   quiz cards, headers, questions, answers, and results.
+   ========================================================== */
+
+
+/* -----------------------------
+   Main Container
+   ----------------------------- */
 .quizzes {
   max-width: 800px;
   margin: 2rem auto;
@@ -6,10 +15,12 @@
   color: #333;
 }
 
-/* Headings */
+
+/* -----------------------------
+   Headings
+   ----------------------------- */
 .quizzes h2 {
   text-align: center;
-  color: #2c3e50;
   color: black;
 }
 
@@ -18,7 +29,10 @@
   margin: 0.5rem 0;
 }
 
-/* Quiz card */
+
+/* -----------------------------
+   Quiz Card
+   ----------------------------- */
 .quiz-card {
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -28,7 +42,10 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Quiz header (clickable) */
+
+/* -----------------------------
+   Quiz Header (Clickable Area)
+   ----------------------------- */
 .quiz-header {
   cursor: pointer;
   padding-bottom: 0.6rem;
@@ -38,7 +55,10 @@
   gap: 0.2rem;
 }
 
-/* Quiz settings info (Attempts, Timer) */
+
+/* -----------------------------
+   Quiz Settings (Attempts, Timer)
+   ----------------------------- */
 .quiz-settings {
   margin-top: 0.5rem;
   font-size: 0.9rem;
@@ -54,12 +74,18 @@
   font-weight: 500;
 }
 
-/* Body of expanded quiz */
+
+/* -----------------------------
+   Expanded Quiz Body
+   ----------------------------- */
 .quiz-body {
   padding-top: 1rem;
 }
 
-/* Questions */
+
+/* -----------------------------
+   Questions
+   ----------------------------- */
 .quiz-question {
   margin-top: 1rem;
   padding: 0.8rem;
@@ -74,7 +100,10 @@
   font-weight: 600;
 }
 
-/* Answer list */
+
+/* -----------------------------
+   Answer List
+   ----------------------------- */
 .answer-list {
   list-style: none;
   padding-left: 0;
@@ -97,7 +126,10 @@
   accent-color: #295474;
 }
 
-/* Correct / Wrong answers after submission */
+
+/* -----------------------------
+   Answer Feedback (Correct / Wrong)
+   ----------------------------- */
 .answer-correct {
   color: green;
   font-weight: 500;
@@ -108,7 +140,10 @@
   font-weight: 500;
 }
 
-/* Submit button */
+
+/* -----------------------------
+   Submit Button
+   ----------------------------- */
 .btn {
   margin-top: 0.8rem;
   padding: 0.5rem 1rem;
@@ -125,7 +160,10 @@
   background: #2980b9;
 }
 
-/* Grade summary */
+
+/* -----------------------------
+   Grade Summary Section
+   ----------------------------- */
 .grade-summary {
   margin-top: 1rem;
   border-top: 1px solid #ddd;
@@ -137,7 +175,10 @@
   color: #295474;
 }
 
-/* Error message */
+
+/* -----------------------------
+   Error Message
+   ----------------------------- */
 .error-msg {
   color: red;
   margin-top: 1rem;
