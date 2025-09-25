@@ -39,12 +39,13 @@ function Navbar({ isOpen, toggleNavbar }) {
 
       <nav className={`navbar ${isOpen ? "navbar-open" : ""}`}>
         <ul className="nav-list">
+          
           <li>
             <NavLink
               to={getCourseRoute("", currentCourse.id)}
               onClick={handleLinkClick}
             >
-              Course Home
+              Session
             </NavLink>
           </li>
           <li>
