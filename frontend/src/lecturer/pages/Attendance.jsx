@@ -154,6 +154,23 @@ export default function Attendance() {
       .sort((a, b) => new Date(a.rawDate) - new Date(b.rawDate)); // Sort chronologically
   }, [selectedStudent, rawAttendanceData, course?.id]);
 
+  // Memoized calculation for student attendance percentage
+  const studentAttendanceStats = useMemo(() => {
+    if (!selectedStudent || !studentChartData.length) {
+      return { percentage: 0, present: 0, total: 0 };
+    }
+    
+    const presentCount = studentChartData.filter(record => record.status === 1).length;
+    const totalCount = studentChartData.length;
+    const percentage = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
+    
+    return {
+      percentage,
+      present: presentCount,
+      total: totalCount
+    };
+  }, [selectedStudent, studentChartData]);
+
   // Update student attendance data when chart data changes
   useEffect(() => {
     setStudentAttendanceData(studentChartData);
@@ -320,7 +337,7 @@ export default function Attendance() {
 
         {selectedStudent && studentAttendanceData.length > 0 && (
           <div className="student-chart-section">
-            <h4>{selectedStudent.name}'s Attendance</h4>
+            <h4>{selectedStudent.name}'s Attendance: {studentAttendanceStats.percentage}%</h4>
             <div className="chart-container">
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart

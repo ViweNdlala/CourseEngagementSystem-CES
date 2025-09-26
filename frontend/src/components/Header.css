@@ -9,43 +9,45 @@
   padding: 0 2rem;
   font-size: 1.25rem;
   background: linear-gradient(135deg, #295574 0%, #3a6b8a 50%, #4b7fa0 100%);
-  box-shadow: 
-    0 4px 20px rgba(41, 85, 116, 0.3),
+  box-shadow: 0 4px 20px rgba(41, 85, 116, 0.3),
     0 2px 8px rgba(41, 85, 116, 0.2);
   color: white;
   overflow: hidden;
   z-index: 10;
 }
 .header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.1) 0%, 
-    rgba(255, 255, 255, 0.05) 50%, 
-    transparent 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
   pointer-events: none;
 }
 
 .header::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.3) 50%, 
-    transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
 }
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
   position: relative;
   z-index: 1;
 }
@@ -89,7 +91,7 @@
 }
 
 /* Very small screens - hide course title, show user icon in center */
-@media (max-width: 477px) {
+@media (max-width: 490px) {
   .header {
     grid-template-columns: auto 1fr auto;
   }
@@ -163,12 +165,39 @@
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-radius: 25px;
-  
 }
 
 .user-menu span {
   font-weight: 500;
   white-space: nowrap;
+}
+
+/* Responsive styles for user greeting text */
+.user-menu {
+  font-size: clamp(0.8rem, 2vw, 1rem);
+}
+
+/* Small screens - hide greeting text, keep only icon */
+@media (max-width: 400px) {
+  .user-menu {
+    font-size: 0;
+    padding: 0.5rem;
+  }
+
+  .user-icon-btn {
+    font-size: 2rem;
+  }
+}
+
+/* Very small screens - hide user menu completely */
+@media (max-width: 310px) {
+  .header-right {
+    display: none;
+  }
+
+  .header {
+    grid-template-columns: auto 1fr;
+  }
 }
 .user-icon-btn {
   background: none;
@@ -194,9 +223,7 @@
   border-radius: 12px;
   min-width: 140px;
   display: none;
-    box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.2),
-    0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   z-index: 1000;
 }
