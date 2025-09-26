@@ -24,6 +24,25 @@ Mavix is a full-stack web-based application that is designed to increase student
 - **Vite** - Build tool
 - **Axios** - API calls
 
+## Project Structure
+```
+CourseEngagementSystem-CES/
+├── backend/           # Django REST API
+│   ├── accounts/      # User authentication
+│   ├── courses/       # Course & geofencing
+│   ├── attendance/    # Attendance tracking
+│   ├── points/        # Points & leaderboard
+│   ├── quizzes/       # Quiz management
+│   └── preparation/   # Learning resources
+└── frontend/          # React application
+    ├── src/
+    │   ├── components/    # Shared components
+    │   ├── student/       # Student interface
+    │   ├── lecturer/      # Lecturer interface
+    │   └── contexts/      # Global state management
+    └── public/
+```
+
 ## Requirements
 - Python 3.8+
 - Node.js 16+
@@ -83,6 +102,10 @@ Mavix is a full-stack web-based application that is designed to increase student
    ```
 
 The frontend will be available at `http://localhost:5173`and the backend at`http://localhost:8000`.
+
+## Deployment
+
+The application is deployed and accessible at: **[https://ces-2.cs.uct.ac.za/](https://ces-2.cs.uct.ac.za/)**
 
 ## Credits
 Developed by: 
