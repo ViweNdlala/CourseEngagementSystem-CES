@@ -47,7 +47,6 @@ Mavix is a full-stack web-based application that is designed to increase student
    venv\Scripts\activate
    ```
    On Linux/macOS:
-   On Windows:
    ```bash
    source venv/bin/activate
    ```
