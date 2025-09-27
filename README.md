@@ -15,7 +15,7 @@ Mavix is a full-stack web-based application that is designed to increase student
 ## System Architecture
 
 ### Backend
-- **Django 5.0+** - Web framework
+- **Django** - Web framework
 - **Django REST Framework** - API development
 - **SQLite** - Database
 
@@ -54,10 +54,10 @@ CourseEngagementSystem-CES/
 1. Clone the repo with:
     ```bash
    git clone https://github.com/ViweNdlala/CourseEngagementSystem-CES.git
-   cd CourseEngagementSystem-CES/backend
+   cd CourseEngagementSystem-CES
    ```
 
-2. Create a virtual environment:
+2. Create and acitvate a virtual environment:
    ```bash
    python -m venv venv
    ```
@@ -72,6 +72,7 @@ CourseEngagementSystem-CES/
 
 3. Install dependencies:
    ```bash
+   cd backend
    pip install -r requirements.txt
    ```
 
