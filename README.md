@@ -50,6 +50,18 @@ CourseEngagementSystem-CES/
 
 ## Installation
 
+### Personal Access Token (PAT) Generation and Repo Clone
+1. Go to Settings on your Github profile
+2. Then go to Developer Settings
+3. Click on Personal Access Tokens (classic)
+4. Then click on Generate new token and check the "repo" option
+5. Scroll down then press Generate token
+6. Copy the generated PAT
+7. Then clone the repository with:
+   ```bash
+   git clone https://<username>:<PAT>@github.com/ViweNdlala/CourseEngagementSystem-CES.git
+   ```
+
 ### Backend Setup
 1. Clone the repo with:
     ```bash
@@ -105,8 +117,33 @@ CourseEngagementSystem-CES/
 The frontend will be available at `http://localhost:5173`and the backend at`http://localhost:8000`.
 
 ## Deployment
-
 The application is deployed and accessible at: **[https://ces-2.cs.uct.ac.za/](https://ces-2.cs.uct.ac.za/)**
+
+## Login Details
+### Lecturers
+- email: Maliviwe@gmail.com, password: mali1015
+- email: viwe@gmail.com, password: viwe2025
+
+### Students
+- email: james@gmail.com, password: 2468
+- email: Xabiso@myuct.ac.za, password: Xab2025
+- email: johndoe@gmail.com, password: john1234
+- email: janedoe@gmail.com, password: jane1234
+- email: melo22@gmail.com, password: melo1234
+- email: taytay@gmail.com, password: its_tay_03
+- email: teddy@gmail.com, password: theo567
+- email: vivian47@gmail.com, password: viv123
+- email: karabo13@gmail.comm, password: krabs1010
+- email: kathy23@gmail.com, password: kathy567
+- email: mickey123@gmail.com, password: himothy01
+- email: ahja09@gmail.com, password: ahjCFC007
+- email: johannes99@gmail.com, password: johan65
+- email: hlogo6@gmail.com, password: lehlo900
+- email: ron77@gmail.com, password: ronnyboi
+- email: khwezi8@gmail.com, password: ronnyboi
+- email: ron77@gmail.com, password: shooter47
+- email: rose@gmail.com, password: rr1234
+
 
 ## Credits
 Developed by: 
