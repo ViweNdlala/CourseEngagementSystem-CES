@@ -51,6 +51,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -58,7 +59,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -154,7 +154,7 @@ ASGI_APPLICATION = "backend.asgi.application"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React dev server
     "http://127.0.0.1:3000",
-    "https://mavix-course-engagement-system-ces.vercel.app/"
+    "https://mavix-course-engagement-system-ces.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -165,4 +165,5 @@ CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read for API calls
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://mavix-course-engagement-system-ces.vercel.app",
 ]
