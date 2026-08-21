@@ -62,7 +62,7 @@ function Login() {
 
         try {
             const response = await axios.post(
-                "http://localhost:8000/accounts/login/",
+                "/accounts/login/",
                 {
                     email: email.trim(),
                     password: password, // Plain text; backend handles hashing
