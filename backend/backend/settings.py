@@ -154,6 +154,7 @@ ASGI_APPLICATION = "backend.asgi.application"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React dev server
     "http://127.0.0.1:3000",
+    "https://mavix-course-engagement-system-ces.vercel.app/"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
