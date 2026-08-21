@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
-import axios from "axios";
+import { useUser } from "../../contexts/UserContext";
 import "../styles/Preparation.css";
 /**
  * This component is designed for the following lecturer functionality:
@@ -26,11 +26,13 @@ export default function Preparation() {
   const [editingResource, setEditingResource] = useState(null); // Resource being edited
   const [resourceData, setResourceData] = useState({ title: "", url: "" });
 
+  const {axios} = useUser();
+
   //Load course data if not available in context
   useEffect(() => {
     if (!currentCourse && id) {
       axios
-        .get(`http://localhost:8000/courses/${id}/`)
+        .get(`/courses/${id}/`)
         .then((res) => {
           setCourse(res.data);
           selectCourse(res.data); // Update global course context
@@ -52,7 +54,7 @@ export default function Preparation() {
   const fetchWeeks = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/courses/${id}/preparation/weeks/`
+        `/courses/${id}/preparation/weeks/`
       );
       setWeeks(response.data);
     } catch (error) {
@@ -67,7 +69,7 @@ export default function Preparation() {
   const createWeek = async () => {
     try {
       await axios.post(
-        `http://localhost:8000/courses/${id}/preparation/weeks/`,
+        `/courses/${id}/preparation/weeks/`,
         newWeek
       );
       setNewWeek({ week_number: "", welcome_message: "" });
@@ -86,7 +88,7 @@ export default function Preparation() {
   const addResource = async (weekId, resourceData) => {
     try {
       await axios.post(
-        `http://localhost:8000/courses/${id}/preparation/weeks/${weekId}/resources/`,
+        `/courses/${id}/preparation/weeks/${weekId}/resources/`,
         resourceData
       );
       fetchWeeks(); // Refresh data after successful addition
@@ -103,7 +105,7 @@ export default function Preparation() {
   const updateResource = async (weekId, resourceId, resourceData) => {
     try {
       await axios.put(
-        `http://localhost:8000/courses/${id}/preparation/weeks/${weekId}/resources/${resourceId}/`,
+        `/courses/${id}/preparation/weeks/${weekId}/resources/${resourceId}/`,
         resourceData
       );
       fetchWeeks(); // Refresh data after successful update
@@ -120,7 +122,7 @@ export default function Preparation() {
   const deleteResource = async (weekId, resourceId) => {
     try {
       await axios.delete(
-        `http://localhost:8000/courses/${id}/preparation/weeks/${weekId}/resources/${resourceId}/`
+        `/courses/${id}/preparation/weeks/${weekId}/resources/${resourceId}/`
       );
       fetchWeeks();
     } catch (error) {

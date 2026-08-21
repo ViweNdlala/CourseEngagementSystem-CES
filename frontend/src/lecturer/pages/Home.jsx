@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useUser } from "../../contexts/UserContext";
 import "../../components/Header.css"; 
-import axios from "axios";
+// import axios from "axios";
 
 
 /**
@@ -59,6 +59,8 @@ function LecturerHome() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const {axios} = useUser();
+
   // Load lecturer info 
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -74,7 +76,7 @@ function LecturerHome() {
     setLoading(true);
 
     axios
-      .get("http://localhost:8000/courses/")
+      .get("/courses/")
       .then((res) => {
         const myCourses = res.data.filter((c) => c.lecturer === lecturer.id);
         setCourses(myCourses);

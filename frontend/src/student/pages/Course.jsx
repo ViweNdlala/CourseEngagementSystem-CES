@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
+import { useUser } from "../../contexts/UserContext";
 import "../styles/Course.css";
 
 
@@ -15,6 +15,7 @@ function StudentCourseHome() {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [message, setMessage] = useState("");
+  const {axios } = useUser();
 
   const {
     currentCourse,
@@ -33,7 +34,7 @@ function StudentCourseHome() {
     setStudent(loggedInUser);
 
     axios
-      .get(`http://127.0.0.1:8000/courses/${id}/`)
+      .get(`/courses/${id}/`)
       .then((res) => selectCourse(res.data))
       .catch((err) => console.error(err));
 
@@ -44,7 +45,7 @@ function StudentCourseHome() {
   const fetchActiveSession = async (courseId) => {
     try {
       const resp = await axios.get(
-        `http://127.0.0.1:8000/geofence/sessions/active/?course_id=${courseId}`
+        `/geofence/sessions/active/?course_id=${courseId}`
       );
       if (resp.data.active) setActiveSession(resp.data.session);
       else setActiveSession(null);
@@ -68,7 +69,7 @@ function StudentCourseHome() {
 
         try {
           const resp = await axios.post(
-            "http://127.0.0.1:8000/geofence/check-access/",
+            "/geofence/check-access/",
             {
               course_id: Number(id),
               latitude: lat,

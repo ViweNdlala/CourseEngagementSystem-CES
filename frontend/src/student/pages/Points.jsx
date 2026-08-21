@@ -1,13 +1,11 @@
 // src/pages/StudentPoints.jsx
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
 import { useUser } from "../../contexts/UserContext";
 import { useCourse } from "../../contexts/CourseContext";
 import { useParams } from "react-router-dom";
 import Leaderboard from "../../components/pages/Leaderboard";
 import "../styles/Points.css";
 
-axios.defaults.baseURL = "http://127.0.0.1:8000";
 
 /*
  * This page allows students to:
@@ -18,7 +16,7 @@ axios.defaults.baseURL = "http://127.0.0.1:8000";
   - Check the leaderboard for their course
  */
 function StudentPoints() {
-  const { user } = useUser();
+  const { user, axios } = useUser();
   const { activeSession, withinGeofence, locationChecked } = useCourse();
   const { id: courseId } = useParams();
 

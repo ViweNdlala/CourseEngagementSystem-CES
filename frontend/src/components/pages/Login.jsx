@@ -8,12 +8,10 @@
 
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from "axios";
 import "../styles/Login.css";
 import { useUser } from "../../contexts/UserContext";
 
-// Configure axios to always send credentials (cookies)
-axios.defaults.withCredentials = true;
+
 
 function Login() {
     // Component state for form inputs
@@ -26,8 +24,9 @@ function Login() {
     // Navigation hook
     const navigate = useNavigate();
 
-    // Access login function from UserContext
-    const { login } = useUser();
+    // Access login function, axios, etc from UserContext
+    const { login, axios } = useUser();
+
 
     /**
      * useEffect: Fetch CSRF token on component mount
@@ -35,7 +34,7 @@ function Login() {
     useEffect(() => {
         const getCsrfToken = async () => {
             try {
-                const response = await axios.get("http://localhost:8000/accounts/csrf/");
+                const response = await axios.get("/accounts/csrf/");
                 setCsrfToken(response.data.csrfToken);
 
                 // Attach CSRF token to axios default headers

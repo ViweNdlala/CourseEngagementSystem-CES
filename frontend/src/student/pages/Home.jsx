@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useUser } from "../../contexts/UserContext";
 import "../../components/Header.css";
-import axios from "axios";
+// import axios from "axios";
 
 /**
  * Header component
@@ -51,6 +51,7 @@ function StudentHome() {
   const [loading, setLoading] = useState(true); 
   const navigate = useNavigate();
 
+  const {axios} = useUser();
   // Load student info and all courses
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
@@ -59,7 +60,7 @@ function StudentHome() {
     }
 
     axios
-      .get("http://localhost:8000/courses/")
+      .get("/courses/")
       .then((res) => setAllCourses(res.data))
       .catch((err) => console.log(err));
   }, []);
@@ -69,7 +70,7 @@ function StudentHome() {
     if (student) {
       setLoading(true); 
       axios
-        .get("http://localhost:8000/enrollments/")
+        .get("/enrollments/")
         .then((res) => {
           const myEnrollmentIds = res.data
             .filter((e) => e.student === student.id)

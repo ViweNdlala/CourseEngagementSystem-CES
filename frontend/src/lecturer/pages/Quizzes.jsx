@@ -11,7 +11,6 @@
 
 
 import React, { useEffect, useState, useCallback } from "react";
-import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";
 import "../styles/Quizzes.css";
@@ -30,7 +29,7 @@ import {
 export default function Quizzes() {
   // Context hooks for course and user data
   const { currentCourse } = useCourse();
-  const { user } = useUser();
+  const { user, axios } = useUser();
 
   // State for quizzes data and UI
   const [quizzes, setQuizzes] = useState([]);
@@ -83,7 +82,7 @@ export default function Quizzes() {
     if (!currentCourse) return;
     setLoading(true);
     axios
-      .get(`http://127.0.0.1:8000/quizzes/quizzes/?course=${currentCourse.id}`)
+      .get(`/quizzes/quizzes/?course=${currentCourse.id}`)
       .then((res) => setQuizzes(res.data))
       .catch((err) => console.error("Failed to fetch quizzes:", err))
       .finally(() => setLoading(false));
@@ -94,7 +93,7 @@ export default function Quizzes() {
     if (!currentCourse) return;
     
     axios
-      .get(`http://127.0.0.1:8000/enrollments/`)
+      .get(`/enrollments/`)
       .then((res) => {
         const enrollments = res.data || [];
         // Filter enrollments for current course
@@ -107,7 +106,7 @@ export default function Quizzes() {
         
         // Fetch student details for each enrolled student
         const studentPromises = studentIds.map(studentId => 
-          axios.get(`http://127.0.0.1:8000/`)
+          axios.get(`/`)
             .then(res => {
               const users = res.data || [];
               return users.find(user => user.id === studentId);
@@ -150,7 +149,7 @@ export default function Quizzes() {
       for (const student of enrolledStudents) {
         try {
           const perfRes = await axios.get(
-            `http://127.0.0.1:8000/quizzes/attempts/user-performance/${student.id}/`
+            `/quizzes/attempts/user-performance/${student.id}/`
           );
           
           perfRes.data.forEach((p) => {
@@ -276,7 +275,7 @@ export default function Quizzes() {
       };
 
       const res = await axios.post(
-        "http://127.0.0.1:8000/quizzes/quizzes/",
+        "/quizzes/quizzes/",
         payload
       );
       setQuizzes([...quizzes, res.data]);
@@ -321,7 +320,7 @@ export default function Quizzes() {
     };
     try {
       const res = await axios.patch(
-        `http://127.0.0.1:8000/quizzes/quizzes/${quiz.id}/`,
+        `/quizzes/quizzes/${quiz.id}/`,
         payload
       );
       setQuizzes(quizzes.map((q) => (q.id === quiz.id ? res.data : q)));
@@ -348,7 +347,7 @@ export default function Quizzes() {
 
       try {
         const perfRes = await axios.get(
-          `http://127.0.0.1:8000/quizzes/attempts/user-performance/${studentId}/`
+          `/quizzes/attempts/user-performance/${studentId}/`
         );
         
         // Create a complete performance record with 0% for quizzes not attempted
