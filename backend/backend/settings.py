@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-_++)hdisgy523gf#%yxewz-&q3(_mud4w+%#0rqi-0!lrt$==(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["course-engagement-system-ces.onrender.com", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -64,7 +64,11 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
-    ]
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
 }
 
 
@@ -75,7 +79,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -152,9 +156,9 @@ ASGI_APPLICATION = "backend.asgi.application"
 
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React dev server
-    "http://127.0.0.1:3000",
     "https://mavix-course-engagement-system-ces.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -162,8 +166,18 @@ CORS_ALLOW_CREDENTIALS = True
 # CSRF settings
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read for API calls
+
+# CSRF settings
 CSRF_TRUSTED_ORIGINS = [
+    "https://course-engagement-system-ces.onrender.com",
+    "https://mavix-course-engagement-system-ces.vercel.app",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://mavix-course-engagement-system-ces.vercel.app",
 ]
+
+CSRF_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False
+
+SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True
