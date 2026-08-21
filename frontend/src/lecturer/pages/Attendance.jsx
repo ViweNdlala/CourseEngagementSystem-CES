@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";
-import axios from "axios";
 import {
   LineChart,
   Line,
@@ -24,7 +23,7 @@ export default function Attendance() {
 
   const { id } = useParams();
   const { currentCourse, selectCourse } = useCourse();
-  const { user } = useUser(); // Access user context to get user data
+  const { user, axios } = useUser(); // Access user context to get user data
   const [course, setCourse] = useState(currentCourse); // Current course data
   const [loading, setLoading] = useState(!currentCourse);
   const [dataLoading, setDataLoading] = useState(false);
@@ -41,7 +40,7 @@ export default function Attendance() {
   useEffect(() => {
     if (!currentCourse && id) {
       axios
-        .get(`http://localhost:8000/courses/${id}/`)
+        .get(`/courses/${id}/`)
         .then((res) => {
           setCourse(res.data);
           selectCourse(res.data);
@@ -62,7 +61,7 @@ export default function Attendance() {
        * Groups data by date and calculates statistics
        */
       axios
-        .get(`http://localhost:8000/attendance/lecturer/?id=${user.id}`)
+        .get(`/attendance/lecturer/?id=${user.id}`)
         .then((res) => {
           const attendanceRecords = res.data.attendance_records || [];
           // Filter records for current course only

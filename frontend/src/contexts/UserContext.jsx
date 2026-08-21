@@ -1,6 +1,10 @@
 /* This manages the current course state across the app*/
 
 import React, { createContext, useContext, useState , useEffect } from "react";
+import axios from "axios";
+
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
+axios.defaults.withCredentials = true;
 
 // Create the User Context
 const UserContext = createContext();
@@ -65,6 +69,7 @@ export const UserProvider = ({ children }) => {
     getRoleBasedRoute,
     getCourseRoute,
     isLoggedIn: !!user,
+    axios
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

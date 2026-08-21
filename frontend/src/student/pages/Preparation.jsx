@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
-import axios from "axios";
+import { useUser } from "../../contexts/UserContext";
 import "../../lecturer/styles/Preparation.css";
 
 /**
@@ -15,12 +15,13 @@ export default function Preparation() {
   const [course, setCourse] = useState(currentCourse);
   const [weeks, setWeeks] = useState([]);
   const [loading, setLoading] = useState(!currentCourse);
+  const {axios} = useUser();
 
   //Load course data if not already available in context
   useEffect(() => {
     if (!currentCourse && id) {
       axios
-        .get(`http://localhost:8000/courses/${id}/`)
+        .get(`/courses/${id}/`)
         .then((res) => {
           setCourse(res.data);
           selectCourse(res.data); // Update global course context
@@ -44,7 +45,7 @@ export default function Preparation() {
   const fetchWeeks = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/courses/${id}/preparation/weeks/`
+        `/courses/${id}/preparation/weeks/`
       );
       setWeeks(response.data);
     } catch (error) {

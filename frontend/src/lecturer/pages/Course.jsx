@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
-import axios from "axios";
+import { useUser } from "../../contexts/UserContext";
 import "../styles/Course.css"
 
 // this class Handles lecturer view of a single course:
@@ -14,13 +14,14 @@ function LecturerCourseHome() {
   const [activeSession, setActiveSession] = useState(null); // current geofence session
   const [duration, setDuration] = useState(60); // default duration
   const { selectCourse } = useCourse();
+  const {axios} = useUser();
 
   // Load lecturer, course info, and active session
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("loggedInUser"));
     setLoggedInUser(user);
 
-    axios.get(`http://127.0.0.1:8000/courses/${id}/`)
+    axios.get(`/courses/${id}/`)
       .then(res => {
         setCourse(res.data);
         selectCourse(res.data); 
@@ -35,7 +36,7 @@ function LecturerCourseHome() {
   // Fetch current active geofence session
   const fetchActiveSession = async (courseId) => {
     try {
-      const resp = await axios.get(`http://127.0.0.1:8000/geofence/sessions/active/?course_id=${courseId}`);
+      const resp = await axios.get(`/geofence/sessions/active/?course_id=${courseId}`);
       if (resp.data.active) setActiveSession(resp.data.session);
       else setActiveSession(null);
     } catch (err) { console.error(err); }
@@ -60,7 +61,7 @@ function LecturerCourseHome() {
       const lon = pos.coords.longitude;
 
       try {
-        const resp = await axios.post("http://127.0.0.1:8000/geofence/sessions/", {
+        const resp = await axios.post("/geofence/sessions/", {
           course: id,
           lecturer: loggedInUser.id,
           latitude: lat,

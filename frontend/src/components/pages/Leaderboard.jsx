@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import "../styles/Leaderboard.css";
 import { useUser } from "../../contexts/UserContext"; 
-
-axios.defaults.baseURL = "http://127.0.0.1:8000";
 
 /**
  * Leaderboard component
@@ -14,7 +11,7 @@ axios.defaults.baseURL = "http://127.0.0.1:8000";
  */
 
 function Leaderboard({ courseId }) {
-  const { user } = useUser();
+  const { user, axios } = useUser();
   const [leaders, setLeaders] = useState([]);
   
    /**

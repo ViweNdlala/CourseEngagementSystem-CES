@@ -9,7 +9,6 @@
  */
 
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";  // provides logged-in user data
 import "../styles/Quizzes.css";
@@ -27,7 +26,7 @@ import {
 export default function Quizzes() {
   // Context hooks
   const { currentCourse, activeSession, withinGeofence, locationChecked } = useCourse();
-  const { user } = useUser(); // Logged-in student
+  const { user, axios } = useUser(); // Logged-in student
 
   // State variables
   const [quizzes, setQuizzes] = useState([]);              // List of quizzes
@@ -52,7 +51,7 @@ export default function Quizzes() {
     setLoading(true);
 
     axios
-      .get(`http://127.0.0.1:8000/quizzes/quizzes/?course=${currentCourse.id}`)
+      .get(`/quizzes/quizzes/?course=${currentCourse.id}`)
       .then((res) => {
         setQuizzes(res.data);
         // Map attempts taken per quiz
@@ -72,7 +71,7 @@ export default function Quizzes() {
   const fetchPerformance = () => {
     if (!user?.id) return; // Ensure student exists
     axios
-      .get(`http://127.0.0.1:8000/quizzes/attempts/user-performance/${user.id}/`)
+      .get(`/quizzes/attempts/user-performance/${user.id}/`)
       .then((res) => {
         // Match quiz IDs to performance
         const performanceData = quizzes.map((q) => {
@@ -159,7 +158,7 @@ export default function Quizzes() {
 
     try {
       // Send attempt to backend
-      await axios.post("http://127.0.0.1:8000/quizzes/attempts/", {
+      await axios.post("/quizzes/attempts/", {
         quiz_id: quiz.id,
         user_id: user.id,
         score: correctCount,

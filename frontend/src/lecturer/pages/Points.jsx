@@ -1,11 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
 import { useUser } from "../../contexts/UserContext";
 import { useParams } from "react-router-dom";
 import Leaderboard from "../../components/pages/Leaderboard";
 import "../styles/Points.css";
-
-axios.defaults.baseURL = "http://127.0.0.1:8000";
 
 /*
  This page allows lecturers to manage point requests from students. Features include:
@@ -17,7 +14,7 @@ axios.defaults.baseURL = "http://127.0.0.1:8000";
  */
 
 function LecturerPoints() {
-  const { user } = useUser();
+  const { user, axios } = useUser();
   const { id: courseId } = useParams();
   // State for pending requests + real-time queue notifications
   const [pending, setPending] = useState([]);

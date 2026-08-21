@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useCourse } from "../../contexts/CourseContext";
 import { useUser } from "../../contexts/UserContext";
-import axios from "axios";
 import {
   LineChart,
   Line,
@@ -32,7 +31,7 @@ export default function Attendance() {
     withinGeofence,
     locationChecked,
   } = useCourse();
-  const { user } = useUser();
+  const { user, axios } = useUser();
   const [course, setCourse] = useState(currentCourse);
   const [loading, setLoading] = useState(!currentCourse);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
@@ -56,7 +55,7 @@ export default function Attendance() {
     try {
       // Fetch student's individual attendance records
       const studentResponse = await axios.get(
-        `http://localhost:8000/attendance/student/?id=${user.id}&course_id=${course.id}`
+        `/attendance/student/?id=${user.id}&course_id=${course.id}`
       );
 
       const records = studentResponse.data || [];
@@ -70,7 +69,7 @@ export default function Attendance() {
       try {
         // Fetch course-wide attendance data to get total attendance
         const lecturerResponse = await axios.get(
-          `http://localhost:8000/attendance/lecturer/?id=${course.lecturer}`
+          `/attendance/lecturer/?id=${course.lecturer}`
         );
 
         const allRecords = lecturerResponse.data.attendance_records || [];
@@ -124,7 +123,7 @@ export default function Attendance() {
   useEffect(() => {
     if (!currentCourse && id) {
       axios
-        .get(`http://localhost:8000/courses/${id}/`)
+        .get(`/courses/${id}/`)
         .then((res) => {
           setCourse(res.data);
           selectCourse(res.data);
@@ -139,7 +138,7 @@ export default function Attendance() {
     if (course && user) {
       // First, get the student's enrollment record for this course (required for marking attendance)
       axios
-        .get("http://localhost:8000/enrollments/")
+        .get("/enrollments/")
         .then((res) => {
           const studentEnrollment = res.data.find(
             (enrollment) =>
@@ -196,7 +195,7 @@ export default function Attendance() {
       };
       // Submit attendance record to API
       const response = await axios.post(
-        "http://localhost:8000/attendance/student/",
+        "/attendance/student/",
         attendanceData
       );
 
