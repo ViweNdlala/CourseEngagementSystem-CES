@@ -117,7 +117,7 @@ CourseEngagementSystem-CES/
 The frontend will be available at `http://localhost:5173`and the backend at`http://localhost:8000`.
 
 ## Deployment
-The application is deployed and accessible at: **[https://ces-2.cs.uct.ac.za/](https://ces-2.cs.uct.ac.za/)**
+The application is deployed and accessible at: **[Mavix Course Engagement System](https://mavix-course-engagement-system-ces.vercel.app/)**
 
 ## Login Details
 ### Lecturers
